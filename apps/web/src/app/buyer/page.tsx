@@ -106,7 +106,7 @@ export default function BuyerHome() {
           </Link>
           <Link href="/buyer/prices" className="group rounded-2xl border border-line bg-white p-5 transition-colors hover:border-paddy sm:col-span-2 lg:col-span-1">
             <span className="text-sm font-bold text-sky-d">CHECK PRICES</span>
-            <h2 className="mt-2 text-lg font-bold">Today's palay prices</h2>
+            <h2 className="mt-2 text-lg font-bold">Today&apos;s palay prices</h2>
             <p className="mt-1 text-sm text-sub">Fresh {peso(prices.fresh, 0)}/kg · Dry {peso(prices.dry, 0)}/kg</p>
             <span className="mt-4 inline-flex min-h-8 items-center font-bold text-paddy-d">See price history →</span>
           </Link>

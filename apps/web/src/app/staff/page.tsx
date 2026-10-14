@@ -81,13 +81,13 @@ export default function Dashboard() {
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold">Today's to-do list</h2>
+              <h2 className="text-xl font-bold">Today&apos;s to-do list</h2>
               <p className="text-sm text-sub">Work in the order it arrives. Each item opens the right workspace.</p>
             </div>
             {tasks.length > 0 && <Badge tone="warn">{tasks.length} {tasks.length === 1 ? "task" : "tasks"}</Badge>}
           </div>
           {tasks.length === 0 ? (
-            <Empty>You're all caught up. New bookings and service requests will appear here.</Empty>
+            <Empty>You&apos;re all caught up. New bookings and service requests will appear here.</Empty>
           ) : (
             <ul className="divide-y divide-line">
               {tasks.map((task) => (

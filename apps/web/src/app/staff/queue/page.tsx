@@ -56,7 +56,7 @@ export default function Queue() {
         <div className="flex items-center gap-3"><Button disabled={full || !farmer.trim() || !(Number(kg) > 0)} onClick={submit}>Add booking</Button><span aria-live="polite" className="text-sub">{full ? "This slot is full." : msg}</span></div>
       </Card>
 
-      <h2 className="text-xl font-bold">Today's queue</h2>
+      <h2 className="text-xl font-bold">Today&apos;s queue</h2>
       <TableWrap>
         <thead><tr><th className={th}>Booking</th><th className={th}>Farmer</th><th className={th}>Slot</th><th className={th}>Grain</th><th className={th}>Channel</th><th className={th}>Status</th><th className={th}>Action</th></tr></thead>
         <tbody>

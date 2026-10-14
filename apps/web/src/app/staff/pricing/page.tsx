@@ -19,7 +19,7 @@ export default function Pricing() {
     <>
       <PageHeader title="Pricing and rates" sub={`Current: fresh ${peso(prices.fresh, 0)}, dry ${peso(prices.dry, 0)} per kg (${prices.basis}). Updated ${prices.updated}.`} />
       <Card>
-        <h2 className="text-lg font-bold">Set this week's prices</h2>
+        <h2 className="text-lg font-bold">Set this week&apos;s prices</h2>
         <div className="grid gap-3 md:grid-cols-3">
           <TextField label="Fresh (₱ per kg)" type="number" inputMode="decimal" step="0.5" value={fresh} onChange={(e) => setFresh(e.target.value)} />
           <TextField label="Dry (₱ per kg)" type="number" inputMode="decimal" step="0.5" value={dry} onChange={(e) => setDry(e.target.value)} error={d < f && dry !== "" ? "Dry price should not be below fresh" : undefined} />
