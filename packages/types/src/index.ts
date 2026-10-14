@@ -103,6 +103,13 @@ export const ORDER_FLOW: Record<OrderType, Partial<Record<OrderStatus, OrderStat
   },
 };
 
+// Status an order moves to when an admin accepts it (prices are locked in the same step).
+export const ACCEPT_STATUS: Record<OrderType, OrderStatus> = {
+  BUY_RICE: S.ACCEPTED,
+  SELL_PALAY: S.ACCEPTED,
+  SERVICE: S.SCHEDULED,
+};
+
 export function canTransition(type: OrderType, from: OrderStatus, to: OrderStatus): boolean {
   return ORDER_FLOW[type][from]?.includes(to) ?? false;
 }

@@ -6,7 +6,7 @@ Agree on changes in the group chat before editing this file.
 ## Conventions
 
 - Base URL: `http://localhost:4000` locally (set `NEXT_PUBLIC_API_URL` in `apps/web`)
-- Auth: `Authorization: Bearer <jwt>` on every route except `/auth/*`, `GET /prices`, `GET /rice-types`, `POST /sms/inbound`
+- Auth: `Authorization: Bearer <jwt>` on every route except `POST /auth/register`, `POST /auth/login`, `GET /prices`, `GET /rice-types`, `POST /sms/inbound`. `GET /auth/me` requires a token.
 - Money and kg are decimal **strings** (`"1234.50"`), dates are ISO strings
 - Errors: `{ "statusCode": 400, "message": "plain-language message" }`
 - Order reference shown to users: `IRPC-0042` (`orderRef(id)` in `@irpc/types`)
@@ -17,13 +17,13 @@ Agree on changes in the group chat before editing this file.
 |---|---|---|---|
 | POST | `/auth/register` | `{ name, phone, pin, accountType, language, municipality?, consent: true }` | `{ token, user }` |
 | POST | `/auth/login` | `{ phone, pin }` | `{ token, user }` |
-| GET | `/auth/me` | | `user` |
+| GET | `/auth/me` | (requires token) | `user` |
 
 ## Prices and rice (public)
 
 | Method | Path | Returns |
 |---|---|---|
-| GET | `/prices` | `CurrentPrice[]` (latest row per item) |
+| GET | `/prices` | `CurrentPrice[]`: for each `(item, riceTypeId)` pair, the row with the latest `effectiveAt` that is not in the future. Each rice type gets its own `RICE` price. |
 | GET | `/rice-types` | `RiceTypeDto[]` (active types with stock and current price) |
 
 ## Orders (role: USER)
@@ -43,9 +43,9 @@ Agree on changes in the group chat before editing this file.
 | GET | `/admin/summary` | | counts for the Today page: needs approval, arriving today, in drying, ready for pickup, kg booked today |
 | GET | `/admin/orders?status=&type=` | | `OrderDto[]` |
 | GET | `/admin/orders/:id` | | `OrderDto` with `events` and customer |
-| PATCH | `/admin/orders/:id/accept` | `{ scheduledDate? }` | `OrderDto` (locks prices; reserves stock for BUY_RICE) |
+| PATCH | `/admin/orders/:id/accept` | `{ scheduledDate? }` | `OrderDto`. In one transaction: locks prices, writes an `OrderEvent`, and moves the order out of `PENDING`. BUY_RICE and SELL_PALAY go to `ACCEPTED` (BUY_RICE also reserves stock). **SERVICE goes to `SCHEDULED`**, locking `dryingRate` and `millingRate`; `scheduledDate` is required for SERVICE. Use `ACCEPT_STATUS[type]` from `@irpc/types`. |
 | PATCH | `/admin/orders/:id/reject` | `{ reason }` | `OrderDto` |
-| PATCH | `/admin/orders/:id/status` | `{ status, note? }` | `OrderDto` (must follow `ORDER_FLOW`) |
+| PATCH | `/admin/orders/:id/status` | `{ status, note? }` | `OrderDto` (must follow `ORDER_FLOW`; cannot be used to leave `PENDING`, use accept/reject instead) |
 | POST | `/admin/orders/:id/weigh-in` | `{ wetKg?, dryKg?, riceKg? }` | `OrderDto` (recalculates `finalAmount`, asks farmer to confirm) |
 
 ## Admin only (role: ADMIN)
