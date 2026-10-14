@@ -1,14 +1,17 @@
 # IRPC Digital Platform
 
-Folder skeleton only. No application code, dependencies, database schema, or deployment configuration has been added.
+Digital operating and traceability platform for the Iloilo Rice Processing Complex (IRPC), Pototan, Iloilo. Built for the Iloilo Startup Hackathon 2026.
 
-## Planned tech stack
+## Tech stack
 
-- Frontend: Next.js 16, TypeScript, Tailwind CSS
-- Backend: NestJS REST API with Farmer, Buyer, Miller, and IRPC Admin roles
+- Frontend: Next.js 16, TypeScript, Tailwind CSS (`apps/web`)
+- Backend: NestJS REST API (`apps/api`)
 - Database: PostgreSQL 15 with Prisma ORM and migrations
-- SMS: TextBee gateway for alerts and farmer SMS commands through an Android phone
+- SMS: TextBee gateway through an Android phone
 - Deployment: Docker for the NestJS API and PostgreSQL
+- Shared types: `@irpc/types` (`packages/types`)
+
+Roles: `USER` (farmers and buyers, one dashboard), `PLANT_STAFF`, `ADMIN`, `MAO_STAFF` (later).
 
 ## Repository layout
 
@@ -33,11 +36,51 @@ apps/
       migrations/              PostgreSQL migration history
     test/                      Backend tests
 packages/
-  types/
-    src/                       Shared frontend/backend API types
+  types/                       @irpc/types: roles, order statuses, order flow, API shapes
 infra/
   docker/                      Docker deployment files
-docs/                          Requirements and architecture notes
+docs/
+  API.md                       API contract (draft)
 ```
 
-Empty directories contain `.gitkeep` placeholders so Git retains the structure. The skeleton is not runnable yet.
+## Setup
+
+Requires Node.js 22 (see `.nvmrc`) and npm.
+
+```bash
+npm install
+npm run build:types
+```
+
+This is an npm workspaces monorepo. Install packages for one app with `-w`:
+
+```bash
+npm install some-package -w api
+```
+
+## Creating the apps
+
+`apps/web` and `apps/api` only contain placeholder folders. Remove the placeholders first, then generate each app in place:
+
+```bash
+# Frontend (Lunele)
+rm -rf apps/web && npx create-next-app@latest apps/web --ts --tailwind --app --src-dir --eslint --use-npm
+
+# Backend (RR)
+rm -rf apps/api && npx @nestjs/cli new api --directory apps/api --package-manager npm --skip-git
+```
+
+Then set `"name": "web"` and `"name": "api"` in each app's `package.json`, and add `"@irpc/types": "*"` to both apps' dependencies. In `apps/web/next.config.ts`, nothing extra is needed because `@irpc/types` is compiled to `dist`.
+
+## Using shared types
+
+```ts
+import { OrderStatus, canTransition, orderRef } from '@irpc/types';
+```
+
+Run `npm run build:types` after changing `packages/types/src/index.ts`.
+
+## Branches
+
+- One branch per feature (e.g. `SMS`, `setup/monorepo`), merged into `main` after review
+- Never commit `.env` files; commit `.env.example` with blank values instead

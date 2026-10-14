@@ -1,0 +1,11 @@
+# Local credentials
+.env
+.env.*
+!.env.example
+
+# Generated Node.js files
+node_modules/
+dist/
+.next/
+coverage/
+*.log
