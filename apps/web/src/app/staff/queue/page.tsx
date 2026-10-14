@@ -1,25 +1,29 @@
 "use client";
 
+import { OrderStatus } from "@irpc/types";
+import { serviceLabel, statusLabel } from "@/lib/orders";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { kgf } from "@/lib/format";
-import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, td, th } from "@/components/ui";
-import type { Booking, GrainType } from "@/lib/data";
+import { kgf, dateLabel } from "@/lib/format";
+import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, orderTone, td, th } from "@/components/ui";
+import type { Booking, GrainType } from "@/lib/demo-types";
 
 export default function Queue() {
-  const { slots, bookings, serviceRequests, addBooking, setBookingStatus, setServiceStatus } = useStore();
-  const [slotId, setSlotId] = useState(slots[0].id);
+  const { isMock, slots, bookings, serviceRequests, orderDetails, orderError, addBooking, setBookingStatus, updateOrderStatus } = useStore();
+  const [slotId, setSlotId] = useState(slots[0]?.id ?? "");
   const [farmer, setFarmer] = useState("");
   const [farmerId, setFarmerId] = useState("");
   const [kg, setKg] = useState("");
   const [type, setType] = useState<GrainType>("Fresh");
   const [channel, setChannel] = useState<Booking["channel"]>("Walk-in");
+  const [reasons, setReasons] = useState<Record<number, string>>({});
+  const [dates, setDates] = useState<Record<number, string>>({});
   const [msg, setMsg] = useState("");
   const slot = slots.find((s) => s.id === slotId);
   const full = !!slot && slot.booked >= slot.capacity;
 
-  const submit = () => {
-    const ok = addBooking({ slotId, farmer: farmer.trim(), farmerId: farmerId.trim() || "unregistered", kg: Number(kg), type, channel });
+  const submit = async () => {
+    const ok = await addBooking({ slotId, farmer: farmer.trim(), farmerId: farmerId.trim() || "unregistered", kg: Number(kg), type, channel });
     setMsg(ok ? "Booking added." : "Could not add. Check the slot is not full and all fields are filled.");
     if (ok) { setFarmer(""); setFarmerId(""); setKg(""); }
   };
@@ -27,6 +31,7 @@ export default function Queue() {
   return (
     <>
       <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." />
+      {isMock && <>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {slots.map((s) => {
           const pct = (s.booked / s.capacity) * 100;
@@ -56,7 +61,7 @@ export default function Queue() {
         <div className="flex items-center gap-3"><Button disabled={full || !farmer.trim() || !(Number(kg) > 0)} onClick={submit}>Add booking</Button><span aria-live="polite" className="text-sub">{full ? "This slot is full." : msg}</span></div>
       </Card>
 
-      <h2 className="text-xl font-bold">Today's queue</h2>
+      <h2 className="text-xl font-bold">Today&apos;s queue</h2>
       <TableWrap>
         <thead><tr><th className={th}>Booking</th><th className={th}>Farmer</th><th className={th}>Slot</th><th className={th}>Grain</th><th className={th}>Channel</th><th className={th}>Status</th><th className={th}>Action</th></tr></thead>
         <tbody>
@@ -73,14 +78,25 @@ export default function Queue() {
         </tbody>
       </TableWrap>
 
+      </>}
       <h2 className="text-xl font-bold">Service requests</h2>
+      {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       {serviceRequests.length === 0 && <Empty>No service requests.</Empty>}
       <div className="grid gap-3 md:grid-cols-2">
         {serviceRequests.map((s) => (
           <Card key={s.id}>
-            <div className="flex items-center justify-between"><p className="font-bold">{s.service}: {kgf(s.kg)}</p><Badge tone={s.status === "Approved" ? "ok" : s.status === "Declined" ? "bad" : "warn"}>{s.status}</Badge></div>
-            <p className="text-sm text-sub">{s.buyer}. Preferred {s.date}{s.notes ? `. ${s.notes}` : ""}</p>
-            {s.status === "Pending" && <div className="flex gap-2"><Button className="min-h-11" onClick={() => setServiceStatus(s.id, "Approved")}>Approve</Button><Button variant="danger" className="min-h-11" onClick={() => setServiceStatus(s.id, "Declined")}>Decline</Button></div>}
+            <div className="flex items-center justify-between"><p className="font-bold">{s.serviceType ? serviceLabel[s.serviceType] : "Service"}: {kgf(s.requestedKg)}</p><Badge tone={orderTone(s.status)}>{statusLabel[s.status]}</Badge></div>
+            <p className="text-sm text-sub">{s.ref} · {orderDetails[s.id]?.contactName ?? "Customer"}. Preferred {dateLabel(s.preferredDate)}</p>
+            {s.scheduledDate && <p>Confirmed: {dateLabel(s.scheduledDate)}</p>}
+            {s.rejectReason && <p>{s.rejectReason}</p>}
+            {s.status === OrderStatus.PENDING && <>
+              <TextField label="Confirmed service date" type="date" value={dates[s.id] ?? s.preferredDate.slice(0, 10)} onChange={(e) => setDates({ ...dates, [s.id]: e.target.value })} />
+              <TextField label="Reason for rejection" value={reasons[s.id] ?? ""} onChange={(e) => setReasons({ ...reasons, [s.id]: e.target.value })} />
+              <div className="flex gap-2">
+                <Button className="min-h-11" disabled={!(dates[s.id] ?? s.preferredDate)} onClick={() => updateOrderStatus(s.id, OrderStatus.SCHEDULED, { scheduledDate: dates[s.id] ?? s.preferredDate })}>Accept</Button>
+                <Button variant="danger" className="min-h-11" disabled={!reasons[s.id]?.trim()} onClick={() => updateOrderStatus(s.id, OrderStatus.REJECTED, { reason: reasons[s.id] })}>Reject</Button>
+              </div>
+            </>}
           </Card>
         ))}
       </div>

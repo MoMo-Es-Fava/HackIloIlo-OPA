@@ -1,12 +1,11 @@
 "use client";
 
 import { useStore } from "@/lib/store";
-import { financeDays } from "@/lib/data";
 import { peso, fmt } from "@/lib/format";
 import { Badge, Card, PageHeader, Stat, TableWrap, td, th } from "@/components/ui";
 
 export default function Financials() {
-  const { kwhPrice } = useStore();
+  const { financeDays, kwhPrice } = useStore();
   const rows = financeDays.map((d) => {
     const energyCost = d.kwh * kwhPrice;
     return { ...d, energyCost, profit: d.revenue - d.otherCost - energyCost };

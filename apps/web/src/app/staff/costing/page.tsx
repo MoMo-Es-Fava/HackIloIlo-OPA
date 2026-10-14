@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { energy } from "@/lib/data";
 import { peso, fmt, kgf } from "@/lib/format";
 import { Badge, Bar, Button, Card, PageHeader, Stat, TableWrap, TextField, td, th } from "@/components/ui";
 
 const TARGET = 3.5;
 
 export default function Costing() {
-  const { kwhPrice, setKwhPrice, batches } = useStore();
+  const { energy, kwhPrice, setKwhPrice, batches } = useStore();
   const [p, setP] = useState(String(kwhPrice));
   const kwh = energy.dryers.reduce((a, d) => a + d.kwh, 0) + energy.millKwh;
   const maxD = Math.max(...energy.dryers.map((d) => d.kwh));

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf } from "@/lib/format";
-import type { GrainType } from "@/lib/data";
+import type { GrainType } from "@/lib/demo-types";
 import { Badge, Button, Card, Empty, PageHeader, SelectField, TextField, bookingTone } from "@/components/ui";
 
 export default function Intake() {
@@ -23,8 +23,8 @@ export default function Intake() {
     setId(bookingId); setVerified(false); setResult(null);
     if (b) { setKg(String(b.kg)); setType(b.type); }
   };
-  const submit = () => {
-    const batch = weighIn(id, n, type);
+  const submit = async () => {
+    const batch = await weighIn(id, n, type);
     if (batch) { setResult({ batch, kg: n }); setId(""); setKg(""); setVerified(false); }
   };
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf } from "@/lib/format";
-import { STAGES, type Stage } from "@/lib/data";
+import { STAGES, type Stage } from "@/lib/demo-types";
 import { Badge, Button, PageHeader, TableWrap, stageTone, td, th } from "@/components/ui";
 
 const next = (s: Stage) => (s === "Weighed" ? "Start drying" : s === "Drying" ? "Start milling" : s === "Milling" ? "Move to storage" : null);
