@@ -32,7 +32,7 @@ export async function loadWorkspace(client: typeof api, path: string, authentica
   const base = { ...emptyWorkspace(), ...demo };
   if (path === "/") return base;
   const staff = path.startsWith("/staff");
-  const privatePage = staff || /^\/buyer\/(orders|service|me)(\/|$)/.test(path);
+  const privatePage = staff || /^\/buyer\/(orders|service|sell|me)(\/|$)/.test(path);
   const needsUser = client.useMock || authenticated || privatePage;
   const needsOrders = staff || path === "/buyer" && needsUser || /^\/buyer\/(orders|service)(\/|$)/.test(path);
   const detail = path.match(/^\/(?:buyer\/orders|staff\/sales)\/([^/]+)/);

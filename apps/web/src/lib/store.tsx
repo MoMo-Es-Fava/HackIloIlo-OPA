@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { ACCEPT_STATUS, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType } from "@irpc/types";
+import { ACCEPT_STATUS, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type DeliveryMethod } from "@irpc/types";
 import { api, ApiError, getAuthToken } from "./api";
 import type { DemoActions } from "./demo-types";
 import type { TransitionOptions } from "./mock-orders";
@@ -11,6 +11,9 @@ import { currentPrice } from "./orders";
 import { dateLabel } from "./format";
 import { demoOnlyRoute, emptyWorkspace, loadWorkspace, type Workspace } from "./workspace";
 
+export interface SellPalayInput {
+  condition: PalayCondition; kg: number; variety: string; preferredDate: string; deliveryMethod: DeliveryMethod;
+}
 type AsyncDemoActions = { [K in keyof DemoActions]: (...args: Parameters<DemoActions[K]>) => Promise<ReturnType<DemoActions[K]> | null> };
 interface Store extends Workspace, AsyncDemoActions {
   isMock: boolean; busy: boolean; orderError: string | null;
@@ -18,6 +21,7 @@ interface Store extends Workspace, AsyncDemoActions {
   palayPrices: { fresh: number | null; dry: number | null; basis: PriceBasis; updated: string };
   reserveOffer: (offerId: string, kg: number, preferredDate: string) => Promise<number | null>;
   addServiceRequest: (service: ServiceType, kg: number, preferredDate: string) => Promise<number | null>;
+  sellPalay: (input: SellPalayInput) => Promise<number | null>;
   cancelOrder: (id: number) => Promise<boolean>;
   confirmWeight: (id: number) => Promise<boolean>;
   updateOrderStatus: (id: number, status: OrderStatus, options?: TransitionOptions) => Promise<boolean>;
@@ -106,6 +110,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       const order = await api.createOrder({ type: OrderType.SERVICE, serviceType, requestedKg: String(kg), preferredDate,
         palayCondition: serviceType === ServiceType.MILLING ? PalayCondition.DRY : PalayCondition.FRESH,
         contactName: data.profile.name, contactPhone: data.profile.contact });
+      return order.id;
+    }, null),
+    sellPalay: (input) => run(async () => {
+      const order = await api.createOrder({ type: OrderType.SELL_PALAY, palayCondition: input.condition,
+        requestedKg: String(input.kg), variety: input.variety.trim(), deliveryMethod: input.deliveryMethod,
+        preferredDate: input.preferredDate, contactName: data.profile.name, contactPhone: data.profile.contact });
       return order.id;
     }, null),
     cancelOrder: (id) => run(async () => { await api.cancelOrder(id); return true; }, false),
