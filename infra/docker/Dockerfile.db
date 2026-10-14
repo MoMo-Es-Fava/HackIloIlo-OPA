@@ -1,0 +1,6 @@
+FROM postgres:16-alpine
+
+EXPOSE 5432
+
+# Volume mount point for database persistence
+VOLUME /var/lib/postgresql/data

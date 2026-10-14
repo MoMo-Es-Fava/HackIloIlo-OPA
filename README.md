@@ -80,6 +80,26 @@ npm run build -w web       # production build
 
 The web app uses the root `package-lock.json` and workspace install; do not install it separately. It currently uses sample data in memory. See `apps/web/README.md` for routes and frontend notes.
 
+## Initializing Database
+
+First install docker via: https://www.docker.com/products/docker-desktop/
+
+```bash
+npm install
+docker compose -f infra/docker/docker-compose.yml up -d --build
+docker ps   # confirm irpc_postgres is running
+```
+
+installing db dependencies
+
+```bash
+cd apps/api
+npm install
+
+npx prisma migrate dev --name init
+npx prisma generate
+```
+
 ## Using shared types
 
 ```ts
