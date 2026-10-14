@@ -58,19 +58,25 @@ This is an npm workspaces monorepo. Install packages for one app with `-w`:
 npm install some-package -w api
 ```
 
-## Creating the apps
-
-`apps/web` and `apps/api` only contain placeholder folders. Remove the placeholders first, then generate each app in place:
+## Running the API
 
 ```bash
-# Frontend (Lunele)
-rm -rf apps/web && npx create-next-app@latest apps/web --ts --tailwind --app --src-dir --eslint --use-npm
-
-# Backend (RR)
-rm -rf apps/api && npx @nestjs/cli new api --directory apps/api --package-manager npm --skip-git
+cp apps/api/.env.example apps/api/.env   # then fill in values
+npm run build:types
+npm run dev:api                          # http://localhost:4000/health
 ```
 
-Then set `"name": "web"` and `"name": "api"` in each app's `package.json`, and add `"@irpc/types": "*"` to both apps' dependencies. In `apps/web/next.config.ts`, nothing extra is needed because `@irpc/types` is compiled to `dist`.
+Tests: `npm test -w api` and `npm run test:e2e -w api`.
+
+## Creating the web app
+
+`apps/web` only contains placeholder folders. Remove them first, then generate the app in place:
+
+```bash
+rm -rf apps/web && npx create-next-app@latest apps/web --ts --tailwind --app --src-dir --eslint --use-npm
+```
+
+Then set `"name": "web"` in `apps/web/package.json`, add `"@irpc/types": "*"` to its dependencies, delete `apps/web/package-lock.json`, and run `npm install` from the repo root.
 
 ## Using shared types
 
