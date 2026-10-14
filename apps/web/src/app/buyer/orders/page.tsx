@@ -11,9 +11,9 @@ import { Badge, Button, Empty, PageHeader, orderTone } from "@/components/ui";
 const tabs = ["All", "Active", "Completed", "Rejected", "Cancelled"] as const;
 
 export default function Orders() {
-  const { orders, orderDetails, profile } = useStore();
+  const { orders } = useStore();
   const [tab, setTab] = useState<(typeof tabs)[number]>("All");
-  const mine = orders.filter((o) => orderDetails[o.id]?.ownerId === profile.id);
+  const mine = orders;
   const list = mine.filter((o) => tab === "All" || (tab === "Active" ? ACTIVE_STATUSES.includes(o.status) : o.status === ({ Completed: OrderStatus.COMPLETED, Rejected: OrderStatus.REJECTED, Cancelled: OrderStatus.CANCELLED } as const)[tab]));
   return (
     <div className="flex flex-col gap-6">

@@ -1,8 +1,9 @@
 "use client";
 
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
+import { useStore } from "@/lib/store";
 import { useId } from "react";
-import type { BookingStatus, Stage } from "@/lib/data";
+import type { BookingStatus, Stage } from "@/lib/demo-types";
 import { OrderStatus } from "@irpc/types";
 
 export function cn(...c: (string | false | null | undefined)[]) {
@@ -11,6 +12,7 @@ export function cn(...c: (string | false | null | undefined)[]) {
 
 type BtnVariant = "primary" | "ghost" | "danger";
 export function Button({ variant = "primary", className, ...p }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: BtnVariant }) {
+  const { busy } = useStore();
   const v = {
     primary: "bg-paddy-d text-white shadow-sm hover:bg-paddy",
     ghost: "border border-paddy-d bg-white text-paddy-d hover:bg-mist",
@@ -20,6 +22,7 @@ export function Button({ variant = "primary", className, ...p }: ButtonHTMLAttri
     <button
       type="button"
       {...p}
+      disabled={busy || p.disabled}
       className={cn("inline-flex min-h-12 items-center justify-center rounded-xl px-5 text-base font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50", v, className)}
     />
   );

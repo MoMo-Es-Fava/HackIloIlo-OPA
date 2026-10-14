@@ -9,12 +9,12 @@ import { Badge, Button, Card, Empty, PageHeader, SelectField, TextField, orderTo
 
 
 export default function Service() {
-  const { serviceRequests, orderDetails, orderError, profile, addServiceRequest } = useStore();
+  const { serviceRequests, isMock, orderError, profile, addServiceRequest } = useStore();
   const [service, setService] = useState<ServiceType>(ServiceType.DRYING);
   const [kg, setKg] = useState("");
   const [date, setDate] = useState("");
   const [sentId, setSentId] = useState<string | null>(null);
-  const mine = serviceRequests.filter((s) => orderDetails[s.id]?.ownerId === profile.id);
+  const mine = serviceRequests;
   const kgErr = kg !== "" && !(Number(kg) > 0) ? "Enter a quantity above 0" : undefined;
   const ok = Number(kg) > 0 && Boolean(date);
   return (
@@ -46,7 +46,7 @@ export default function Service() {
             <p className="mt-1 text-sub">Your request is not booked until the IRPC team approves it.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button disabled={!ok} onClick={() => { const id = addServiceRequest(service, Number(kg), date); if (id !== null) { setKg(""); setDate(""); setSentId(orderRef(id)); } }}>
+            <Button disabled={!ok} onClick={async () => { const id = await addServiceRequest(service, Number(kg), date); if (id !== null) { setKg(""); setDate(""); setSentId(orderRef(id)); } }}>
               Send request
             </Button>
             <p className="text-sm text-sub">You can check the request status below.</p>
@@ -55,7 +55,7 @@ export default function Service() {
           {sentId && (
             <div role="status" className="rounded-xl border border-paddy/30 bg-mist p-4">
               <p className="font-bold text-paddy-d">Request {sentId} sent to IRPC</p>
-              <p className="mt-1 text-sm text-sub">The team will review it and update the status here. This demo does not send SMS.</p>
+              <p className="mt-1 text-sm text-sub">The team will review it and update the status here.{isMock ? " This demo does not send SMS." : ""}</p>
             </div>
           )}
         </div>

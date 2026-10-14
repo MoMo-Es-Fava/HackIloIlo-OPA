@@ -22,7 +22,7 @@ export default function Offers() {
   );
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Offers" sub="Rice posted by IRPC. Every offer shows its origin batch." />
+      <PageHeader title="Offers" sub="Rice posted by IRPC. Choose a rice type to see current stock and price." />
       <div className="grid gap-3 md:grid-cols-3">
         <TextField label="Search" placeholder="Offer, batch or grade" value={q} onChange={(e) => setQ(e.target.value)} />
         <SelectField label="Delivery" value={delivery} onChange={(e) => setDelivery(e.target.value)}>
@@ -38,7 +38,7 @@ export default function Offers() {
             <div className="flex items-center justify-between"><p className="text-lg font-bold">{o.grade}</p><Badge tone="info">{o.id}</Badge></div>
             <p className="text-2xl font-bold">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
             <p>{kgf(o.kgAvailable)} available</p>
-            <p className="text-sm text-sub">{o.delivery}. Origin batch {o.batchId}. Posted {o.posted}</p>
+            <p className="text-sm text-sub">{o.delivery}{o.batchId ? `. Origin batch ${o.batchId}` : ""}{o.posted ? `. Posted ${o.posted}` : ""}</p>
           </Link>
         ))}
       </div>

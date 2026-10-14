@@ -14,11 +14,13 @@ export default function Prices() {
         <Stat label="Fresh palay" value={`${peso(prices.fresh, 0)} per kg`} />
         <Stat label="Dry palay" value={`${peso(prices.dry, 0)} per kg`} />
       </div>
+      {history.length > 0 && <>
       <Card><h2 className="text-lg font-bold">Weekly trend</h2><PriceChart data={history} /></Card>
       <TableWrap>
         <thead><tr><th className={th}>Week</th><th className={th}>Fresh</th><th className={th}>Dry</th></tr></thead>
         <tbody>{history.map((h) => <tr key={h.week}><td className={td}>{h.week}</td><td className={td}>{peso(h.fresh, 0)}</td><td className={td}>{peso(h.dry, 0)}</td></tr>)}</tbody>
       </TableWrap>
+      </>}
     </div>
   );
 }

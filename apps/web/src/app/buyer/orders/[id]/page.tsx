@@ -10,8 +10,8 @@ import { Badge, Button, Card, Empty, PageHeader, orderTone } from "@/components/
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
-  const { orders, orderDetails, profile, cancelOrder } = useStore();
-  const o = orders.find((row) => row.id === Number(id) && orderDetails[row.id]?.ownerId === profile.id);
+  const { orders, orderDetails, orderError, cancelOrder } = useStore();
+  const o = orders.find((row) => row.id === Number(id));
   if (!o) return <Empty>Order not found. <Link href="/buyer/orders" className="font-bold underline">Back to orders</Link></Empty>;
   const details = orderDetails[o.id];
   const steps = orderSteps(o);
@@ -40,6 +40,7 @@ export default function OrderDetail() {
           </ol>
         )}
       </Card>
+      {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       <div className="flex flex-wrap gap-3">
         {details?.batchId && <Link href={`/buyer/trace/${details.batchId}`} className="inline-flex min-h-12 items-center rounded-xl border-2 border-paddy-d px-5 font-bold text-paddy-d">Trace batch {details.batchId}</Link>}
         {hasReceipt && <Link href={`/buyer/orders/${o.id}/receipt`} className="inline-flex min-h-12 items-center rounded-xl bg-paddy-d px-5 font-bold text-white">View receipt</Link>}

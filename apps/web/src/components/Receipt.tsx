@@ -10,7 +10,7 @@ import { Button } from "./ui";
 export default function Receipt({ orderId, backHref }: { orderId: string; backHref: string }) {
   const { orders, orderDetails, batches, profile } = useStore();
   const o = orders.find((row) => row.id === Number(orderId));
-  if (!o || (backHref.startsWith("/buyer/") && orderDetails[o.id]?.ownerId !== profile.id)) return <p>Order not found.</p>;
+  if (!o) return <p>Order not found.</p>;
   if (o.type !== OrderType.BUY_RICE || (o.status !== OrderStatus.PAID && o.status !== OrderStatus.COMPLETED)) {
     return <p>A sales receipt is available after payment. <Link href={backHref} className="font-bold underline">Back</Link></p>;
   }
@@ -18,7 +18,7 @@ export default function Receipt({ orderId, backHref }: { orderId: string; backHr
   const b = batches.find((row) => row.id === details?.batchId);
   const rows: [string, string][] = [
     ["Receipt for order", o.ref], ["Date placed", dateLabel(o.createdAt)],
-    ["Sold to", details?.contactName ?? "Customer"], ["Sold by", "Iloilo rice processing complex"],
+    ["Sold to", details?.contactName ?? (backHref.startsWith("/buyer/") ? profile.name : "Customer")], ["Sold by", "Iloilo rice processing complex"],
     ["Batch", details?.batchId ?? "Not assigned"], ["Origin", b ? `${b.farmerId}, validated` : "Not recorded"],
     ["Quantity", kgf(o.requestedKg)], ["Price per kg", o.unitPrice === null ? "Not locked" : peso(o.unitPrice)],
     ["Status", statusLabel[o.status]],

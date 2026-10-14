@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
-import type { Delivery } from "@/lib/data";
+import type { Delivery } from "@/lib/demo-types";
 import { OrderStatus, OrderType } from "@irpc/types";
 import { nextOrderStatus, orderAmount, statusLabel } from "@/lib/orders";
 import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, orderTone, td, th } from "@/components/ui";
 
 export default function Sales() {
-  const { orders, orderDetails, orderError, offers, batches, createOffer, updateOrderStatus } = useStore();
+  const { isMock, orders, orderDetails, orderError, offers, batches, createOffer, updateOrderStatus } = useStore();
   const stored = batches.filter((b) => b.stage === "Stored");
   const [batchId, setBatchId] = useState("");
   const [kg, setKg] = useState("");
@@ -20,8 +20,8 @@ export default function Sales() {
   const b = stored.find((x) => x.id === batchId);
   const kgErr = b && kg !== "" && (!(Number(kg) > 0) || Number(kg) > b.kg) ? `Enter 1 to ${b.kg} kg` : undefined;
 
-  const post = () => {
-    const ok = createOffer(batchId, Number(kg), Number(price), delivery);
+  const post = async () => {
+    const ok = await createOffer(batchId, Number(kg), Number(price), delivery);
     setMsg(ok ? "Offer posted. Buyers can see it now." : "Could not post the offer.");
     if (ok) { setBatchId(""); setKg(""); setPrice(""); }
   };
@@ -29,7 +29,7 @@ export default function Sales() {
   return (
     <>
       <PageHeader title="Sales and receipts" sub="Post offers from stored batches and move orders through payment to delivery." />
-      <Card>
+      {isMock && <Card>
         <h2 className="text-lg font-bold">Post a sale offer</h2>
         <div className="grid gap-3 md:grid-cols-4">
           <SelectField label="Stored batch" value={batchId} onChange={(e) => { setBatchId(e.target.value); const s = stored.find((x) => x.id === e.target.value); setKg(s ? String(s.kg) : ""); }}>
@@ -40,7 +40,7 @@ export default function Sales() {
           <SelectField label="Delivery" value={delivery} onChange={(e) => setDelivery(e.target.value as Delivery)}><option>Pickup at IRPC</option><option>Municipal drop point</option></SelectField>
         </div>
         <div className="flex items-center gap-3"><Button disabled={!b || !!kgErr || !(Number(kg) > 0) || !(Number(price) > 0)} onClick={post}>Post offer</Button><span aria-live="polite" className="text-sub">{msg}</span></div>
-      </Card>
+      </Card>}
 
       <h2 className="text-xl font-bold">Open offers</h2>
       <TableWrap>

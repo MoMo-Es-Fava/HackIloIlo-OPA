@@ -8,6 +8,6 @@
     "rootDir": ".",
     "outDir": ".test-dist"
   },
-  "include": ["tests/**/*.test.ts"],
+  "include": ["tests/**/*.ts"],
   "exclude": ["node_modules", ".next", ".test-dist"]
 }

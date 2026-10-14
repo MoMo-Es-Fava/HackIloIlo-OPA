@@ -3,7 +3,6 @@
 import { OrderStatus, OrderType } from "@irpc/types";
 import { serviceLabel } from "@/lib/orders";
 import Link from "next/link";
-import { energy, PLANT } from "@/lib/data";
 import { useStore } from "@/lib/store";
 import { fmt, peso, dateLabel } from "@/lib/format";
 import { Badge, Card, Empty, PageHeader, Stat } from "@/components/ui";
@@ -11,7 +10,18 @@ import { Badge, Card, Empty, PageHeader, Stat } from "@/components/ui";
 type Task = { id: string; title: string; detail: string; href: string; action: string };
 
 export default function Dashboard() {
-  const { slots, bookings, batches, orders, orderDetails, serviceRequests, kwhPrice, palayPrices: prices } = useStore();
+  const { isMock, energy, plant: PLANT, slots, bookings, batches, orders, orderDetails, serviceRequests, kwhPrice, palayPrices: prices } = useStore();
+  if (!isMock) return (
+    <>
+      <PageHeader title="Today's orders" sub="Current orders received by IRPC." />
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Stat label="Needs approval" value={String(orders.filter((order) => order.status === OrderStatus.PENDING).length)} />
+        <Stat label="Ready for pickup" value={String(orders.filter((order) => order.status === OrderStatus.READY_FOR_PICKUP).length)} />
+      </section>
+      <Link className="min-h-12 font-bold underline" href="/staff/sales">Rice orders</Link>
+      <Link className="min-h-12 font-bold underline" href="/staff/queue">Service requests</Link>
+    </>
+  );
   const todaySlots = slots.filter((slot) => slot.date === "Thu 16 Oct");
   const capacity = todaySlots.reduce((total, slot) => total + slot.capacity, 0);
   const booked = todaySlots.reduce((total, slot) => total + slot.booked, 0);

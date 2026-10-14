@@ -8,12 +8,12 @@ import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, td,
 import { PriceBasis } from "@irpc/types";
 
 export default function Pricing() {
-  const { palayPrices: prices, history, setPrices } = useStore();
-  const [fresh, setFresh] = useState(String(prices.fresh));
-  const [dry, setDry] = useState(String(prices.dry));
+  const { palayPrices: prices, history, orderError, setPrices } = useStore();
+  const [fresh, setFresh] = useState(prices.fresh?.toString() ?? "");
+  const [dry, setDry] = useState(prices.dry?.toString() ?? "");
   const [basis, setBasis] = useState<PriceBasis>(prices.basis);
   const f = Number(fresh), d = Number(dry);
-  const big = Math.abs(f - prices.fresh) > 2 || Math.abs(d - prices.dry) > 2;
+  const big = prices.fresh !== null && Math.abs(f - prices.fresh) > 2 || prices.dry !== null && Math.abs(d - prices.dry) > 2;
   const bad = !(f > 0) || !(d > 0) || d < f;
   return (
     <>
@@ -29,11 +29,14 @@ export default function Pricing() {
         <p className="text-sm text-sub">Publishing updates the buyer price page and is written to the audit log.</p>
         <div><Button disabled={bad} onClick={() => setPrices(f, d, basis)}>Publish prices</Button></div>
       </Card>
+      {orderError && <p role="alert" className="text-clay">{orderError}</p>}
+      {history.length > 0 && <>
       <Card><h2 className="text-lg font-bold">History</h2><PriceChart data={history} /></Card>
       <TableWrap>
         <thead><tr><th className={th}>Week</th><th className={th}>Fresh</th><th className={th}>Dry</th></tr></thead>
         <tbody>{history.map((h) => <tr key={h.week}><td className={td}>{h.week}</td><td className={td}>{peso(h.fresh, 0)}</td><td className={td}>{peso(h.dry, 0)}</td></tr>)}</tbody>
       </TableWrap>
+      </>}
     </>
   );
 }

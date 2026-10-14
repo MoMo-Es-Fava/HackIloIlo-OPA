@@ -6,11 +6,11 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf, dateLabel } from "@/lib/format";
 import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, orderTone, td, th } from "@/components/ui";
-import type { Booking, GrainType } from "@/lib/data";
+import type { Booking, GrainType } from "@/lib/demo-types";
 
 export default function Queue() {
-  const { slots, bookings, serviceRequests, orderDetails, orderError, addBooking, setBookingStatus, updateOrderStatus } = useStore();
-  const [slotId, setSlotId] = useState(slots[0].id);
+  const { isMock, slots, bookings, serviceRequests, orderDetails, orderError, addBooking, setBookingStatus, updateOrderStatus } = useStore();
+  const [slotId, setSlotId] = useState(slots[0]?.id ?? "");
   const [farmer, setFarmer] = useState("");
   const [farmerId, setFarmerId] = useState("");
   const [kg, setKg] = useState("");
@@ -22,8 +22,8 @@ export default function Queue() {
   const slot = slots.find((s) => s.id === slotId);
   const full = !!slot && slot.booked >= slot.capacity;
 
-  const submit = () => {
-    const ok = addBooking({ slotId, farmer: farmer.trim(), farmerId: farmerId.trim() || "unregistered", kg: Number(kg), type, channel });
+  const submit = async () => {
+    const ok = await addBooking({ slotId, farmer: farmer.trim(), farmerId: farmerId.trim() || "unregistered", kg: Number(kg), type, channel });
     setMsg(ok ? "Booking added." : "Could not add. Check the slot is not full and all fields are filled.");
     if (ok) { setFarmer(""); setFarmerId(""); setKg(""); }
   };
@@ -31,6 +31,7 @@ export default function Queue() {
   return (
     <>
       <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." />
+      {isMock && <>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {slots.map((s) => {
           const pct = (s.booked / s.capacity) * 100;
@@ -77,6 +78,7 @@ export default function Queue() {
         </tbody>
       </TableWrap>
 
+      </>}
       <h2 className="text-xl font-bold">Service requests</h2>
       {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       {serviceRequests.length === 0 && <Empty>No service requests.</Empty>}

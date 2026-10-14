@@ -16,8 +16,8 @@ const nextStep: Partial<Record<OrderStatus, string>> = {
 };
 
 export default function BuyerHome() {
-  const { profile, orders, orderDetails, offers, palayPrices: prices } = useStore();
-  const mine = orders.filter((order) => orderDetails[order.id]?.ownerId === profile.id);
+  const { profile, orders, offers, palayPrices: prices } = useStore();
+  const mine = orders;
   const active = mine.filter((order) => ACTIVE_STATUSES.includes(order.status));
   const open = offers.filter((offer) => offer.kgAvailable > 0);
   const featured = open.slice(0, 2);
@@ -29,7 +29,7 @@ export default function BuyerHome() {
         <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
           <div className="max-w-xl">
             <p className="mb-2 text-sm font-bold text-white/70">BUYER WORKSPACE</p>
-            <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Welcome, {profile.name}</h1>
+            <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Welcome{profile.name ? `, ${profile.name}` : ""}</h1>
             <p className="mt-3 text-white/80">Find quality rice, keep an eye on your orders, and see what is happening at IRPC.</p>
           </div>
           <Link href="/buyer/offers" className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-husk px-5 font-bold text-ink transition-colors hover:bg-[#f5d98f] sm:w-auto">

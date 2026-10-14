@@ -22,8 +22,8 @@ export default function OfferDetail() {
   const error = kg === "" ? undefined : !(n > 0) ? "Enter a quantity above 0" : n > offer.kgAvailable ? `Only ${kgf(offer.kgAvailable)} available` : undefined;
   const valid = kg !== "" && !error && Boolean(preferredDate);
 
-  const confirm = () => {
-    const orderId = reserveOffer(offer.id, n, preferredDate);
+  const confirm = async () => {
+    const orderId = await reserveOffer(offer.id, n, preferredDate);
     if (orderId) router.push(`/buyer/orders/${orderId}`);
   };
 
@@ -32,13 +32,13 @@ export default function OfferDetail() {
       <Link href="/buyer/offers" className="min-h-11 py-2 font-bold text-sky-d underline">Back to offers</Link>
       <PageHeader title={`${offer.grade}, ${peso(offer.pricePerKg)} per kg`} sub={`${kgf(offer.kgAvailable)} available. ${offer.delivery}.`} />
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        {offer.batchId && <Card>
           <h2 className="text-lg font-bold">Where it comes from</h2>
           <p>Batch <Link className="font-bold underline" href={`/buyer/trace/${offer.batchId}`}>{offer.batchId}</Link></p>
           {batch && <p>Origin: {batch.farmerId}, validated at intake</p>}
           {batch && <p>Source weight: {kgf(batch.kg)} ({batch.type.toLowerCase()} palay)</p>}
           <Link href={`/buyer/trace/${offer.batchId}`} className="min-h-11 py-2 font-bold text-sky-d underline">View full trace</Link>
-        </Card>
+        </Card>}
         <Card>
           <h2 className="text-lg font-bold">{review ? "Review your reservation" : "Reserve"}</h2>
           {!review ? (

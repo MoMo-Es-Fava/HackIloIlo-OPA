@@ -5,51 +5,9 @@ import {
 } from "@irpc/types";
 import { createMockOrder, transitionMockOrder } from "./mock-orders";
 import { orderSteps } from "./orders";
+import type { Stage, BatchEvent, Batch, AuditEntry, Offer, DemoOrderDetails, Slot, Booking, PricePoint, User, BuyerProfile } from "./demo-types";
 
 export const PLANT = { dryers: 5, millingTonsPerDay: 50, storageTons: 1100 };
-
-export type Stage = "Received" | "Weighed" | "Drying" | "Milling" | "Stored" | "Sold";
-export const STAGES: Stage[] = ["Received", "Weighed", "Drying", "Milling", "Stored", "Sold"];
-export type GrainType = "Fresh" | "Dry";
-export type Delivery = "Pickup at IRPC" | "Municipal drop point";
-
-export interface BatchEvent { stage: Stage; at: string; note: string }
-export interface Batch {
-  id: string; farmer: string; farmerId: string; kg: number; type: GrainType;
-  stage: Stage; dryer: number | null; costPerKg: number;
-  soldTo: string | null; destination: string | null; events: BatchEvent[];
-}
-
-export interface Offer {
-  id: string; riceTypeId: number; batchId: string; grade: string; kgAvailable: number;
-  pricePerKg: number; delivery: Delivery; posted: string;
-}
-
-// Kept outside OrderDto: these fields are absent from the current API contract.
-export interface DemoOrderDetails {
-  ownerId: string;
-  contactName: string;
-  contactPhone: string;
-  offerId?: string;
-  batchId?: string;
-}
-
-export interface Slot { id: string; date: string; time: string; capacity: number; booked: number }
-export type BookingStatus = "Confirmed" | "Checked in" | "Done" | "No show";
-export interface Booking {
-  id: string; slotId: string; farmer: string; farmerId: string;
-  kg: number; type: GrainType; status: BookingStatus; channel: "App" | "Phone" | "Walk-in";
-}
-
-export interface PricePoint { week: string; fresh: number; dry: number }
-
-export interface User { id: string; name: string; role: Role; contact: string; active: boolean }
-
-export interface AuditEntry { id: string; at: string; actor: string; action: string; target: string }
-
-export interface BuyerProfile {
-  id: string; name: string; type: AccountType; contact: string; address: string;
-}
 
 const ev = (stage: Stage, at: string, note: string): BatchEvent => ({ stage, at, note });
 

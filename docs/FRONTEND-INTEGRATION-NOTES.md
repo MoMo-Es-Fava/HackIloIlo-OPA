@@ -1,6 +1,6 @@
 # Frontend integration notes for RR
 
-Step 2 keeps `apps/api`, `packages/types`, and `docs/API.md` unchanged. These notes are a handoff draft to share in the group chat.
+Steps 2–3 keep `apps/api`, `packages/types`, and `docs/API.md` unchanged. These notes are a handoff draft to share in the group chat.
 
 ## Contract questions
 
@@ -15,9 +15,18 @@ Step 2 keeps `apps/api`, `packages/types`, and `docs/API.md` unchanged. These no
 - Prices, rice types, and orders use the shared DTOs directly. `OrderDto` records are not extended with UI fields.
 - Numeric IDs go in URLs; `orderRef(id)` supplies the displayed `IRPC-…` reference. Quantities and amounts stay decimal strings in records; formatting converts them only for display or mock calculations.
 - All service requests now belong to the same order collection as rice purchases and palay sales. The legacy queue and batch fixtures remain independent demo data for screens outside the order contract.
-- The current demo account is `B-07`. A separate `DemoOrderDetails` lookup scopes sample orders to that account and supplies customer/batch details for existing screens. This lookup is not an API response or authentication mechanism. Step 3 should use `/orders/mine` for real customer scoping.
+- The current demo account is `B-07`. The mock provider uses a separate `DemoOrderDetails` lookup to scope sample orders and supply customer/batch details. The real client uses `/orders/mine` and `/orders/:id`; pages no longer filter API orders using demo ownership metadata.
 - New orders are pending with unlocked prices. Mock acceptance reserves rice stock and locks prices; service acceptance requires a date and moves to scheduled. Every transition appends an event. Rejection requires a reason; customer cancellation is limited to pending orders.
 - The existing service-only queue and rice sales table have been adapted to these states. A unified admin inbox, farmer weight-confirmation UI, and the full Sell palay form remain later steps.
+
+## Step 3 API switch
+
+- `NEXT_PUBLIC_USE_MOCK=true` selects the stateful mock provider; `false` selects HTTP at `NEXT_PUBLIC_API_URL`. Restart the frontend after changes. There is no automatic fallback to sample data on HTTP errors.
+- All page data passes through `api.ts` (via the store). The existing demo types and stage vocabulary live in `demo-types.ts`; pages no longer import fixtures.
+- The client supports JSON request bodies, JWT headers for protected routes, a 15-second timeout, plain-language errors, and refreshing reads after mutations. Mutations disable buttons until they finish. A successful write followed by a failed refresh is reported as saved, avoiding an accidental duplicate submission.
+- Real mode supports the agreed price/rice/order routes. Screens for records without agreed endpoints are unavailable, rather than displaying samples as real data. Missing public price history and profile-update routes remain open questions.
+- The current API checkout exposes `/health` only. The frontend `check:api` command verifies that real route independently of mock mode. Other HTTP request shapes are covered by transport tests; real business-flow verification waits for RR's modules and valid user/staff JWTs.
+- `/admin/summary` field names and `/admin/money` calculations still need shared definitions. The summary mock uses local descriptive names; no page depends on that provisional response. Financial summary mocking returns an explicit unsupported error rather than assuming a profit calculation.
 
 ## Verification
 
