@@ -170,7 +170,8 @@ export interface OrderDto {
   type: OrderType;
   status: OrderStatus;
   requestedKg: string;
-  preferredDate: string;
+  preferredDate: string; // date the customer asked for
+  scheduledDate: string | null; // date confirmed by IRPC on acceptance; null while PENDING or if rejected
   riceTypeId: number | null;
   palayCondition: PalayCondition | null;
   variety: string | null;

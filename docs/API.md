@@ -43,7 +43,7 @@ Agree on changes in the group chat before editing this file.
 | GET | `/admin/summary` | | counts for the Today page: needs approval, arriving today, in drying, ready for pickup, kg booked today |
 | GET | `/admin/orders?status=&type=` | | `OrderDto[]` |
 | GET | `/admin/orders/:id` | | `OrderDto` with `events` and customer |
-| PATCH | `/admin/orders/:id/accept` | `{ scheduledDate? }` | `OrderDto`. In one transaction: locks prices, writes an `OrderEvent`, and moves the order out of `PENDING`. BUY_RICE and SELL_PALAY go to `ACCEPTED` (BUY_RICE also reserves stock). **SERVICE goes to `SCHEDULED`**, locking `dryingRate` and `millingRate`; `scheduledDate` is required for SERVICE. Use `ACCEPT_STATUS[type]` from `@irpc/types`. |
+| PATCH | `/admin/orders/:id/accept` | `{ scheduledDate? }` | `OrderDto`. In one transaction: locks prices, writes an `OrderEvent`, and moves the order out of `PENDING`. BUY_RICE and SELL_PALAY go to `ACCEPTED` (BUY_RICE also reserves stock). **SERVICE goes to `SCHEDULED`**, locking `dryingRate` and `millingRate`; `scheduledDate` is required for SERVICE. For every type, the confirmed date is saved to the order's `scheduledDate` (defaults to `preferredDate` when omitted for BUY_RICE and SELL_PALAY) and included in the acceptance SMS. Use `ACCEPT_STATUS[type]` from `@irpc/types`. |
 | PATCH | `/admin/orders/:id/reject` | `{ reason }` | `OrderDto` |
 | PATCH | `/admin/orders/:id/status` | `{ status, note? }` | `OrderDto` (must follow `ORDER_FLOW`; cannot be used to leave `PENDING`, use accept/reject instead) |
 | POST | `/admin/orders/:id/weigh-in` | `{ wetKg?, dryKg?, riceKg? }` | `OrderDto` (recalculates `finalAmount`, asks farmer to confirm) |
