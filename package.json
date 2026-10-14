@@ -1,0 +1,20 @@
+{
+  "name": "irpc-digital-platform",
+  "private": true,
+  "description": "Digital operating and traceability platform for the Iloilo Rice Processing Complex",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build:types": "npm run build -w @irpc/types",
+    "dev:web": "npm run dev -w web",
+    "dev:api": "npm run start:dev -w api",
+    "build": "npm run build --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present"
+  }
+}
