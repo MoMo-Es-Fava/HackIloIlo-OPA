@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { DeliveryMethod, PalayCondition, orderRef } from "@irpc/types";
 import { useStore } from "@/lib/store";
-import { dateLabel, kgf, peso } from "@/lib/format";
-import { Button, Card, PageHeader, TextField, cn } from "@/components/ui";
+import { kgf, peso } from "@/lib/format";
+import { Button, Card, PageHeader, SelectField, TextField, cn } from "@/components/ui";
 
 type Step = "condition" | "details" | "review" | "done";
 const STEPS: { id: Step; label: string }[] = [
@@ -20,13 +20,15 @@ const deliveryLabel: Record<DeliveryMethod, string> = {
   SELF_DELIVER: "I will deliver it to IRPC", IRPC_PICKUP: "IRPC picks it up from me",
 };
 
+const OTHER = "__other__";
+
 export default function SellPalay() {
-  const { palayPrices, profile, isMock, orderError, sellPalay } = useStore();
+  const { palayPrices, riceTypes, profile, isMock, orderError, sellPalay } = useStore();
   const [step, setStep] = useState<Step>("condition");
   const [condition, setCondition] = useState<PalayCondition | null>(null);
   const [kg, setKg] = useState("");
-  const [variety, setVariety] = useState("");
-  const [date, setDate] = useState("");
+  const [varietyChoice, setVarietyChoice] = useState("");
+  const [otherVariety, setOtherVariety] = useState("");
   const [delivery, setDelivery] = useState<DeliveryMethod | null>(null);
   const [ref, setRef] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
@@ -34,23 +36,26 @@ export default function SellPalay() {
   const price = (c: PalayCondition) => c === PalayCondition.FRESH ? palayPrices.fresh : palayPrices.dry;
   const rate = condition ? price(condition) : null;
   const amount = Number(kg);
+  const isOther = varietyChoice === OTHER;
+  const variety = (isOther ? otherVariety : varietyChoice).trim();
   const errors = {
     kg: !kg.trim() ? "Enter how many kg you want to sell" : !(amount > 0) ? "Enter a quantity above 0" : undefined,
-    variety: !variety.trim() ? "Enter the rice variety, for example NSIC Rc222" : undefined,
-    date: !date ? "Choose a date" : undefined,
+    variety: !varietyChoice ? "Choose the rice variety" : isOther && !variety ? "Type the rice variety" : undefined,
     delivery: !delivery ? "Choose how the palay gets to IRPC" : undefined,
   };
-  const detailsOk = !errors.kg && !errors.variety && !errors.date && !errors.delivery;
+  const detailsOk = !errors.kg && !errors.variety && !errors.delivery;
   const payout = rate !== null && amount > 0 ? amount * rate : null;
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   async function submit() {
     if (!condition || !delivery || !detailsOk) return;
-    const id = await sellPalay({ condition, kg: amount, variety, preferredDate: date, deliveryMethod: delivery });
+    // The shared contract requires preferredDate. IRPC sets the real date when it accepts the order.
+    const requestedOn = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+    const id = await sellPalay({ condition, kg: amount, variety, preferredDate: requestedOn, deliveryMethod: delivery });
     if (id !== null) { setRef(orderRef(id)); setStep("done"); }
   }
   function reset() {
-    setStep("condition"); setCondition(null); setKg(""); setVariety(""); setDate(""); setDelivery(null);
+    setStep("condition"); setCondition(null); setKg(""); setVarietyChoice(""); setOtherVariety(""); setDelivery(null);
     setRef(null); setTouched(false);
   }
 
@@ -94,10 +99,16 @@ export default function SellPalay() {
             error={touched ? errors.kg : undefined}
             hint={amount > 0 ? `About ${(amount / 50).toFixed(1)} sacks of 50 kg. The final weight is confirmed at IRPC.` : "Your best estimate. IRPC weighs it on arrival."}
             onChange={(e) => setKg(e.target.value)} />
-          <TextField label="Rice variety" value={variety} placeholder="e.g. NSIC Rc222"
-            error={touched ? errors.variety : undefined} onChange={(e) => setVariety(e.target.value)} />
-          <TextField label="Preferred date" type="date" value={date}
-            error={touched ? errors.date : undefined} onChange={(e) => setDate(e.target.value)} />
+          <SelectField label="Rice variety" value={varietyChoice} onChange={(e) => setVarietyChoice(e.target.value)}>
+            <option value="">Choose a variety</option>
+            {riceTypes.map((rice) => <option key={rice.id} value={rice.name}>{rice.name}</option>)}
+            <option value={OTHER}>Other (type it yourself)</option>
+          </SelectField>
+          {touched && errors.variety && !isOther && <p className="-mt-3 text-sm font-bold text-clay">{errors.variety}</p>}
+          {isOther && (
+            <TextField label="Your rice variety" value={otherVariety} placeholder="e.g. Rc222 or Dinorado"
+              error={touched ? errors.variety : undefined} onChange={(e) => setOtherVariety(e.target.value)} />
+          )}
           <fieldset className="flex flex-col gap-2">
             <legend className="font-bold">How will it reach IRPC?</legend>
             {Object.values(DeliveryMethod).map((d) => (
@@ -124,7 +135,6 @@ export default function SellPalay() {
             <dt className="text-sub">Variety</dt><dd className="text-right font-bold">{variety.trim()}</dd>
             <dt className="text-sub">Quantity</dt><dd className="text-right font-bold">{kgf(amount)}</dd>
             <dt className="text-sub">Price</dt><dd className="text-right font-bold">{rate === null ? "Not available" : `${peso(rate)}/kg`}</dd>
-            <dt className="text-sub">Date</dt><dd className="text-right font-bold">{dateLabel(date)}</dd>
             <dt className="text-sub">Delivery</dt><dd className="text-right font-bold">{deliveryLabel[delivery]}</dd>
             <dt className="text-sub">Seller</dt><dd className="text-right font-bold">{profile.name}</dd>
           </dl>
