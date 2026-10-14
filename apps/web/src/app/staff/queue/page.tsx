@@ -1,19 +1,23 @@
 "use client";
 
+import { OrderStatus } from "@irpc/types";
+import { serviceLabel, statusLabel } from "@/lib/orders";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import { kgf } from "@/lib/format";
-import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, td, th } from "@/components/ui";
+import { kgf, dateLabel } from "@/lib/format";
+import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, orderTone, td, th } from "@/components/ui";
 import type { Booking, GrainType } from "@/lib/data";
 
 export default function Queue() {
-  const { slots, bookings, serviceRequests, addBooking, setBookingStatus, setServiceStatus } = useStore();
+  const { slots, bookings, serviceRequests, orderDetails, orderError, addBooking, setBookingStatus, updateOrderStatus } = useStore();
   const [slotId, setSlotId] = useState(slots[0].id);
   const [farmer, setFarmer] = useState("");
   const [farmerId, setFarmerId] = useState("");
   const [kg, setKg] = useState("");
   const [type, setType] = useState<GrainType>("Fresh");
   const [channel, setChannel] = useState<Booking["channel"]>("Walk-in");
+  const [reasons, setReasons] = useState<Record<number, string>>({});
+  const [dates, setDates] = useState<Record<number, string>>({});
   const [msg, setMsg] = useState("");
   const slot = slots.find((s) => s.id === slotId);
   const full = !!slot && slot.booked >= slot.capacity;
@@ -74,13 +78,23 @@ export default function Queue() {
       </TableWrap>
 
       <h2 className="text-xl font-bold">Service requests</h2>
+      {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       {serviceRequests.length === 0 && <Empty>No service requests.</Empty>}
       <div className="grid gap-3 md:grid-cols-2">
         {serviceRequests.map((s) => (
           <Card key={s.id}>
-            <div className="flex items-center justify-between"><p className="font-bold">{s.service}: {kgf(s.kg)}</p><Badge tone={s.status === "Approved" ? "ok" : s.status === "Declined" ? "bad" : "warn"}>{s.status}</Badge></div>
-            <p className="text-sm text-sub">{s.buyer}. Preferred {s.date}{s.notes ? `. ${s.notes}` : ""}</p>
-            {s.status === "Pending" && <div className="flex gap-2"><Button className="min-h-11" onClick={() => setServiceStatus(s.id, "Approved")}>Approve</Button><Button variant="danger" className="min-h-11" onClick={() => setServiceStatus(s.id, "Declined")}>Decline</Button></div>}
+            <div className="flex items-center justify-between"><p className="font-bold">{s.serviceType ? serviceLabel[s.serviceType] : "Service"}: {kgf(s.requestedKg)}</p><Badge tone={orderTone(s.status)}>{statusLabel[s.status]}</Badge></div>
+            <p className="text-sm text-sub">{s.ref} · {orderDetails[s.id]?.contactName ?? "Customer"}. Preferred {dateLabel(s.preferredDate)}</p>
+            {s.scheduledDate && <p>Confirmed: {dateLabel(s.scheduledDate)}</p>}
+            {s.rejectReason && <p>{s.rejectReason}</p>}
+            {s.status === OrderStatus.PENDING && <>
+              <TextField label="Confirmed service date" type="date" value={dates[s.id] ?? s.preferredDate.slice(0, 10)} onChange={(e) => setDates({ ...dates, [s.id]: e.target.value })} />
+              <TextField label="Reason for rejection" value={reasons[s.id] ?? ""} onChange={(e) => setReasons({ ...reasons, [s.id]: e.target.value })} />
+              <div className="flex gap-2">
+                <Button className="min-h-11" disabled={!(dates[s.id] ?? s.preferredDate)} onClick={() => updateOrderStatus(s.id, OrderStatus.SCHEDULED, { scheduledDate: dates[s.id] ?? s.preferredDate })}>Accept</Button>
+                <Button variant="danger" className="min-h-11" disabled={!reasons[s.id]?.trim()} onClick={() => updateOrderStatus(s.id, OrderStatus.REJECTED, { reason: reasons[s.id] })}>Reject</Button>
+              </div>
+            </>}
           </Card>
         ))}
       </div>

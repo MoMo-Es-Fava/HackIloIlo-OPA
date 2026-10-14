@@ -1,20 +1,24 @@
 "use client";
 
+import { ACTIVE_STATUSES, OrderStatus } from "@irpc/types";
+import { orderAmount, orderTypeLabel, statusLabel } from "@/lib/orders";
 import Link from "next/link";
 import { useStore } from "@/lib/store";
-import { peso, kgf } from "@/lib/format";
+import { peso, kgf, dateLabel } from "@/lib/format";
 import { Badge, Card, PageHeader, Stat, orderTone } from "@/components/ui";
 
-const nextStep: Record<string, string> = {
-  Reserved: "IRPC will confirm the order and prepare payment details.",
-  Paid: "Payment is recorded. IRPC is preparing your rice.",
-  Ready: "Your rice is ready. Check the order for pickup or delivery details.",
+const nextStep: Partial<Record<OrderStatus, string>> = {
+  PENDING: "IRPC will review your request and confirm availability.",
+  ACCEPTED: "IRPC has confirmed your order and locked its price.",
+  SCHEDULED: "Your service is scheduled. Check the confirmed date.",
+  READY_FOR_PICKUP: "Your order is ready for pickup.",
+  WEIGHED: "IRPC has recorded your weight. Open the order for details.",
 };
 
 export default function BuyerHome() {
-  const { profile, orders, offers, prices } = useStore();
-  const mine = orders.filter((order) => order.buyerId === profile.id);
-  const active = mine.filter((order) => order.status !== "Delivered" && order.status !== "Cancelled");
+  const { profile, orders, orderDetails, offers, palayPrices: prices } = useStore();
+  const mine = orders.filter((order) => orderDetails[order.id]?.ownerId === profile.id);
+  const active = mine.filter((order) => ACTIVE_STATUSES.includes(order.status));
   const open = offers.filter((offer) => offer.kgAvailable > 0);
   const featured = open.slice(0, 2);
 
@@ -69,16 +73,16 @@ export default function BuyerHome() {
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-sm font-bold text-sub">{order.id}</p>
-                    <p className="mt-1 text-lg font-bold">{kgf(order.kg)} of rice</p>
-                    <p className="text-sm text-sub">Placed {order.createdAt}</p>
+                    <p className="text-sm font-bold text-sub">{order.ref}</p>
+                    <p className="mt-1 text-lg font-bold">{orderTypeLabel[order.type]} · {kgf(order.requestedKg)}</p>
+                    <p className="text-sm text-sub">Placed {dateLabel(order.createdAt)}</p>
                   </div>
-                  <Badge tone={orderTone(order.status)}>{order.status}</Badge>
+                  <Badge tone={orderTone(order.status)}>{statusLabel[order.status]}</Badge>
                 </div>
                 <div className="flex items-end justify-between gap-4 border-t border-line pt-4">
                   <div>
-                    <p className="text-sm text-sub">Order total</p>
-                    <p className="font-bold">{peso(order.kg * order.pricePerKg)}</p>
+                    <p className="text-sm text-sub">{order.finalAmount === null ? "Estimated amount" : "Final amount"}</p>
+                    <p className="font-bold">{peso(orderAmount(order))}</p>
                     <p className="mt-1 max-w-md text-sm text-sub">{nextStep[order.status] ?? "Open this order to see the latest update."}</p>
                   </div>
                   <span className="shrink-0 font-bold text-paddy-d group-hover:underline">Details →</span>
@@ -100,7 +104,7 @@ export default function BuyerHome() {
           </Link>
           <Link href="/buyer/service" className="group rounded-2xl border border-line bg-white p-5 transition-colors hover:border-paddy">
             <span className="text-sm font-bold text-sky-d">BOOK A SERVICE</span>
-            <h2 className="mt-2 text-lg font-bold">Drying, milling, or storage</h2>
+            <h2 className="mt-2 text-lg font-bold">Drying and milling</h2>
             <p className="mt-1 text-sm text-sub">Send a request to the IRPC team for review.</p>
             <span className="mt-4 inline-flex min-h-8 items-center font-bold text-paddy-d">Request a service →</span>
           </Link>

@@ -2,7 +2,8 @@
 
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 import { useId } from "react";
-import type { BookingStatus, OrderStatus, Stage } from "@/lib/data";
+import type { BookingStatus, Stage } from "@/lib/data";
+import { OrderStatus } from "@irpc/types";
 
 export function cn(...c: (string | false | null | undefined)[]) {
   return c.filter(Boolean).join(" ");
@@ -43,7 +44,11 @@ export function Badge({ tone = "neutral", children }: { tone?: Tone; children: R
   );
 }
 
-export const orderTone = (s: OrderStatus): Tone => ({ Reserved: "warn", Paid: "info", Ready: "info", Delivered: "ok", Cancelled: "bad" }[s] as Tone);
+export const orderTone = (s: OrderStatus): Tone => {
+  if (s === OrderStatus.REJECTED || s === OrderStatus.CANCELLED) return "bad";
+  if (s === OrderStatus.COMPLETED || s === OrderStatus.PAID) return "ok";
+  return s === OrderStatus.PENDING ? "warn" : "info";
+};
 export const stageTone = (s: Stage): Tone => (s === "Sold" ? "ok" : s === "Stored" ? "info" : s === "Received" || s === "Weighed" ? "neutral" : "warn");
 export const bookingTone = (s: BookingStatus): Tone => ({ Confirmed: "info", "Checked in": "warn", Done: "ok", "No show": "bad" }[s] as Tone);
 

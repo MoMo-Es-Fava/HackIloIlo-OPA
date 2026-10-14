@@ -2,15 +2,15 @@
 
 import { useState } from "react";
 import { useStore } from "@/lib/store";
-import type { Role } from "@/lib/data";
+import { Role } from "@irpc/types";
 import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, td, th } from "@/components/ui";
 
-const roles: Role[] = ["Farmer", "Cooperative", "Retailer", "Trader", "Household", "Staff", "Admin"];
+const roles = Object.values(Role);
 
 export default function Users() {
   const { users, addUser, toggleUser } = useStore();
   const [name, setName] = useState("");
-  const [role, setRole] = useState<Role>("Farmer");
+  const [role, setRole] = useState<Role>(Role.USER);
   const [contact, setContact] = useState("");
   return (
     <>

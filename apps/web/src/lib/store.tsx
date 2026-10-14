@@ -1,35 +1,42 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useRef, useState, type ReactNode } from "react";
+import {
+  OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType,
+  type CurrentPrice, type OrderDto, type RiceTypeDto, type Role,
+} from "@irpc/types";
+import { createMockOrder, transitionMockOrder, type TransitionOptions } from "./mock-orders";
+import { currentPrice } from "./orders";
+import { dateLabel } from "./format";
 import {
   seedAudit, seedBatches, seedBookings, seedHistory, seedKwhPrice, seedOffers, seedOrders,
-  seedPrices, seedProfile, seedServiceRequests, seedSlots, seedUsers, STAGES,
+  seedPrices, seedProfile, seedRiceTypes, seedOrderDetails, seedSlots, seedUsers, STAGES,
   type AuditEntry, type Batch, type Booking, type BookingStatus, type BuyerProfile, type Delivery,
-  type GrainType, type Offer, type Order, type OrderStatus, type PricePoint, type PriceRate,
-  type Role, type ServiceKind, type ServiceRequest, type Slot, type User,
+  type GrainType, type Offer, type PricePoint, type DemoOrderDetails, type Slot, type User,
 } from "./data";
 
 const stamp = () => new Date().toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short" });
 const STAFF = "Plant operator";
 
 interface Store {
-  batches: Batch[]; offers: Offer[]; orders: Order[]; slots: Slot[]; bookings: Booking[];
-  prices: PriceRate; history: PricePoint[]; users: User[]; audit: AuditEntry[];
-  serviceRequests: ServiceRequest[]; profile: BuyerProfile; kwhPrice: number;
-  reserveOffer: (offerId: string, kg: number) => string | null;
-  cancelOrder: (id: string) => void;
-  updateOrderStatus: (id: string, status: OrderStatus) => void;
+  batches: Batch[]; offers: Offer[]; orders: OrderDto[]; slots: Slot[]; bookings: Booking[];
+  prices: CurrentPrice[]; riceTypes: RiceTypeDto[];
+  palayPrices: { fresh: number; dry: number; basis: PriceBasis; updated: string };
+  orderDetails: Record<number, DemoOrderDetails>; orderError: string | null; history: PricePoint[]; users: User[]; audit: AuditEntry[];
+  serviceRequests: OrderDto[]; profile: BuyerProfile; kwhPrice: number;
+  reserveOffer: (offerId: string, kg: number, preferredDate: string) => number | null;
+  cancelOrder: (id: number) => void;
+  updateOrderStatus: (id: number, status: OrderStatus, options?: TransitionOptions) => void;
   createOffer: (batchId: string, kg: number, pricePerKg: number, delivery: Delivery) => boolean;
   weighIn: (bookingId: string, kg: number, type: GrainType) => string | null;
   addBooking: (b: { slotId: string; farmer: string; farmerId: string; kg: number; type: GrainType; channel: Booking["channel"] }) => boolean;
   setBookingStatus: (id: string, status: BookingStatus) => void;
   advanceBatch: (id: string) => void;
-  setPrices: (fresh: number, dry: number, basis: PriceRate["basis"]) => void;
+  setPrices: (fresh: number, dry: number, basis: PriceBasis) => void;
   setKwhPrice: (p: number) => void;
   addUser: (name: string, role: Role, contact: string) => void;
   toggleUser: (id: string) => void;
-  addServiceRequest: (service: ServiceKind, kg: number, date: string, notes: string) => string;
-  setServiceStatus: (id: string, status: ServiceRequest["status"]) => void;
+  addServiceRequest: (service: ServiceType, kg: number, date: string) => number | null;
   updateProfile: (p: BuyerProfile) => void;
 }
 
@@ -43,61 +50,85 @@ export function useStore(): Store {
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [batches, setBatches] = useState(seedBatches);
-  const [offers, setOffers] = useState(seedOffers);
-  const [orders, setOrders] = useState(seedOrders);
+  const [offerRecords, setOffers] = useState(seedOffers);
+  const [orderState, setOrderState] = useState({
+    orders: seedOrders, riceTypes: seedRiceTypes, orderDetails: seedOrderDetails, error: null as string | null,
+  });
+  const { orders, riceTypes, orderDetails, error: orderError } = orderState;
+  const nextId = useRef(Math.max(...seedOrders.map((order) => order.id)) + 1);
+  const offers = offerRecords.map((offer) => {
+    const rice = riceTypes.find((row) => row.id === offer.riceTypeId);
+    return { ...offer, kgAvailable: Number(rice?.stockKg ?? 0), pricePerKg: Number(rice?.pricePerKg ?? 0) };
+  });
   const [slots, setSlots] = useState(seedSlots);
   const [bookings, setBookings] = useState(seedBookings);
   const [prices, setPricesState] = useState(seedPrices);
   const [history, setHistory] = useState(seedHistory);
   const [users, setUsers] = useState(seedUsers);
   const [audit, setAudit] = useState(seedAudit);
-  const [serviceRequests, setServiceRequests] = useState(seedServiceRequests);
+  const serviceRequests = orders.filter((order) => order.type === OrderType.SERVICE);
   const [profile, setProfile] = useState(seedProfile);
   const [kwhPrice, setKwh] = useState(seedKwhPrice);
 
   const log = (actor: string, action: string, target: string) =>
     setAudit((a) => [{ id: `AU-${Date.now()}-${a.length}`, at: stamp(), actor, action, target }, ...a]);
 
-  const reserveOffer: Store["reserveOffer"] = (offerId, kg) => {
-    const offer = offers.find((o) => o.id === offerId);
-    if (!offer || !(kg > 0) || kg > offer.kgAvailable) return null;
-    const id = `OR-${1001 + orders.length}`;
-    setOrders((o) => [{ id, offerId, batchId: offer.batchId, buyerId: profile.id, buyer: profile.name, kg, pricePerKg: offer.pricePerKg, status: "Reserved", createdAt: stamp() }, ...o]);
-    setOffers((os) => os.map((x) => (x.id === offerId ? { ...x, kgAvailable: x.kgAvailable - kg } : x)));
-    log(profile.name, "Reserved offer", `${offerId} (${kg} kg)`);
-    return id;
+  const rememberOrder = (order: OrderDto, details: DemoOrderDetails) => {
+    setOrderState((state) => ({ ...state, orders: [order, ...state.orders],
+      orderDetails: { ...state.orderDetails, [order.id]: details }, error: null }));
+  };
+
+  const reserveOffer: Store["reserveOffer"] = (offerId, kg, preferredDate) => {
+    const offer = offers.find((row) => row.id === offerId);
+    if (!offer) return null;
+    try {
+      const order = createMockOrder({
+        type: OrderType.BUY_RICE, riceTypeId: offer.riceTypeId, requestedKg: String(kg), preferredDate,
+        contactName: profile.name, contactPhone: profile.contact,
+      }, nextId.current++, prices, riceTypes);
+      rememberOrder(order, { ownerId: profile.id, contactName: profile.name, contactPhone: profile.contact,
+        offerId, batchId: offer.batchId });
+      log(profile.name, "Submitted rice order", order.ref);
+      return order.id;
+    } catch (error) {
+      setOrderState((state) => ({ ...state, error: (error as Error).message }));
+      return null;
+    }
+  };
+
+  const updateOrderStatus: Store["updateOrderStatus"] = (id, status, options) => {
+    setOrderState((state) => {
+      const order = state.orders.find((row) => row.id === id);
+      if (!order) return state;
+      try {
+        const result = transitionMockOrder(order, status, prices, state.riceTypes, options);
+        return { ...state, orders: state.orders.map((row) => row.id === id ? result.order : row),
+          riceTypes: result.riceTypes, error: null };
+      } catch (error) {
+        return { ...state, error: (error as Error).message };
+      }
+    });
   };
 
   const cancelOrder: Store["cancelOrder"] = (id) => {
-    const order = orders.find((o) => o.id === id);
-    if (!order || order.status !== "Reserved") return;
-    setOrders((os) => os.map((o) => (o.id === id ? { ...o, status: "Cancelled" } : o)));
-    setOffers((os) => os.map((x) => (x.id === order.offerId ? { ...x, kgAvailable: x.kgAvailable + order.kg } : x)));
-    log(order.buyer, "Cancelled order", id);
-  };
-
-  const updateOrderStatus: Store["updateOrderStatus"] = (id, status) => {
-    const order = orders.find((o) => o.id === id);
-    if (!order) return;
-    setOrders((os) => os.map((o) => (o.id === id ? { ...o, status } : o)));
-    if (status === "Delivered") {
-      const delivery = offers.find((o) => o.id === order.offerId)?.delivery ?? "Pickup at IRPC";
-      setBatches((bs) =>
-        bs.map((b) =>
-          b.id === order.batchId
-            ? { ...b, stage: "Sold", soldTo: order.buyer, destination: delivery, events: [...b.events, { stage: "Sold", at: stamp(), note: `Sold to ${order.buyer}` }] }
-            : b,
-        ),
-      );
+    const order = orders.find((row) => row.id === id);
+    if (order?.status === OrderStatus.PENDING && orderDetails[id]?.ownerId === profile.id) {
+      updateOrderStatus(id, OrderStatus.CANCELLED);
     }
-    log(STAFF, `Order marked ${status.toLowerCase()}`, id);
   };
 
   const createOffer: Store["createOffer"] = (batchId, kg, pricePerKg, delivery) => {
     const batch = batches.find((b) => b.id === batchId);
-    if (!batch || batch.stage !== "Stored" || !(kg > 0) || !(pricePerKg > 0)) return false;
+    if (!batch || batch.stage !== "Stored" || !Number.isFinite(kg) || kg <= 0 || kg > batch.kg || !Number.isFinite(pricePerKg) || pricePerKg <= 0) return false;
     const id = `OF-${201 + offers.length}`;
-    setOffers((o) => [{ id, batchId, grade: "Well-milled", kgAvailable: kg, pricePerKg, delivery, posted: stamp() }, ...o]);
+    const riceTypeId = Math.max(0, ...riceTypes.map((row) => row.id)) + 1;
+    setOrderState((state) => ({ ...state, riceTypes: [...state.riceTypes, {
+      id: riceTypeId, name: `Well-milled rice (${batchId})`, description: `Rice from batch ${batchId}`,
+      stockKg: kg.toFixed(2), pricePerKg: pricePerKg.toFixed(2),
+    }] }));
+    setPricesState((rows) => [...rows, { item: PriceItem.RICE, riceTypeId, pricePerKg: pricePerKg.toFixed(2),
+      basis: PriceBasis.MARKET, effectiveAt: new Date().toISOString() }]);
+    setOffers((o) => [{ id, riceTypeId, batchId, grade: "Well-milled", kgAvailable: kg, pricePerKg, delivery, posted: stamp() }, ...o]);
     log(STAFF, "Posted sale offer", `${id} from ${batchId}`);
     return true;
   };
@@ -148,7 +179,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const setPrices: Store["setPrices"] = (fresh, dry, basis) => {
     setHistory((h) => [...h.slice(-5), { week: "This week", fresh, dry }]);
-    setPricesState({ fresh, dry, basis, updated: stamp() });
+    const effectiveAt = new Date().toISOString();
+    setPricesState((rows) => rows.map((row) => row.item === PriceItem.PALAY_FRESH || row.item === PriceItem.PALAY_DRY
+      ? { ...row, pricePerKg: (row.item === PriceItem.PALAY_FRESH ? fresh : dry).toFixed(2), basis, effectiveAt } : row));
     log(STAFF, "Updated prices", `Fresh ${fresh}, Dry ${dry} (${basis})`);
   };
 
@@ -164,23 +197,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     log("System admin", u.active ? "Deactivated user" : "Activated user", u.name);
   };
 
-  const addServiceRequest: Store["addServiceRequest"] = (service, kg, date, notes) => {
-    const id = `SV-${String(serviceRequests.length + 1).padStart(2, "0")}`;
-    setServiceRequests((s) => [{ id, buyerId: profile.id, buyer: profile.name, service, kg, date, notes, status: "Pending" }, ...s]);
-    log(profile.name, "Requested service", `${service}, ${kg} kg`);
-    return id;
+  const addServiceRequest: Store["addServiceRequest"] = (serviceType, kg, preferredDate) => {
+    try {
+      const order = createMockOrder({ type: OrderType.SERVICE, serviceType, requestedKg: String(kg), preferredDate,
+        palayCondition: serviceType === ServiceType.MILLING ? PalayCondition.DRY : PalayCondition.FRESH,
+        contactName: profile.name, contactPhone: profile.contact,
+      }, nextId.current++, prices, riceTypes);
+      rememberOrder(order, { ownerId: profile.id, contactName: profile.name, contactPhone: profile.contact });
+      log(profile.name, "Requested service", order.ref);
+      return order.id;
+    } catch (error) {
+      setOrderState((state) => ({ ...state, error: (error as Error).message }));
+      return null;
+    }
   };
 
-  const setServiceStatus: Store["setServiceStatus"] = (id, status) => {
-    setServiceRequests((s) => s.map((x) => (x.id === id ? { ...x, status } : x)));
-    log(STAFF, `Service request ${status.toLowerCase()}`, id);
-  };
+  const fresh = currentPrice(prices, PriceItem.PALAY_FRESH)!;
+  const dry = currentPrice(prices, PriceItem.PALAY_DRY)!;
+  const palayPrices = { fresh: Number(fresh.pricePerKg), dry: Number(dry.pricePerKg),
+    basis: fresh.basis, updated: dateLabel(fresh.effectiveAt) };
 
   const value: Store = {
-    batches, offers, orders, slots, bookings, prices, history, users, audit, serviceRequests, profile, kwhPrice,
+    batches, offers, orders, slots, bookings, prices, riceTypes, palayPrices, orderDetails, orderError, history, users, audit, serviceRequests, profile, kwhPrice,
     reserveOffer, cancelOrder, updateOrderStatus, createOffer, weighIn, addBooking, setBookingStatus, advanceBatch,
     setPrices, setKwhPrice: (p) => { setKwh(p); log(STAFF, "Updated electricity price", `₱${p}/kWh`); },
-    addUser, toggleUser, addServiceRequest, setServiceStatus,
+    addUser, toggleUser, addServiceRequest,
     updateProfile: (p) => { setProfile(p); log(p.name, "Updated profile", p.id); },
   };
 

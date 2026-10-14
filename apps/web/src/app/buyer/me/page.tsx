@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
+import { AccountType } from "@irpc/types";
 import type { BuyerProfile } from "@/lib/data";
 import { Badge, Button, Card, PageHeader, SelectField, TextField } from "@/components/ui";
 
@@ -18,7 +19,7 @@ export default function Me() {
       <Card>
         <TextField label="Business name" value={f.name} error={nameErr} onChange={(e) => set("name", e.target.value)} />
         <SelectField label="Type" value={f.type} onChange={(e) => set("type", e.target.value as BuyerProfile["type"])}>
-          <option>Retailer</option><option>Trader</option><option>Cooperative</option>
+          {Object.values(AccountType).map((type) => <option key={type} value={type}>{type.replaceAll("_", " ")}</option>)}
         </SelectField>
         <TextField label="Contact number" inputMode="tel" value={f.contact} onChange={(e) => set("contact", e.target.value)} />
         <TextField label="Address" value={f.address} onChange={(e) => set("address", e.target.value)} />

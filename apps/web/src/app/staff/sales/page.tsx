@@ -4,11 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
-import { ORDER_FLOW, type Delivery } from "@/lib/data";
+import type { Delivery } from "@/lib/data";
+import { OrderStatus, OrderType } from "@irpc/types";
+import { nextOrderStatus, orderAmount, statusLabel } from "@/lib/orders";
 import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, orderTone, td, th } from "@/components/ui";
 
 export default function Sales() {
-  const { orders, offers, batches, createOffer, updateOrderStatus } = useStore();
+  const { orders, orderDetails, orderError, offers, batches, createOffer, updateOrderStatus } = useStore();
   const stored = batches.filter((b) => b.stage === "Stored");
   const [batchId, setBatchId] = useState("");
   const [kg, setKg] = useState("");
@@ -46,18 +48,18 @@ export default function Sales() {
         <tbody>{offers.map((o) => <tr key={o.id}><td className={td}>{o.id}</td><td className={td}>{o.batchId}</td><td className={td}>{kgf(o.kgAvailable)}</td><td className={td}>{peso(o.pricePerKg)}</td><td className={td}>{o.delivery}</td></tr>)}</tbody>
       </TableWrap>
 
-      <h2 className="text-xl font-bold">Orders</h2>
+      <h2 className="text-xl font-bold">Rice orders</h2>
+      {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       <TableWrap>
         <thead><tr><th className={th}>Order</th><th className={th}>Buyer</th><th className={th}>Quantity</th><th className={th}>Total</th><th className={th}>Status</th><th className={th}>Action</th></tr></thead>
         <tbody>
-          {orders.map((o) => {
-            const i = ORDER_FLOW.indexOf(o.status);
-            const nextS = i >= 0 && i < ORDER_FLOW.length - 1 ? ORDER_FLOW[i + 1] : null;
+          {orders.filter((o) => o.type === OrderType.BUY_RICE).map((o) => {
+            const nextS = nextOrderStatus(o);
             return (
               <tr key={o.id}>
-                <td className={td}><Link className="font-bold underline" href={`/staff/sales/${o.id}`}>{o.id}</Link></td><td className={td}>{o.buyer}</td><td className={td}>{kgf(o.kg)}</td><td className={td}>{peso(o.kg * o.pricePerKg)}</td>
-                <td className={td}><Badge tone={orderTone(o.status)}>{o.status}</Badge></td>
-                <td className={td}>{nextS ? <Button className="min-h-11" onClick={() => updateOrderStatus(o.id, nextS)}>Mark {nextS.toLowerCase()}</Button> : <span className="text-sub">{o.status === "Delivered" ? "Complete" : "Closed"}</span>}</td>
+                <td className={td}><Link className="font-bold underline" href={`/staff/sales/${o.id}`}>{o.ref}</Link></td><td className={td}>{orderDetails[o.id]?.contactName ?? "Customer"}</td><td className={td}>{kgf(o.requestedKg)}</td><td className={td}>{peso(orderAmount(o))}</td>
+                <td className={td}><Badge tone={orderTone(o.status)}>{statusLabel[o.status]}</Badge></td>
+                <td className={td}>{nextS ? <Button className="min-h-11" onClick={() => updateOrderStatus(o.id, nextS)}>{nextS === OrderStatus.ACCEPTED ? "Accept" : `Mark ${statusLabel[nextS].toLowerCase()}`}</Button> : <span className="text-sub">{o.status === OrderStatus.COMPLETED ? "Complete" : "Closed"}</span>}</td>
               </tr>
             );
           })}

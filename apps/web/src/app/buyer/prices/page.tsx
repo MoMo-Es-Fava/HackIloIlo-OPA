@@ -6,7 +6,7 @@ import PriceChart from "@/components/PriceChart";
 import { Badge, Card, PageHeader, Stat, TableWrap, td, th } from "@/components/ui";
 
 export default function Prices() {
-  const { prices, history } = useStore();
+  const { palayPrices: prices, history } = useStore();
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Prices" sub={`Updated ${prices.updated}. Prices change about every week.`} actions={<Badge tone="info">Basis: {prices.basis}</Badge>} />
