@@ -23,6 +23,11 @@ export class BatchesController {
     return this.batches.create(dto.orderIds, actor.id);
   }
 
+  @Post(':id/items')
+  addOrders(@Param('id', ParseIntPipe) id: number, @Body() dto: CreateBatchDto, @CurrentUser() actor: UserDto) {
+    return this.batches.addOrders(id, dto.orderIds, actor.id);
+  }
+
   @Post(':id/start-drying')
   startDrying(@Param('id', ParseIntPipe) id: number, @CurrentUser() actor: UserDto) {
     return this.batches.startDrying(id, actor.id);
