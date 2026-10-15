@@ -12,3 +12,19 @@ coverage/
 
 # db
 apps/api/src/generated/
+apps/api/src/generated/prisma/browser.ts
+apps/api/src/generated/prisma/client.ts
+apps/api/src/generated/prisma/commonInputTypes.ts
+apps/api/src/generated/prisma/enums.ts
+apps/api/src/generated/prisma/internal/class.ts
+apps/api/src/generated/prisma/internal/prismaNamespace.ts
+apps/api/src/generated/prisma/internal/prismaNamespaceBrowser.ts
+apps/api/src/generated/prisma/models.ts
+apps/api/src/generated/prisma/models/Order.ts
+apps/api/src/generated/prisma/models/OrderEvent.ts
+apps/api/src/generated/prisma/models/Price.ts
+apps/api/src/generated/prisma/models/RiceType.ts
+apps/api/src/generated/prisma/models/Setting.ts
+apps/api/src/generated/prisma/models/SmsLog.ts
+apps/api/src/generated/prisma/models/StockAdjustment.ts
+apps/api/src/generated/prisma/models/User.ts
