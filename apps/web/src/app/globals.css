@@ -120,7 +120,7 @@ a {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-inline: auto;
-  transition: grid-template-columns 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: grid-template-columns 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .brand-link {
@@ -152,8 +152,8 @@ a {
   min-width: 0;
   overflow: hidden;
   transition:
-    grid-template-columns 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    column-gap 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    grid-template-columns 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    column-gap 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .portal-card:is(:hover, :focus-visible) {
@@ -170,6 +170,17 @@ a {
 
 .portal-card:is(:hover, :focus-visible) .portal-card__description {
   opacity: 1;
+}
+
+.auth-spinner,
+.loading-spinner {
+  animation: auth-spin 800ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 899px) {
