@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test": "tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
+    "pretest": "npm run build:types --prefix ../..",
+    "test": "node -e \"require('fs').rmSync('.test-dist',{recursive:true,force:true})\" && tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
     "check:api": "tsc -p tsconfig.test.json && node --env-file=.env.local .test-dist/tests/live-health.check.js",
     "typecheck": "tsc --noEmit"
   },
