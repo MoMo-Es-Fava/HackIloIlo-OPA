@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   User: 'User',
+  PhoneVerification: 'PhoneVerification',
   RiceType: 'RiceType',
   Price: 'Price',
   Order: 'Order',
@@ -93,6 +94,18 @@ export const UserScalarFieldEnum = {
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+export const PhoneVerificationScalarFieldEnum = {
+  phone: 'phone',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  attempts: 'attempts',
+  sentAt: 'sentAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PhoneVerificationScalarFieldEnum = (typeof PhoneVerificationScalarFieldEnum)[keyof typeof PhoneVerificationScalarFieldEnum]
 
 
 export const RiceTypeScalarFieldEnum = {

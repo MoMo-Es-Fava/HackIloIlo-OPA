@@ -38,17 +38,12 @@ async function clearPhoneVerifications(
   tx: Prisma.TransactionClient,
   phones?: readonly string[],
 ) {
-  // PhoneVerification currently exists in a migration but is not in schema.prisma.
-  const [table] = await tx.$queryRaw<Array<{ exists: boolean }>>`
-    SELECT to_regclass('"PhoneVerification"') IS NOT NULL AS "exists"
-  `;
-  if (!table?.exists) return 0;
-  if (phones?.length) {
-    return tx.$executeRaw`
-      DELETE FROM "PhoneVerification" WHERE "phone" IN (${Prisma.join([...phones])})
-    `;
-  }
-  return tx.$executeRaw`DELETE FROM "PhoneVerification"`;
+  const result = phones?.length
+    ? await tx.phoneVerification.deleteMany({
+        where: { phone: { in: [...phones] } },
+      })
+    : await tx.phoneVerification.deleteMany();
+  return result.count;
 }
 
 async function wipeAll() {

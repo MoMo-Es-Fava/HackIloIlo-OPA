@@ -6,7 +6,7 @@
 /*
  * This file exports the `RiceType` model and its related types.
  *
- *  You can import this file directly.
+ * 🟢 You can import this file directly.
  */
 import type * as runtime from "@prisma/client/runtime/client"
 import type * as $Enums from "../enums.js"
