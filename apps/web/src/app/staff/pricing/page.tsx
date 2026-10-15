@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { CatalogAnalyticsDto } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { peso } from "@/lib/format";
-import { api, ApiError } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Badge, Button, Card, PageHeader, SelectField, TextField } from "@/components/ui";
 import { PriceBasis, PriceItem } from "@irpc/types";
 import { IconChart } from "@/components/icons";
@@ -37,8 +37,8 @@ export default function Pricing() {
     try {
       setAnalytics(await api.getCatalogAnalytics(30));
       setAnalyticsError(null);
-    } catch (error) {
-      setAnalyticsError(error instanceof ApiError ? error.message : "Could not load price and stock trends.");
+    } catch {
+      setAnalyticsError("Price and stock trends are temporarily unavailable. Please try again later.");
     }
   }, []);
   useEffect(() => {
