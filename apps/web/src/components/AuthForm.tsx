@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 import { api, ApiError } from "@/lib/api";
+import BrandLogo from "@/components/BrandLogo";
 
 const fieldClass = "mt-1 min-h-12 w-full rounded-xl border border-white/20 bg-white/10 px-3.5 text-base text-white outline-none placeholder:text-white/50 focus:border-husk focus:ring-2 focus:ring-husk/30";
 const labelClass = "block text-sm font-bold text-white/90";
@@ -80,8 +81,8 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         <div className="absolute inset-0 bg-gradient-to-br from-ink/70 via-ink/45 to-paddy-d/70" />
       </div>
       <div className="mx-auto w-full max-w-md">
-        <Link href="/" className="inline-flex min-h-11 items-center gap-3 rounded-lg text-white focus-visible:outline-white">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink">IR</span>
+        <Link href="/" className="brand-logo-link inline-flex min-h-11 items-center gap-3 rounded-lg text-white focus-visible:outline-white">
+          <BrandLogo size={40} />
           <span className="font-bold tracking-wide">IRPC</span>
         </Link>
         <section aria-busy={busy} className="mt-6 rounded-3xl border border-white/20 bg-white/[0.12] p-6 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-8">
