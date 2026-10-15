@@ -3,13 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
-import { ACCEPT_STATUS, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type DeliveryMethod } from "@irpc/types";
+import { OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type DeliveryMethod } from "@irpc/types";
 import { api, ApiError, getAuthToken, setAuthToken } from "./api";
 import type { DemoActions } from "./demo-types";
-import type { TransitionOptions } from "./mock-orders";
 import { currentPrice } from "./orders";
 import { dateLabel } from "./format";
-import { demoOnlyRoute, emptyWorkspace, loadWorkspace, requiresAuthRoute, type Workspace } from "./workspace";
+import { emptyWorkspace, loadWorkspace, requiresAuthRoute, type Workspace } from "./workspace";
 
 export interface SellPalayInput {
   condition: PalayCondition; kg: number; variety: string; preferredDate: string; deliveryMethod: DeliveryMethod;
@@ -24,7 +23,6 @@ interface Store extends Workspace, AsyncDemoActions {
   sellPalay: (input: SellPalayInput) => Promise<number | null>;
   cancelOrder: (id: number) => Promise<boolean>;
   confirmWeight: (id: number) => Promise<boolean>;
-  updateOrderStatus: (id: number, status: OrderStatus, options?: TransitionOptions) => Promise<boolean>;
   setPrices: (fresh: number, dry: number, basis: PriceBasis) => Promise<boolean>;
 }
 const Ctx = createContext<Store | null>(null);
@@ -134,16 +132,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }, null),
     cancelOrder: (id) => run(async () => { await api.cancelOrder(id); return true; }, false),
     confirmWeight: (id) => run(async () => { await api.confirmWeight(id); return true; }, false),
-    updateOrderStatus: (id, status, options = {}) => run(async () => {
-      const order = data.orders.find((row) => row.id === id);
-      if (!order) throw new ApiError(404, "Order not found.");
-      if (order.status === OrderStatus.PENDING) {
-        if (status === OrderStatus.REJECTED) await api.rejectOrder(id, options.reason ?? "");
-        else if (status === ACCEPT_STATUS[order.type]) await api.acceptOrder(id, options.scheduledDate);
-        else throw new ApiError(400, "Accept or reject the order first.");
-      } else await api.updateOrderStatus(id, status);
-      return true;
-    }, false),
     setPrices: (freshPrice, dryPrice, basis) => run(async () => {
       // The contract accepts one price per request; attempt each independently so errors are explicit.
       const results = await Promise.allSettled([
@@ -158,21 +146,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       return true;
     }, false),
-    createOffer: (...args) => demoAction("createOffer", ...args),
-    weighIn: (...args) => demoAction("weighIn", ...args),
-    addBooking: (...args) => demoAction("addBooking", ...args),
-    setBookingStatus: (...args) => demoAction("setBookingStatus", ...args),
-    advanceBatch: (...args) => demoAction("advanceBatch", ...args),
-    setKwhPrice: (...args) => demoAction("setKwhPrice", ...args),
-    addUser: (...args) => demoAction("addUser", ...args),
-    toggleUser: (...args) => demoAction("toggleUser", ...args),
     updateProfile: (...args) => demoAction("updateProfile", ...args),
   };
 
   let content = children;
-  if (!api.useMock && demoOnlyRoute(path)) {
-    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">This view is not connected yet</h1><p className="my-4">It will be available when the required service is ready.</p><Link className="font-bold underline" href={path.startsWith("/staff") ? "/staff/sales" : "/buyer"}>Back to orders</Link></main>;
-  } else if (loadedPath !== path) {
+  if (loadedPath !== path) {
     content = <main className="mx-auto max-w-xl p-6" role="status">Loading…</main>;
   } else if (loadError) {
     content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">Unable to load this page</h1><p role="alert" className="my-4">{orderError ?? loadError}</p><button className="min-h-12 rounded-xl bg-paddy-d px-5 font-bold text-white" onClick={() => { setLoadedPath(null); void reload(); }}>Try again</button><Link className="ml-4 font-bold underline" href="/">Home</Link></main>;

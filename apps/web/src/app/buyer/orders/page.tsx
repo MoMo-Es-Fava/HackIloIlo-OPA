@@ -21,11 +21,6 @@ export default function Orders() {
       <PageHeader
         title="Orders"
         sub="Track rice purchases, palay sales, and services."
-        actions={
-          <Link href="/buyer/trace" className="group inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
-            Trace a batch <IconChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-          </Link>
-        }
       />
       <div className="flex flex-wrap gap-1.5 rounded-xl border border-line/80 bg-white p-1.5 shadow-card sm:w-fit" role="tablist">
         {tabs.map((t) => (

@@ -52,7 +52,7 @@ export default function Offers() {
             </div>
             <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
             <p className="tnum">{kgf(o.kgAvailable)} available</p>
-            <p className="text-sm text-sub">{o.delivery}. Origin batch {o.batchId}. Posted {o.posted}</p>
+            <p className="text-sm text-sub">{o.delivery}.</p>
           </Link>
         ))}
       </div>

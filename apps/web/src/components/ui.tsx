@@ -3,7 +3,6 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react";
 import { useStore } from "@/lib/store";
 import { useId } from "react";
-import type { BookingStatus, Stage } from "@/lib/demo-types";
 import { OrderStatus } from "@irpc/types";
 import { IconArrowRight, IconCheck, IconAlert, IconClock } from "./icons";
 
@@ -89,10 +88,6 @@ export const orderTone = (s: OrderStatus): Tone => {
   if (s === OrderStatus.COMPLETED || s === OrderStatus.PAID) return "ok";
   return s === OrderStatus.PENDING ? "warn" : "info";
 };
-export const stageTone = (s: Stage): Tone =>
-  s === "Sold" ? "ok" : s === "Stored" ? "info" : s === "Received" || s === "Weighed" ? "neutral" : "warn";
-export const bookingTone = (s: BookingStatus): Tone =>
-  ({ Confirmed: "info", "Checked in": "warn", Done: "ok", "No show": "bad" }[s] as Tone);
 
 /* ── Card ─────────────────────────────────────────────────────── */
 export function Card({ children, className }: { children: ReactNode; className?: string }) {

@@ -132,13 +132,6 @@ export const IconChevronRight = (p: P) => (
   </Svg>
 );
 
-export const IconSearch = (p: P) => (
-  <Svg {...p}>
-    <circle cx="11" cy="11" r="6.5" />
-    <path d="M20 20l-4.2-4.2" />
-  </Svg>
-);
-
 export const IconCheck = (p: P) => (
   <Svg {...p}>
     <path d="M5 12.5 10 17.5 19 7" />
@@ -165,11 +158,3 @@ export const IconSpark = (p: P) => (
   </Svg>
 );
 
-export const IconGrid = (p: P) => (
-  <Svg {...p}>
-    <rect x="4" y="4" width="7" height="7" rx="1.4" />
-    <rect x="13" y="4" width="7" height="7" rx="1.4" />
-    <rect x="4" y="13" width="7" height="7" rx="1.4" />
-    <rect x="13" y="13" width="7" height="7" rx="1.4" />
-  </Svg>
-);

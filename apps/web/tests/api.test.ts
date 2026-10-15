@@ -147,26 +147,23 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
   assert.deepEqual(data.orders, [realOrder]);
   assert.ok(calls.includes("/orders/9001"));
   assert.equal(data.profile.name, "API Buyer");
-  assert.deepEqual(data.batches, []);
   assert.deepEqual(data.orderDetails, {});
   assert.equal(data.offers[0].id, "1");
   assert.equal(data.offers[0].batchId, "");
   assert.equal(await client.getDemoWorkspace(), null);
-  await assert.rejects(client.demoAction("setKwhPrice", 10), (error: ApiError) => error.status === 501);
+  await assert.rejects(client.demoAction("updateProfile", data.profile), (error: ApiError) => error.status === 501);
   calls.length = 0;
   await loadWorkspace(client, "/buyer/prices", false);
   assert.deepEqual(calls.sort(), ["/prices", "/rice-types"]);
-  calls.length = 0;
-  await loadWorkspace(client, "/staff/forecast", true);
-  assert.deepEqual(calls, []);
 });
 
 test("mock workspace survives navigation while independent clients remain isolated", async () => {
   const client = mockClient();
   const created = await client.createOrder(buy);
   assert.ok((await loadWorkspace(client, "/buyer/orders", false)).orders.some((row) => row.id === created.id));
-  assert.ok((await loadWorkspace(client, "/staff/sales", false)).orders.some((row) => row.id === created.id));
-  await client.demoAction("setKwhPrice", 20);
-  assert.equal((await client.getDemoWorkspace())?.kwhPrice, 20);
+  assert.ok((await loadWorkspace(client, "/staff/rice-sales", false)).orders.some((row) => row.id === created.id));
+  const profile = (await client.getDemoWorkspace())!.profile;
+  await client.demoAction("updateProfile", { ...profile, name: "Renamed in demo" });
+  assert.equal((await client.getDemoWorkspace())?.profile.name, "Renamed in demo");
   assert.equal((await mockClient().getMyOrders()).some((row) => row.id === created.id), false);
 });

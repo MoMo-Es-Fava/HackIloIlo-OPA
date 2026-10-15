@@ -7,17 +7,10 @@ export interface Workspace extends DemoWorkspace {
 }
 export function emptyWorkspace(): Workspace {
   return {
-    orders: [], prices: [], riceTypes: [], batches: [], offers: [], slots: [], bookings: [], history: [],
-    users: [], audit: [], profile: { id: "", name: "", type: AccountType.BUYER, contact: "", address: "" },
-    kwhPrice: 0, orderDetails: {}, energy: { dryers: [], millKwh: 0 }, financeDays: [], forecast: [],
-    plant: { dryers: 0, millingTonsPerDay: 0, storageTons: 0 },
+    orders: [], prices: [], riceTypes: [], offers: [], history: [], orderDetails: {},
+    profile: { id: "", name: "", type: AccountType.BUYER, contact: "", address: "" },
   };
 }
-
-export const demoOnlyRoute = (path: string) => [
-  "/buyer/trace", "/staff/intake", "/staff/processing", "/staff/costing", "/staff/financials",
-  "/staff/forecast", "/staff/users", "/staff/audit", "/staff/traceability",
-].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 
 export const requiresAuthRoute = (path: string) => path.startsWith("/staff") || path === "/buyer" ||
   /^\/buyer\/(orders|service|sell|me)(\/|$)/.test(path);
@@ -30,7 +23,6 @@ function profileFromUser(user: ApiUser): DemoWorkspace["profile"] {
 }
 
 export async function loadWorkspace(client: typeof api, path: string, authenticated: boolean): Promise<Workspace> {
-  if (!client.useMock && demoOnlyRoute(path)) return emptyWorkspace();
   const demo = await client.getDemoWorkspace();
   const base = { ...emptyWorkspace(), ...demo };
   if (path === "/") return base;

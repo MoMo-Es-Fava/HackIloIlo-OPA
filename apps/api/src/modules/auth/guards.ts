@@ -80,15 +80,3 @@ export class RolesGuard implements CanActivate {
     return true;
   }
 }
-
-// For modules that take a guard as a dependency (e.g. PricesModule): signed in AND admin.
-@Injectable()
-export class AdminGuard implements CanActivate {
-  canActivate(context: ExecutionContext) {
-    const user = requestOf(context).user;
-    if (!user) throw new UnauthorizedException(SIGN_IN);
-    if (!allowed(user.role, [Role.ADMIN]))
-      throw new ForbiddenException(NO_ACCESS);
-    return true;
-  }
-}

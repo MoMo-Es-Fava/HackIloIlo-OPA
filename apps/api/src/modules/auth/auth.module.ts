@@ -6,7 +6,7 @@ import { UsersModule } from '../users/users.module';
 import { SmsModule } from '../../integrations/textbee/sms.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
-import { AdminGuard, JwtAuthGuard, RolesGuard } from './guards';
+import { JwtAuthGuard, RolesGuard } from './guards';
 import { LoginAttempts } from './login-attempts';
 import { WeeklyPricesModule } from '../weekly-prices/weekly-prices.module';
 
@@ -32,11 +32,10 @@ import { WeeklyPricesModule } from '../weekly-prices/weekly-prices.module';
   providers: [
     AuthService,
     LoginAttempts,
-    AdminGuard,
     // Order matters: authenticate first, then check roles.
     { provide: APP_GUARD, useClass: JwtAuthGuard },
     { provide: APP_GUARD, useClass: RolesGuard },
   ],
-  exports: [AdminGuard, UsersModule],
+  exports: [UsersModule],
 })
 export class AuthModule {}

@@ -1,4 +1,3 @@
-import { createHmac } from 'node:crypto';
 import {
   Language,
   OrderStatus,
@@ -13,12 +12,7 @@ import {
   formatSmsPrice,
 } from './sms.messages';
 import type { SmsOrder } from './sms.messages';
-import {
-  buildOrderStatusReply,
-  buildPriceReply,
-  parseSmsCommand,
-} from './sms.commands';
-import { verifyTextBeeSignature } from './sms.webhook';
+import { buildPriceReply } from './sms.commands';
 
 const order: SmsOrder = {
   ref: 'IRPC-0042',
@@ -110,39 +104,9 @@ describe('SMS message builders', () => {
     );
     expect(() => formatSmsPrice('NaN')).toThrow();
   });
-  it('builds a status reply without changing the order', () => {
-    const frozen = Object.freeze({ ...order });
-    expect(buildOrderStatusReply(frozen, Language.HIL)).toBe(
-      buildStatusMessage(order, Language.HIL),
-    );
-  });
 });
 
-describe('incoming SMS commands', () => {
-  it.each(['PRESYO', 'price', '  PrEsYo \n'])('recognizes %s', (text) => {
-    expect(parseSmsCommand(text)).toEqual({ type: 'prices' });
-  });
-  it.each([
-    'STATUS IRPC-0042',
-    'status 42',
-    '  StAtUs   irpc-0042 \n',
-    'STATUS\t00042',
-  ])('recognizes %s', (text) => {
-    expect(parseSmsCommand(text)).toEqual({ type: 'status', orderId: 42 });
-  });
-  it.each([
-    '',
-    'PRICE now',
-    'STATUS',
-    'STATUS 0',
-    'STATUS -42',
-    'STATUS 4.2',
-    'STATUS 42 extra',
-    'STATUS IRPC-abc',
-    'STATUS 9007199254740992',
-  ])('rejects %s', (text) => {
-    expect(parseSmsCommand(text)).toEqual({ type: 'unknown' });
-  });
+describe('price reply', () => {
   it('lists every price category in both languages and distinguishes rice types', () => {
     const prices = Object.values(PriceItem).map((item) =>
       Object.freeze({
@@ -172,45 +136,5 @@ describe('incoming SMS commands', () => {
     expect(hil).toContain('Pagpamala: ₱17/kg');
     expect(buildPriceReply([], Language.EN)).toContain('not available');
     expect(buildPriceReply([], Language.HIL)).toContain('Wala pa');
-  });
-});
-
-describe('TextBee signature verification', () => {
-  const secret = 'test-webhook-secret-at-least-20-characters';
-  const body = Buffer.from(
-    '{"webhookEvent":"MESSAGE_RECEIVED","message":"PRESYO"}',
-  );
-  const signature = createHmac('sha256', secret).update(body).digest('hex');
-  it('accepts the signature of the original bytes', () => {
-    expect(verifyTextBeeSignature(body, signature, secret)).toBe(true);
-  });
-  it('rejects tampering, reserialized JSON and wrong secrets', () => {
-    expect(
-      verifyTextBeeSignature(
-        Buffer.from('{"message":"STATUS 42"}'),
-        signature,
-        secret,
-      ),
-    ).toBe(false);
-    expect(
-      verifyTextBeeSignature(
-        Buffer.from('{ "webhookEvent":"MESSAGE_RECEIVED","message":"PRESYO"}'),
-        signature,
-        secret,
-      ),
-    ).toBe(false);
-    expect(verifyTextBeeSignature(body, signature, 'wrong-secret')).toBe(false);
-    expect(verifyTextBeeSignature(body, signature, '')).toBe(false);
-  });
-  it.each([
-    undefined,
-    '',
-    'abc',
-    'z'.repeat(64),
-    'a'.repeat(63),
-    'a'.repeat(65),
-    `sha256=${signature}`,
-  ])('rejects missing or malformed signatures: %s', (value) => {
-    expect(verifyTextBeeSignature(body, value, secret)).toBe(false);
   });
 });

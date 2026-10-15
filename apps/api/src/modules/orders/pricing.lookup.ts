@@ -10,7 +10,6 @@ const DEFAULT_SETTINGS: PublicSettingsDto = {
 };
 
 // Reads current prices and settings for orders.
-// TODO: switch to Matthew's PricesRepository once the prices module is merged.
 @Injectable()
 export class PricingLookup {
   constructor(private readonly prisma: PrismaService) {}

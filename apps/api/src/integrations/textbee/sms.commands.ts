@@ -1,25 +1,6 @@
 import { Language, PriceItem } from '@irpc/types';
 import type { CurrentPrice, RiceTypeDto } from '@irpc/types';
-import { buildStatusMessage, formatSmsPrice } from './sms.messages';
-import type { SmsOrder } from './sms.messages';
-
-export type SmsCommand =
-  | { type: 'prices' }
-  | { type: 'status'; orderId: number }
-  | { type: 'unknown' };
-
-export function parseSmsCommand(text: string): SmsCommand {
-  const normalized = text.trim().replace(/\s+/g, ' ').toUpperCase();
-  if (normalized === 'PRESYO' || normalized === 'PRICE')
-    return { type: 'prices' };
-  const match = /^STATUS (?:IRPC-)?(\d+)$/.exec(normalized);
-  if (match) {
-    const orderId = Number(match[1]);
-    if (Number.isSafeInteger(orderId) && orderId > 0)
-      return { type: 'status', orderId };
-  }
-  return { type: 'unknown' };
-}
+import { formatSmsPrice } from './sms.messages';
 
 const labels: Record<Language, Record<PriceItem, string>> = {
   EN: {
@@ -57,11 +38,4 @@ export function buildPriceReply(
       return `${label}: ${formatSmsPrice(price.pricePerKg)}`;
     }),
   ].join('\n');
-}
-
-export function buildOrderStatusReply(
-  order: SmsOrder,
-  language: Language = Language.EN,
-): string {
-  return buildStatusMessage(order, language);
 }

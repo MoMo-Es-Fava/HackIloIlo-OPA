@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-  canTransition, OrderStatus, OrderType, PalayCondition, PriceItem, Role, ServiceType,
+  canTransition, OrderStatus, OrderType, PalayCondition, PriceItem, ServiceType,
   orderRef, type CreateOrderRequest, type OrderDto,
 } from "@irpc/types";
-import { seedOrders, seedPrices, seedRiceTypes, seedUsers } from "../src/lib/data";
+import { seedOrders, seedPrices, seedRiceTypes } from "../src/lib/data";
 import { createMockOrder, transitionMockOrder } from "../src/lib/mock-orders";
 import { orderSteps } from "../src/lib/orders";
 
@@ -43,7 +43,6 @@ test("fixtures serialize to API records with all order types and legal event his
     }
     assert.equal(events.at(-1)?.toStatus, order.status);
   }
-  assert.ok(seedUsers.every((user) => Object.values(Role).includes(user.role)));
   for (const rice of seedRiceTypes) {
     assert.equal(seedPrices.find((price) => price.item === PriceItem.RICE && price.riceTypeId === rice.id)?.pricePerKg, rice.pricePerKg);
   }

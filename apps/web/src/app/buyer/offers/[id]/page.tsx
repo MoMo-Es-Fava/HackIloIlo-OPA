@@ -6,12 +6,12 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
 import { Button, Card, Empty, PageHeader, TextField } from "@/components/ui";
-import { IconChevronRight, IconTrace } from "@/components/icons";
+import { IconChevronRight } from "@/components/icons";
 
 export default function OfferDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { offers, batches, reserveOffer, orderError } = useStore();
+  const { offers, reserveOffer, orderError } = useStore();
   const offer = offers.find((o) => o.id === id);
   const [kg, setKg] = useState("");
   const [review, setReview] = useState(false);
@@ -25,7 +25,6 @@ export default function OfferDetail() {
         </Link>
       </Empty>
     );
-  const batch = batches.find((b) => b.id === offer.batchId);
   const n = Number(kg);
   const error = kg === "" ? undefined : !(n > 0) ? "Enter a quantity above 0" : n > offer.kgAvailable ? `Only ${kgf(offer.kgAvailable)} available` : undefined;
   const valid = kg !== "" && !error;
@@ -48,33 +47,6 @@ export default function OfferDetail() {
       </nav>
       <PageHeader title={`${offer.grade}, ${peso(offer.pricePerKg)} per kg`} sub={`${kgf(offer.kgAvailable)} available. ${offer.delivery}.`} />
       <div className="grid gap-4 md:grid-cols-2">
-        {offer.batchId && (
-          <Card>
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-lg bg-mist text-paddy-d">
-                <IconTrace className="h-5 w-5" />
-              </span>
-              <h2 className="text-lg font-bold tracking-tight">Where it comes from</h2>
-            </div>
-            <div className="flex flex-col gap-2">
-              <p>
-                Batch{" "}
-                <Link className="font-bold text-paddy-d hover:underline" href={`/buyer/trace/${offer.batchId}`}>
-                  {offer.batchId}
-                </Link>
-              </p>
-              {batch && <p>Origin: {batch.farmerId}, validated at intake</p>}
-              {batch && <p>Source weight: {kgf(batch.kg)} ({batch.type.toLowerCase()} palay)</p>}
-            </div>
-            <Link
-              href={`/buyer/trace/${offer.batchId}`}
-              className="group mt-1 inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5"
-            >
-              View full trace
-              <IconChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-            </Link>
-          </Card>
-        )}
         <Card>
           <h2 className="text-lg font-bold tracking-tight">{review ? "Review your reservation" : "Reserve"}</h2>
           {!review ? (

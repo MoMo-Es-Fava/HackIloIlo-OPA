@@ -1,20 +1,13 @@
 import {
-  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role, buildAnswerStats, buildReport,
-  type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
+  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceItem, Role, buildAnswerStats, buildReport,
+  type CreateOrderRequest, type CurrentPrice, type OrderDto,
 } from "@irpc/types";
 import { ApiError, type PriceRequest, type RegisterRequest } from "./api";
-import type { Batch, DemoActions, DemoWorkspace } from "./demo-types";
-import { STAGES } from "./demo-types";
-import {
-  seedOrders, seedPrices, seedRiceTypes, seedBatches, seedOffers, seedSlots, seedBookings,
-  seedHistory, seedUsers, seedAudit, seedProfile, seedKwhPrice, seedOrderDetails,
-  energy, financeDays, seedForecast, PLANT,
-} from "./data";
+import type { DemoActions, DemoWorkspace } from "./demo-types";
+import { seedHistory, seedOffers, seedOrderDetails, seedOrders, seedPrices, seedProfile, seedRiceTypes } from "./data";
 import { createMockOrder, transitionMockOrder } from "./mock-orders";
 
 const copy = <T,>(value: T): T => structuredClone(value);
-const stamp = () => new Date().toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Manila" });
-const STAFF = "Plant operator";
 
 export function createMockApi() {
   let orders = copy(seedOrders);
@@ -23,102 +16,8 @@ export function createMockApi() {
   let priceHistory = copy(seedPrices);
   let nextId = Math.max(...orders.map((order) => order.id)) + 1;
   let pin = "1234";
-  const workspace: DemoWorkspace = copy({
-    batches: seedBatches, offers: seedOffers, slots: seedSlots, bookings: seedBookings,
-    history: seedHistory, users: seedUsers, audit: seedAudit, profile: seedProfile, kwhPrice: seedKwhPrice,
-    orderDetails: seedOrderDetails, energy, financeDays, forecast: seedForecast, plant: PLANT,
-  });
-  const setField = <K extends keyof DemoWorkspace>(key: K, update: (value: DemoWorkspace[K]) => DemoWorkspace[K]) => { workspace[key] = update(workspace[key]); };
-  const setBatches = (update: (value: DemoWorkspace["batches"]) => DemoWorkspace["batches"]) => setField("batches", update);
-  const setOffers = (update: (value: DemoWorkspace["offers"]) => DemoWorkspace["offers"]) => setField("offers", update);
-  const setSlots = (update: (value: DemoWorkspace["slots"]) => DemoWorkspace["slots"]) => setField("slots", update);
-  const setBookings = (update: (value: DemoWorkspace["bookings"]) => DemoWorkspace["bookings"]) => setField("bookings", update);
-  const setUsers = (update: (value: DemoWorkspace["users"]) => DemoWorkspace["users"]) => setField("users", update);
-  const setRiceTypes = (update: (value: RiceTypeDto[]) => RiceTypeDto[]) => { riceTypes = update(riceTypes); };
-  const setPricesState = (update: (value: CurrentPrice[]) => CurrentPrice[]) => { prices = update(prices); };
-  const log = (actor: string, action: string, target: string) => {
-    workspace.audit.unshift({ id: `AU-${Date.now()}-${workspace.audit.length}`, at: stamp(), actor, action, target });
-  };
-  function legacyActions(): DemoActions {
-    const { batches, offers, bookings, slots, users } = workspace;
-    const createOffer: DemoActions["createOffer"] = (batchId, kg, pricePerKg, delivery) => {
-      const batch = batches.find((b) => b.id === batchId);
-      if (!batch || batch.stage !== "Stored" || !Number.isFinite(kg) || kg <= 0 || kg > batch.kg || !Number.isFinite(pricePerKg) || pricePerKg <= 0) return false;
-      const id = `OF-${201 + offers.length}`;
-      const riceTypeId = Math.max(0, ...riceTypes.map((row) => row.id)) + 1;
-      setRiceTypes((rows) => [...rows, {
-        id: riceTypeId, name: `Well-milled rice (${batchId})`, description: `Rice from batch ${batchId}`,
-        stockKg: kg.toFixed(2), pricePerKg: pricePerKg.toFixed(2),
-      }]);
-      setPricesState((rows) => [...rows, { item: PriceItem.RICE, riceTypeId, pricePerKg: pricePerKg.toFixed(2),
-        basis: PriceBasis.MARKET, effectiveAt: new Date().toISOString() }]);
-      setOffers((o) => [{ id, riceTypeId, batchId, grade: "Well-milled", kgAvailable: kg, pricePerKg, delivery, posted: stamp() }, ...o]);
-      log(STAFF, "Posted sale offer", `${id} from ${batchId}`);
-      return true;
-    };
-
-    const weighIn: DemoActions["weighIn"] = (bookingId, kg, type) => {
-      const bk = bookings.find((b) => b.id === bookingId);
-      if (!bk || !(kg > 0)) return null;
-      const id = `IR-1016-${String(30 + batches.length).padStart(3, "0")}`;
-      const at = stamp();
-      const batch: Batch = {
-        id, farmer: bk.farmer, farmerId: bk.farmerId, kg, type, stage: "Weighed", dryer: null, costPerKg: 0,
-        soldTo: null, destination: null,
-        events: [
-          { stage: "Received", at, note: `${bk.id}, ${bk.farmerId} validated` },
-          { stage: "Weighed", at, note: `${kg} kg ${type.toLowerCase()}, ${Math.ceil(kg / 50)} bag slips` },
-        ],
-      };
-      setBatches((bs) => [batch, ...bs]);
-      setBookings((bs) => bs.map((b) => (b.id === bookingId ? { ...b, status: "Done" } : b)));
-      log(STAFF, "Weighed in batch", `${id} (${kg} kg)`);
-      return id;
-    };
-
-    const addBooking: DemoActions["addBooking"] = (b) => {
-      const slot = slots.find((s) => s.id === b.slotId);
-      if (!slot || slot.booked >= slot.capacity || !b.farmer.trim() || !(b.kg > 0)) return false;
-      setBookings((bs) => [{ id: `BK-${301 + bs.length}`, status: "Confirmed", ...b }, ...bs]);
-      setSlots((ss) => ss.map((s) => (s.id === b.slotId ? { ...s, booked: s.booked + 1 } : s)));
-      log(STAFF, `Added ${b.channel.toLowerCase()} booking`, `${b.farmer}, ${slot.date} ${slot.time}`);
-      return true;
-    };
-
-    const setBookingStatus: DemoActions["setBookingStatus"] = (id, status) => {
-      setBookings((bs) => bs.map((b) => (b.id === id ? { ...b, status } : b)));
-      log(STAFF, `Booking ${status.toLowerCase()}`, id);
-    };
-
-    const advanceBatch: DemoActions["advanceBatch"] = (id) => {
-      const b = batches.find((x) => x.id === id);
-      if (!b) return;
-      const next = STAGES[STAGES.indexOf(b.stage) + 1];
-      if (!next || next === "Sold") return;
-      const dryer = next === "Drying" ? (batches.filter((x) => x.stage === "Drying").length % 5) + 1 : b.dryer;
-      const note = next === "Drying" ? `Dryer ${dryer}` : next === "Milling" ? "Milling line" : "Moved to storage";
-      setBatches((bs) => bs.map((x) => (x.id === id ? { ...x, stage: next, dryer, events: [...x.events, { stage: next, at: stamp(), note }] } : x)));
-      log(STAFF, `Batch moved to ${next.toLowerCase()}`, id);
-    };
-
-    const addUser: DemoActions["addUser"] = (name, role, contact) => {
-      setUsers((u) => [...u, { id: `U-${String(u.length + 1).padStart(2, "0")}`, name, role, contact, active: true }]);
-      log("System admin", "Added user", `${name} (${role})`);
-    };
-
-    const toggleUser: DemoActions["toggleUser"] = (id) => {
-      const u = users.find((x) => x.id === id);
-      if (!u) return;
-      setUsers((us) => us.map((x) => (x.id === id ? { ...x, active: !x.active } : x)));
-      log("System admin", u.active ? "Deactivated user" : "Activated user", u.name);
-    };
-
-
-    return { createOffer, weighIn, addBooking, setBookingStatus, advanceBatch, addUser, toggleUser,
-      setKwhPrice: (price) => { workspace.kwhPrice = price; },
-      updateProfile: (profile) => { workspace.profile = copy(profile); },
-    };
-  }
+  const workspace: DemoWorkspace = copy({ offers: seedOffers, history: seedHistory, profile: seedProfile, orderDetails: seedOrderDetails });
+  const demoActions: DemoActions = { updateProfile: (profile) => { workspace.profile = copy(profile); } };
 
   const user = () => ({ id: workspace.profile.id, name: workspace.profile.name, phone: workspace.profile.contact,
     accountType: workspace.profile.type, role: Role.USER, language: "EN", municipality: workspace.profile.address });
@@ -136,7 +35,6 @@ export function createMockApi() {
     const result = transitionMockOrder(order, status, prices, riceTypes, options);
     orders = orders.map((row) => row.id === order.id ? result.order : row);
     riceTypes = result.riceTypes;
-    log(STAFF, `Order ${status.toLowerCase()}`, order.ref);
     return result.order;
   }
 
@@ -256,7 +154,6 @@ export function createMockApi() {
       priceHistory.unshift(row);
       prices = [...prices.filter((price) => price.item !== row.item || price.riceTypeId !== row.riceTypeId), row];
       if (row.item === PriceItem.RICE) riceTypes = riceTypes.map((rice) => rice.id === row.riceTypeId ? { ...rice, pricePerKg: row.pricePerKg } : rice);
-      log(STAFF, "Updated price", `${row.item}: ${row.pricePerKg}`);
       return row;
     }
     if (route === "/admin/prices/history" && method === "GET") return priceHistory.filter((price) => !url.searchParams.get("item") || price.item === url.searchParams.get("item"));
@@ -321,7 +218,6 @@ export function createMockApi() {
       });
       return buildReport(rows, from, to);
     }
-    if (route === "/admin/sms-logs" && method === "GET") return [];
     throw new ApiError(501, "This feature is not connected yet.");
   }
 
@@ -332,7 +228,7 @@ export function createMockApi() {
     },
     getWorkspace: () => copy(workspace),
     demoAction: <K extends keyof DemoActions>(name: K, ...args: Parameters<DemoActions[K]>): ReturnType<DemoActions[K]> => {
-      const action = legacyActions()[name] as unknown as (...args: Parameters<DemoActions[K]>) => ReturnType<DemoActions[K]>;
+      const action = demoActions[name] as unknown as (...args: Parameters<DemoActions[K]>) => ReturnType<DemoActions[K]>;
       return copy(action(...args));
     },
   };
