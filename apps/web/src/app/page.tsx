@@ -1,3 +1,6 @@
+"use client";
+
+import { useStore } from "@/lib/store";
 import Link from "next/link";
 import { Card } from "@/components/ui";
 
@@ -23,6 +26,7 @@ const portals = [
 ];
 
 export default function Landing() {
+  const { isMock } = useStore();
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-4 py-12 sm:px-6 lg:py-16">
       <div className="max-w-3xl">
@@ -71,7 +75,7 @@ export default function Landing() {
 
       <p className="flex items-start gap-2 text-sm text-sub">
         <span aria-hidden>ⓘ</span>
-        Demo workspace: sample records are shared between portals and reset when you reload the page. No sign-in or real transactions.
+        {isMock ? "Demo workspace: sample records are shared between portals and reset when you reload the page. No sign-in or real transactions." : "Welcome to the IRPC rice marketplace."}
       </p>
     </main>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@/lib/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
@@ -14,6 +15,7 @@ const nav = [
 ];
 
 export default function BuyerShell({ children }: { children: ReactNode }) {
+  const { isMock } = useStore();
   const path = usePathname();
   const on = (n: (typeof nav)[number]) =>
     n.exact ? path === n.href : path.startsWith(n.href) || (n.href === "/buyer/me" && path.startsWith("/buyer/service"));
@@ -45,7 +47,7 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <span className="hidden rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold sm:inline-flex">
-            DEMO · Sample data
+            {isMock ? "DEMO · Sample data" : "IRPC"}
           </span>
         </div>
       </header>

@@ -1,15 +1,27 @@
 "use client";
 
+import { OrderStatus, OrderType } from "@irpc/types";
+import { serviceLabel } from "@/lib/orders";
 import Link from "next/link";
-import { energy, PLANT } from "@/lib/data";
 import { useStore } from "@/lib/store";
-import { fmt, peso } from "@/lib/format";
+import { fmt, peso, dateLabel } from "@/lib/format";
 import { Badge, Card, Empty, PageHeader, Stat } from "@/components/ui";
 
 type Task = { id: string; title: string; detail: string; href: string; action: string };
 
 export default function Dashboard() {
-  const { slots, bookings, batches, orders, serviceRequests, kwhPrice, prices } = useStore();
+  const { isMock, energy, plant: PLANT, slots, bookings, batches, orders, orderDetails, serviceRequests, kwhPrice, palayPrices: prices } = useStore();
+  if (!isMock) return (
+    <>
+      <PageHeader title="Today's orders" sub="Current orders received by IRPC." />
+      <section className="grid gap-3 sm:grid-cols-2">
+        <Stat label="Needs approval" value={String(orders.filter((order) => order.status === OrderStatus.PENDING).length)} />
+        <Stat label="Ready for pickup" value={String(orders.filter((order) => order.status === OrderStatus.READY_FOR_PICKUP).length)} />
+      </section>
+      <Link className="min-h-12 font-bold underline" href="/staff/sales">Rice orders</Link>
+      <Link className="min-h-12 font-bold underline" href="/staff/queue">Service requests</Link>
+    </>
+  );
   const todaySlots = slots.filter((slot) => slot.date === "Thu 16 Oct");
   const capacity = todaySlots.reduce((total, slot) => total + slot.capacity, 0);
   const booked = todaySlots.reduce((total, slot) => total + slot.booked, 0);
@@ -20,8 +32,8 @@ export default function Dashboard() {
   const stored = batches.filter((batch) => batch.stage === "Stored");
   const kwh = energy.dryers.reduce((total, dryer) => total + dryer.kwh, 0) + energy.millKwh;
   const idleDryers = energy.dryers.filter((dryer) => dryer.status === "Idle").length;
-  const readyOrders = orders.filter((order) => order.status === "Paid");
-  const pendingServices = serviceRequests.filter((request) => request.status === "Pending");
+  const readyOrders = orders.filter((order) => order.type === OrderType.BUY_RICE && order.status === OrderStatus.ACCEPTED);
+  const pendingServices = serviceRequests.filter((request) => request.status === OrderStatus.PENDING);
 
   const tasks: Task[] = [
     ...arrivals.slice(0, 3).map((booking) => ({
@@ -39,16 +51,16 @@ export default function Dashboard() {
       action: "Weigh in",
     })),
     ...readyOrders.slice(0, 2).map((order) => ({
-      id: order.id,
-      title: `Prepare order ${order.id}`,
-      detail: `${order.buyer} · ${order.kg.toLocaleString()} kg · payment recorded`,
+      id: order.ref,
+      title: `Prepare order ${order.ref}`,
+      detail: `${orderDetails[order.id]?.contactName ?? "Customer"} · ${Number(order.requestedKg).toLocaleString()} kg · accepted`,
       href: "/staff/sales",
       action: "Open sales",
     })),
     ...pendingServices.slice(0, 2).map((request) => ({
-      id: request.id,
-      title: `Review ${request.service.toLowerCase()} request`,
-      detail: `${request.buyer} · ${request.kg.toLocaleString()} kg · requested ${request.date}`,
+      id: request.ref,
+      title: `Review ${request.serviceType ? serviceLabel[request.serviceType].toLowerCase() : "service"} request`,
+      detail: `${orderDetails[request.id]?.contactName ?? "Customer"} · ${Number(request.requestedKg).toLocaleString()} kg · requested ${dateLabel(request.preferredDate)}`,
       href: "/staff/queue",
       action: "Review request",
     })),
@@ -81,13 +93,13 @@ export default function Dashboard() {
         <Card>
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <h2 className="text-xl font-bold">Today's to-do list</h2>
+              <h2 className="text-xl font-bold">Today&apos;s to-do list</h2>
               <p className="text-sm text-sub">Work in the order it arrives. Each item opens the right workspace.</p>
             </div>
             {tasks.length > 0 && <Badge tone="warn">{tasks.length} {tasks.length === 1 ? "task" : "tasks"}</Badge>}
           </div>
           {tasks.length === 0 ? (
-            <Empty>You're all caught up. New bookings and service requests will appear here.</Empty>
+            <Empty>You&apos;re all caught up. New bookings and service requests will appear here.</Empty>
           ) : (
             <ul className="divide-y divide-line">
               {tasks.map((task) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useStore } from "@/lib/store";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -26,7 +27,6 @@ const groups = [
   {
     title: "Planning",
     items: [
-      { href: "/staff/forecast", label: "Harvest forecast" },
       { href: "/staff/pricing", label: "Pricing and rates" },
     ],
   },
@@ -70,6 +70,7 @@ function Menu({ onPick }: { onPick?: () => void }) {
 }
 
 export default function StaffShell({ children }: { children: ReactNode }) {
+  const { isMock } = useStore();
   const [open, setOpen] = useState(false);
 
   return (
@@ -96,7 +97,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
             <div className="flex items-center gap-3">
               <Link href="/staff" className="font-bold text-ink lg:hidden">IRPC staff</Link>
               <span className="hidden text-sm font-bold text-ink lg:inline">Operations console</span>
-              <span className="hidden rounded-full bg-mist px-3 py-1 text-xs font-bold text-paddy-d sm:inline-flex">DEMO · Sample data</span>
+              <span className="hidden rounded-full bg-mist px-3 py-1 text-xs font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">

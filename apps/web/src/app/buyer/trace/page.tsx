@@ -8,10 +8,10 @@ import { Button, Card, PageHeader, TextField } from "@/components/ui";
 
 export default function TraceSearch() {
   const router = useRouter();
-  const { batches, orders, profile } = useStore();
+  const { batches, orders, orderDetails } = useStore();
   const [q, setQ] = useState("");
   const [error, setError] = useState<string>();
-  const mine = Array.from(new Set(orders.filter((o) => o.buyerId === profile.id).map((o) => o.batchId)));
+  const mine = Array.from(new Set(orders.map((o) => orderDetails[o.id]?.batchId).filter((id): id is string => Boolean(id))));
 
   const go = () => {
     const id = q.trim().toUpperCase();
