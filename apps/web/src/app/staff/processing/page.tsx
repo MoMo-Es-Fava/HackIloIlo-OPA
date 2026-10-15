@@ -19,6 +19,7 @@ export default function Processing() {
   const [batches, setBatches] = useState<BatchRecordDto[]>([]);
   const [eligible, setEligible] = useState<EligibleBatchOrderDto[]>([]);
   const [selected, setSelected] = useState<number[]>([]);
+  const [addSelected, setAddSelected] = useState<Record<number, number[]>>({});
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -91,6 +92,14 @@ export default function Processing() {
             {batches.map((batch) => {
               const inputKg = Number(batch.wetKg);
               const itemSource = [...new Set(batch.items.map((item) => item.farmerName))].join(", ");
+              const batchCondition = batch.items[0]?.order.palayCondition;
+              const eligibleForBatch = batchCondition
+                ? eligible.filter((order) => order.palayCondition === batchCondition)
+                : [];
+              const selectedForBatch = addSelected[batch.id] ?? [];
+              const selectedForBatchKg = eligibleForBatch
+                .filter((order) => selectedForBatch.includes(order.id))
+                .reduce((sum, order) => sum + Number(order.kg), 0);
               const canDamage = batch.status === "NONE" || batch.status === "COMPLETE";
               return (
                 <Card key={batch.id}>
@@ -112,6 +121,12 @@ export default function Processing() {
                     {batch.status === "COMPLETE" && <p className="rounded-lg bg-mist px-3 py-2 text-sm">Processing completed. Total recorded cost: <b>{peso(batch.totalCost)}</b>.</p>}
                     {batch.status === "DAMAGED" && <p className="rounded-lg bg-clay-l px-3 py-2 text-sm text-clay">This batch was fully written off after damage.</p>}
                   </div>
+                  {batch.status === "NONE" && <details className="rounded-xl border border-line px-3 py-2"><summary className="cursor-pointer font-bold">Add purchases before processing starts</summary><div className="mt-3 flex flex-col gap-3">
+                    <p className="text-sm text-sub">Only {batchCondition === "DRY" ? "dry" : "fresh"} palay can be added. This closes when drying or milling starts.</p>
+                    {eligibleForBatch.length === 0 ? <Empty>No matching confirmed purchases are available to add.</Empty> : <div className="max-h-56 overflow-auto rounded-xl border border-line">{eligibleForBatch.map((order) => <label key={order.id} className="flex min-h-11 items-center gap-3 border-b border-line/70 px-3 last:border-0"><input type="checkbox" className="h-4 w-4 accent-paddy-d" checked={selectedForBatch.includes(order.id)} disabled={busy} onChange={(event) => setAddSelected((current) => ({ ...current, [batch.id]: event.target.checked ? [...selectedForBatch, order.id] : selectedForBatch.filter((id) => id !== order.id) }))} /><span className="min-w-0 flex-1"><b>IRPC-{String(order.id).padStart(4, "0")}</b> · {order.farmerName}{order.variety ? ` · ${order.variety}` : ""}</span><span className="text-sm text-sub">{kgf(order.kg)}</span></label>)}</div>}
+                    {selectedForBatch.length > 0 && <p className="text-sm">Selected: {selectedForBatch.length} purchase(s), {kgf(selectedForBatchKg)}</p>}
+                    <div><Button disabled={busy || selectedForBatch.length === 0 || loading} onClick={() => mutate(async () => { await api.addOrdersToBatch(batch.id, selectedForBatch); setAddSelected((current) => ({ ...current, [batch.id]: [] })); }, `Added ${selectedForBatch.length} purchase(s) to ${batch.code}.`)}>Add to batch</Button></div>
+                  </div></details>}
                   {canDamage && <details className="rounded-xl border border-line px-3 py-2"><summary className="cursor-pointer font-bold">Record partial damage</summary><div className="mt-3 flex flex-wrap items-end gap-2"><TextField label="Damaged kg" type="number" min="0.01" step="0.01" value={drafts[`${batch.id}:damageKg`] ?? ""} onChange={(e) => setDraft(`${batch.id}:damageKg`, e.target.value)} /><TextField label="Note (optional)" value={drafts[`${batch.id}:damageNote`] ?? ""} onChange={(e) => setDraft(`${batch.id}:damageNote`, e.target.value)} /><Button variant="danger" disabled={busy || !positive(drafts[`${batch.id}:damageKg`] ?? "")} onClick={() => mutate(() => api.recordBatchDamage(batch.id, drafts[`${batch.id}:damageKg`], drafts[`${batch.id}:damageNote`]), `Damage recorded for ${batch.code}.`)}>Save damage</Button></div></details>}
                   {batch.status !== "DAMAGED" && <details className="rounded-xl border border-line px-3 py-2"><summary className="cursor-pointer font-bold text-clay">Move batch to bad-input list</summary><div className="mt-3 flex flex-wrap items-end gap-2"><TextField label="Reason" value={drafts[`${batch.id}:badReason`] ?? ""} onChange={(e) => setDraft(`${batch.id}:badReason`, e.target.value)} /><Button variant="danger" disabled={busy || (drafts[`${batch.id}:badReason`] ?? "").trim().length < 3} onClick={() => mutate(() => api.markBatchBadInput(batch.id, drafts[`${batch.id}:badReason`]), `${batch.code} moved to bad-input batches.`)}>Mark as bad input</Button></div></details>}
               </Card>

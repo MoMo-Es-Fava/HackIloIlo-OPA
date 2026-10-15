@@ -153,6 +153,7 @@ export function createApiClient(options: ApiClientOptions) {
     adminListBadInputs: () => request<BatchRecordDto[]>("/admin/batches/bad-inputs"),
     adminEligibleBatchOrders: () => request<EligibleBatchOrderDto[]>("/admin/batches/eligible-orders"),
     createBatch: (orderIds: number[]) => request<BatchRecordDto>("/admin/batches", "POST", { orderIds }),
+    addOrdersToBatch: (id: number, orderIds: number[]) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/items`, "POST", { orderIds }),
     startBatchDrying: (id: number) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-drying`, "POST"),
     startBatchMilling: (id: number, dryKg?: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-milling`, "POST", dryKg ? { dryKg } : {}),
     completeBatchMilling: (id: number, riceKg: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/complete-milling`, "POST", { riceKg }),

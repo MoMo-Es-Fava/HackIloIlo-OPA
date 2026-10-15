@@ -18,6 +18,11 @@ import { randomBytes } from 'node:crypto';
 
 type Tx = Prisma.TransactionClient;
 const D = (value: string | number | Prisma.Decimal) => new Prisma.Decimal(value);
+const BATCHABLE_ORDER_STATUSES: OrderStatus[] = [
+  OrderStatus.WEIGHED,
+  OrderStatus.PAID,
+  OrderStatus.COMPLETED,
+];
 const BATCH_DETAIL = {
   items: { include: { order: { select: { id: true, contactPhone: true, palayCondition: true, variety: true } } }, orderBy: { id: 'asc' as const } },
   events: { include: { actor: { select: { id: true, name: true } } }, orderBy: { createdAt: 'asc' as const } },
@@ -33,7 +38,7 @@ export class BatchesService {
     return this.prisma.order.findMany({
       where: {
         type: OrderType.SELL_PALAY,
-        status: OrderStatus.WEIGHED,
+        status: { in: [...BATCHABLE_ORDER_STATUSES] },
         weightConfirmedAt: { not: null },
         batchItems: { none: {} },
       },
@@ -81,7 +86,7 @@ export class BatchesService {
         include: { events: { where: { toStatus: OrderStatus.WEIGHED }, orderBy: { createdAt: 'desc' }, take: 1 } },
       });
       if (orders.length !== ids.length || orders.some((order) =>
-        order.type !== OrderType.SELL_PALAY || order.status !== OrderStatus.WEIGHED ||
+        order.type !== OrderType.SELL_PALAY || !BATCHABLE_ORDER_STATUSES.includes(order.status) ||
         !order.weightConfirmedAt || !order.palayCondition || !order.unitPrice,
       )) {
         throw new ConflictException('Select only weighed, confirmed palay purchases that are not already in a batch.');
@@ -124,6 +129,76 @@ export class BatchesService {
         },
         include: BATCH_DETAIL,
       });
+    });
+  }
+
+  async addOrders(id: number, orderIds: number[], actorId: number) {
+    const ids = [...new Set(orderIds)];
+    return this.prisma.$transaction(async (tx) => {
+      const batch = await this.mustGet(tx, id);
+      if (batch.status !== BatchStatus.NONE) {
+        throw new ConflictException('Purchases can only be added before drying or milling starts.');
+      }
+      const condition = batch.items[0]?.order.palayCondition;
+      if (!condition) throw new ConflictException('This batch has no palay condition to match.');
+
+      const orders = await tx.order.findMany({
+        where: { id: { in: ids }, batchItems: { none: {} } },
+        include: { events: { where: { toStatus: OrderStatus.WEIGHED }, orderBy: { createdAt: 'desc' }, take: 1 } },
+      });
+      if (orders.length !== ids.length || orders.some((order) =>
+        order.type !== OrderType.SELL_PALAY || !BATCHABLE_ORDER_STATUSES.includes(order.status) ||
+        !order.weightConfirmedAt || order.palayCondition !== condition || !order.unitPrice,
+      )) {
+        throw new ConflictException('Select only confirmed, unbatched palay purchases matching this batch type.');
+      }
+
+      const items = orders.map((order) => {
+        const kg = condition === PalayCondition.DRY ? order.dryKg : order.wetKg;
+        if (!kg || kg.lte(0)) throw new ConflictException(`Order ${order.id} has no confirmed palay weight.`);
+        const unitPrice = order.unitPrice!;
+        return {
+          orderId: order.id,
+          farmerName: order.contactName,
+          kg,
+          unitPrice,
+          orderCost: kg.mul(unitPrice).toDecimalPlaces(2),
+          soldAt: order.events[0]?.createdAt ?? order.updatedAt,
+          paidAt: order.paidAt,
+        };
+      });
+      const addedKg = items.reduce((sum, item) => sum.add(item.kg), D(0));
+      const addedCost = items.reduce((sum, item) => sum.add(item.orderCost), D(0)).toDecimalPlaces(2);
+
+      // This conditional update serializes against starting the batch. If drying/milling
+      // wins the race, the added items roll back with this transaction.
+      await tx.batchItem.createMany({ data: items.map((item) => ({ batchId: id, ...item })) });
+      const updated = await tx.batchRecord.updateMany({
+        where: { id, status: BatchStatus.NONE },
+        data: {
+          wetKg: { increment: addedKg },
+          palayCost: { increment: addedCost },
+          totalCost: { increment: addedCost },
+          ...(condition === PalayCondition.DRY ? { dryKg: { increment: addedKg } } : {}),
+        },
+      });
+      if (!updated.count) {
+        throw new ConflictException('This batch has started processing; purchases can no longer be added.');
+      }
+      const earliestReceivedAt = new Date(Math.min(batch.receivedAt.getTime(), ...items.map((item) => item.soldAt.getTime())));
+      if (earliestReceivedAt.getTime() < batch.receivedAt.getTime()) {
+        await tx.batchRecord.update({ where: { id }, data: { receivedAt: earliestReceivedAt } });
+      }
+      await tx.batchEvent.create({
+        data: {
+          batchId: id,
+          fromStatus: BatchStatus.NONE,
+          toStatus: BatchStatus.NONE,
+          actorId,
+          note: `Added ${items.length} palay purchase(s), ${addedKg.toFixed(2)} kg.`,
+        },
+      });
+      return this.mustGet(tx, id);
     });
   }
 
