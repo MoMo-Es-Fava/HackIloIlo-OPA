@@ -276,6 +276,11 @@ export type UserWhereInput = {
   events?: Prisma.OrderEventListRelationFilter
   prices?: Prisma.PriceListRelationFilter
   stockChanges?: Prisma.StockAdjustmentListRelationFilter
+  batchesCreated?: Prisma.BatchRecordListRelationFilter
+  batchesFlagged?: Prisma.BatchRecordListRelationFilter
+  batchSales?: Prisma.BatchSaleListRelationFilter
+  batchEvents?: Prisma.BatchEventListRelationFilter
+  batchDamages?: Prisma.BatchDamageListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -295,6 +300,11 @@ export type UserOrderByWithRelationInput = {
   events?: Prisma.OrderEventOrderByRelationAggregateInput
   prices?: Prisma.PriceOrderByRelationAggregateInput
   stockChanges?: Prisma.StockAdjustmentOrderByRelationAggregateInput
+  batchesCreated?: Prisma.BatchRecordOrderByRelationAggregateInput
+  batchesFlagged?: Prisma.BatchRecordOrderByRelationAggregateInput
+  batchSales?: Prisma.BatchSaleOrderByRelationAggregateInput
+  batchEvents?: Prisma.BatchEventOrderByRelationAggregateInput
+  batchDamages?: Prisma.BatchDamageOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -317,6 +327,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   events?: Prisma.OrderEventListRelationFilter
   prices?: Prisma.PriceListRelationFilter
   stockChanges?: Prisma.StockAdjustmentListRelationFilter
+  batchesCreated?: Prisma.BatchRecordListRelationFilter
+  batchesFlagged?: Prisma.BatchRecordListRelationFilter
+  batchSales?: Prisma.BatchSaleListRelationFilter
+  batchEvents?: Prisma.BatchEventListRelationFilter
+  batchDamages?: Prisma.BatchDamageListRelationFilter
 }, "id" | "phone">
 
 export type UserOrderByWithAggregationInput = {
@@ -373,6 +388,11 @@ export type UserCreateInput = {
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -392,6 +412,11 @@ export type UserUncheckedCreateInput = {
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUpdateInput = {
@@ -410,6 +435,11 @@ export type UserUpdateInput = {
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -429,6 +459,11 @@ export type UserUncheckedUpdateInput = {
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -638,6 +673,84 @@ export type UserUpdateOneWithoutStockChangesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutStockChangesInput, Prisma.UserUpdateWithoutStockChangesInput>, Prisma.UserUncheckedUpdateWithoutStockChangesInput>
 }
 
+export type UserCreateNestedOneWithoutBatchesFlaggedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchesFlaggedInput, Prisma.UserUncheckedCreateWithoutBatchesFlaggedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchesFlaggedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutBatchesCreatedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchesCreatedInput, Prisma.UserUncheckedCreateWithoutBatchesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchesCreatedInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutBatchesFlaggedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchesFlaggedInput, Prisma.UserUncheckedCreateWithoutBatchesFlaggedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchesFlaggedInput
+  upsert?: Prisma.UserUpsertWithoutBatchesFlaggedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchesFlaggedInput, Prisma.UserUpdateWithoutBatchesFlaggedInput>, Prisma.UserUncheckedUpdateWithoutBatchesFlaggedInput>
+}
+
+export type UserUpdateOneWithoutBatchesCreatedNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchesCreatedInput, Prisma.UserUncheckedCreateWithoutBatchesCreatedInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchesCreatedInput
+  upsert?: Prisma.UserUpsertWithoutBatchesCreatedInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchesCreatedInput, Prisma.UserUpdateWithoutBatchesCreatedInput>, Prisma.UserUncheckedUpdateWithoutBatchesCreatedInput>
+}
+
+export type UserCreateNestedOneWithoutBatchSalesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchSalesInput, Prisma.UserUncheckedCreateWithoutBatchSalesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchSalesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutBatchSalesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchSalesInput, Prisma.UserUncheckedCreateWithoutBatchSalesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchSalesInput
+  upsert?: Prisma.UserUpsertWithoutBatchSalesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchSalesInput, Prisma.UserUpdateWithoutBatchSalesInput>, Prisma.UserUncheckedUpdateWithoutBatchSalesInput>
+}
+
+export type UserCreateNestedOneWithoutBatchDamagesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchDamagesInput, Prisma.UserUncheckedCreateWithoutBatchDamagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchDamagesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutBatchDamagesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchDamagesInput, Prisma.UserUncheckedCreateWithoutBatchDamagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchDamagesInput
+  upsert?: Prisma.UserUpsertWithoutBatchDamagesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchDamagesInput, Prisma.UserUpdateWithoutBatchDamagesInput>, Prisma.UserUncheckedUpdateWithoutBatchDamagesInput>
+}
+
+export type UserCreateNestedOneWithoutBatchEventsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchEventsInput, Prisma.UserUncheckedCreateWithoutBatchEventsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchEventsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutBatchEventsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutBatchEventsInput, Prisma.UserUncheckedCreateWithoutBatchEventsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutBatchEventsInput
+  upsert?: Prisma.UserUpsertWithoutBatchEventsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchEventsInput, Prisma.UserUpdateWithoutBatchEventsInput>, Prisma.UserUncheckedUpdateWithoutBatchEventsInput>
+}
+
 export type UserCreateWithoutPricesInput = {
   name: string
   phone: string
@@ -653,6 +766,11 @@ export type UserCreateWithoutPricesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUncheckedCreateWithoutPricesInput = {
@@ -671,6 +789,11 @@ export type UserUncheckedCreateWithoutPricesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserCreateOrConnectWithoutPricesInput = {
@@ -704,6 +827,11 @@ export type UserUpdateWithoutPricesInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPricesInput = {
@@ -722,6 +850,11 @@ export type UserUncheckedUpdateWithoutPricesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserCreateWithoutOrdersInput = {
@@ -739,6 +872,11 @@ export type UserCreateWithoutOrdersInput = {
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUncheckedCreateWithoutOrdersInput = {
@@ -757,6 +895,11 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserCreateOrConnectWithoutOrdersInput = {
@@ -790,6 +933,11 @@ export type UserUpdateWithoutOrdersInput = {
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOrdersInput = {
@@ -808,6 +956,11 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserCreateWithoutEventsInput = {
@@ -825,6 +978,11 @@ export type UserCreateWithoutEventsInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUncheckedCreateWithoutEventsInput = {
@@ -843,6 +1001,11 @@ export type UserUncheckedCreateWithoutEventsInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserCreateOrConnectWithoutEventsInput = {
@@ -876,6 +1039,11 @@ export type UserUpdateWithoutEventsInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEventsInput = {
@@ -894,6 +1062,11 @@ export type UserUncheckedUpdateWithoutEventsInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserCreateWithoutStockChangesInput = {
@@ -911,6 +1084,11 @@ export type UserCreateWithoutStockChangesInput = {
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserUncheckedCreateWithoutStockChangesInput = {
@@ -929,6 +1107,11 @@ export type UserUncheckedCreateWithoutStockChangesInput = {
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
 }
 
 export type UserCreateOrConnectWithoutStockChangesInput = {
@@ -962,6 +1145,11 @@ export type UserUpdateWithoutStockChangesInput = {
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutStockChangesInput = {
@@ -980,6 +1168,541 @@ export type UserUncheckedUpdateWithoutStockChangesInput = {
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserCreateWithoutBatchesFlaggedInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserUncheckedCreateWithoutBatchesFlaggedInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserCreateOrConnectWithoutBatchesFlaggedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchesFlaggedInput, Prisma.UserUncheckedCreateWithoutBatchesFlaggedInput>
+}
+
+export type UserCreateWithoutBatchesCreatedInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserUncheckedCreateWithoutBatchesCreatedInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserCreateOrConnectWithoutBatchesCreatedInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchesCreatedInput, Prisma.UserUncheckedCreateWithoutBatchesCreatedInput>
+}
+
+export type UserUpsertWithoutBatchesFlaggedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBatchesFlaggedInput, Prisma.UserUncheckedUpdateWithoutBatchesFlaggedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchesFlaggedInput, Prisma.UserUncheckedCreateWithoutBatchesFlaggedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBatchesFlaggedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBatchesFlaggedInput, Prisma.UserUncheckedUpdateWithoutBatchesFlaggedInput>
+}
+
+export type UserUpdateWithoutBatchesFlaggedInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBatchesFlaggedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUpsertWithoutBatchesCreatedInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBatchesCreatedInput, Prisma.UserUncheckedUpdateWithoutBatchesCreatedInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchesCreatedInput, Prisma.UserUncheckedCreateWithoutBatchesCreatedInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBatchesCreatedInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBatchesCreatedInput, Prisma.UserUncheckedUpdateWithoutBatchesCreatedInput>
+}
+
+export type UserUpdateWithoutBatchesCreatedInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBatchesCreatedInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserCreateWithoutBatchSalesInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserUncheckedCreateWithoutBatchSalesInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserCreateOrConnectWithoutBatchSalesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchSalesInput, Prisma.UserUncheckedCreateWithoutBatchSalesInput>
+}
+
+export type UserUpsertWithoutBatchSalesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBatchSalesInput, Prisma.UserUncheckedUpdateWithoutBatchSalesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchSalesInput, Prisma.UserUncheckedCreateWithoutBatchSalesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBatchSalesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBatchSalesInput, Prisma.UserUncheckedUpdateWithoutBatchSalesInput>
+}
+
+export type UserUpdateWithoutBatchSalesInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBatchSalesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserCreateWithoutBatchDamagesInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+}
+
+export type UserUncheckedCreateWithoutBatchDamagesInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+}
+
+export type UserCreateOrConnectWithoutBatchDamagesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchDamagesInput, Prisma.UserUncheckedCreateWithoutBatchDamagesInput>
+}
+
+export type UserUpsertWithoutBatchDamagesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBatchDamagesInput, Prisma.UserUncheckedUpdateWithoutBatchDamagesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchDamagesInput, Prisma.UserUncheckedCreateWithoutBatchDamagesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBatchDamagesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBatchDamagesInput, Prisma.UserUncheckedUpdateWithoutBatchDamagesInput>
+}
+
+export type UserUpdateWithoutBatchDamagesInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBatchDamagesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+}
+
+export type UserCreateWithoutBatchEventsInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserUncheckedCreateWithoutBatchEventsInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserCreateOrConnectWithoutBatchEventsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchEventsInput, Prisma.UserUncheckedCreateWithoutBatchEventsInput>
+}
+
+export type UserUpsertWithoutBatchEventsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutBatchEventsInput, Prisma.UserUncheckedUpdateWithoutBatchEventsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutBatchEventsInput, Prisma.UserUncheckedCreateWithoutBatchEventsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutBatchEventsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutBatchEventsInput, Prisma.UserUncheckedUpdateWithoutBatchEventsInput>
+}
+
+export type UserUpdateWithoutBatchEventsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutBatchEventsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
 }
 
 
@@ -992,6 +1715,11 @@ export type UserCountOutputType = {
   events: number
   prices: number
   stockChanges: number
+  batchesCreated: number
+  batchesFlagged: number
+  batchSales: number
+  batchEvents: number
+  batchDamages: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -999,6 +1727,11 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   events?: boolean | UserCountOutputTypeCountEventsArgs
   prices?: boolean | UserCountOutputTypeCountPricesArgs
   stockChanges?: boolean | UserCountOutputTypeCountStockChangesArgs
+  batchesCreated?: boolean | UserCountOutputTypeCountBatchesCreatedArgs
+  batchesFlagged?: boolean | UserCountOutputTypeCountBatchesFlaggedArgs
+  batchSales?: boolean | UserCountOutputTypeCountBatchSalesArgs
+  batchEvents?: boolean | UserCountOutputTypeCountBatchEventsArgs
+  batchDamages?: boolean | UserCountOutputTypeCountBatchDamagesArgs
 }
 
 /**
@@ -1039,6 +1772,41 @@ export type UserCountOutputTypeCountStockChangesArgs<ExtArgs extends runtime.Typ
   where?: Prisma.StockAdjustmentWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBatchesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchRecordWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBatchesFlaggedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchRecordWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBatchSalesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchSaleWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBatchEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchEventWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountBatchDamagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchDamageWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1057,6 +1825,11 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   prices?: boolean | Prisma.User$pricesArgs<ExtArgs>
   stockChanges?: boolean | Prisma.User$stockChangesArgs<ExtArgs>
+  batchesCreated?: boolean | Prisma.User$batchesCreatedArgs<ExtArgs>
+  batchesFlagged?: boolean | Prisma.User$batchesFlaggedArgs<ExtArgs>
+  batchSales?: boolean | Prisma.User$batchSalesArgs<ExtArgs>
+  batchEvents?: boolean | Prisma.User$batchEventsArgs<ExtArgs>
+  batchDamages?: boolean | Prisma.User$batchDamagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1111,6 +1884,11 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   prices?: boolean | Prisma.User$pricesArgs<ExtArgs>
   stockChanges?: boolean | Prisma.User$stockChangesArgs<ExtArgs>
+  batchesCreated?: boolean | Prisma.User$batchesCreatedArgs<ExtArgs>
+  batchesFlagged?: boolean | Prisma.User$batchesFlaggedArgs<ExtArgs>
+  batchSales?: boolean | Prisma.User$batchSalesArgs<ExtArgs>
+  batchEvents?: boolean | Prisma.User$batchEventsArgs<ExtArgs>
+  batchDamages?: boolean | Prisma.User$batchDamagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1123,6 +1901,11 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     events: Prisma.$OrderEventPayload<ExtArgs>[]
     prices: Prisma.$PricePayload<ExtArgs>[]
     stockChanges: Prisma.$StockAdjustmentPayload<ExtArgs>[]
+    batchesCreated: Prisma.$BatchRecordPayload<ExtArgs>[]
+    batchesFlagged: Prisma.$BatchRecordPayload<ExtArgs>[]
+    batchSales: Prisma.$BatchSalePayload<ExtArgs>[]
+    batchEvents: Prisma.$BatchEventPayload<ExtArgs>[]
+    batchDamages: Prisma.$BatchDamagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1535,6 +2318,11 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   events<T extends Prisma.User$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   prices<T extends Prisma.User$pricesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pricesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PricePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   stockChanges<T extends Prisma.User$stockChangesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$stockChangesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$StockAdjustmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchesCreated<T extends Prisma.User$batchesCreatedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$batchesCreatedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchesFlagged<T extends Prisma.User$batchesFlaggedArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$batchesFlaggedArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchSales<T extends Prisma.User$batchSalesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$batchSalesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchSalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchEvents<T extends Prisma.User$batchEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$batchEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchDamages<T extends Prisma.User$batchDamagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$batchDamagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchDamagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2062,6 +2850,126 @@ export type User$stockChangesArgs<ExtArgs extends runtime.Types.Extensions.Inter
   take?: number
   skip?: number
   distinct?: Prisma.StockAdjustmentScalarFieldEnum | Prisma.StockAdjustmentScalarFieldEnum[]
+}
+
+/**
+ * User.batchesCreated
+ */
+export type User$batchesCreatedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchRecord
+   */
+  select?: Prisma.BatchRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchRecord
+   */
+  omit?: Prisma.BatchRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchRecordInclude<ExtArgs> | null
+  where?: Prisma.BatchRecordWhereInput
+  orderBy?: Prisma.BatchRecordOrderByWithRelationInput | Prisma.BatchRecordOrderByWithRelationInput[]
+  cursor?: Prisma.BatchRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchRecordScalarFieldEnum | Prisma.BatchRecordScalarFieldEnum[]
+}
+
+/**
+ * User.batchesFlagged
+ */
+export type User$batchesFlaggedArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchRecord
+   */
+  select?: Prisma.BatchRecordSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchRecord
+   */
+  omit?: Prisma.BatchRecordOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchRecordInclude<ExtArgs> | null
+  where?: Prisma.BatchRecordWhereInput
+  orderBy?: Prisma.BatchRecordOrderByWithRelationInput | Prisma.BatchRecordOrderByWithRelationInput[]
+  cursor?: Prisma.BatchRecordWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchRecordScalarFieldEnum | Prisma.BatchRecordScalarFieldEnum[]
+}
+
+/**
+ * User.batchSales
+ */
+export type User$batchSalesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchSale
+   */
+  select?: Prisma.BatchSaleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchSale
+   */
+  omit?: Prisma.BatchSaleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchSaleInclude<ExtArgs> | null
+  where?: Prisma.BatchSaleWhereInput
+  orderBy?: Prisma.BatchSaleOrderByWithRelationInput | Prisma.BatchSaleOrderByWithRelationInput[]
+  cursor?: Prisma.BatchSaleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchSaleScalarFieldEnum | Prisma.BatchSaleScalarFieldEnum[]
+}
+
+/**
+ * User.batchEvents
+ */
+export type User$batchEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchEvent
+   */
+  select?: Prisma.BatchEventSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchEvent
+   */
+  omit?: Prisma.BatchEventOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchEventInclude<ExtArgs> | null
+  where?: Prisma.BatchEventWhereInput
+  orderBy?: Prisma.BatchEventOrderByWithRelationInput | Prisma.BatchEventOrderByWithRelationInput[]
+  cursor?: Prisma.BatchEventWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchEventScalarFieldEnum | Prisma.BatchEventScalarFieldEnum[]
+}
+
+/**
+ * User.batchDamages
+ */
+export type User$batchDamagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchDamage
+   */
+  select?: Prisma.BatchDamageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchDamage
+   */
+  omit?: Prisma.BatchDamageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchDamageInclude<ExtArgs> | null
+  where?: Prisma.BatchDamageWhereInput
+  orderBy?: Prisma.BatchDamageOrderByWithRelationInput | Prisma.BatchDamageOrderByWithRelationInput[]
+  cursor?: Prisma.BatchDamageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchDamageScalarFieldEnum | Prisma.BatchDamageScalarFieldEnum[]
 }
 
 /**
