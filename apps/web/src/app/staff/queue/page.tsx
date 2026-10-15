@@ -5,8 +5,9 @@ import { serviceLabel, statusLabel } from "@/lib/orders";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf, dateLabel } from "@/lib/format";
-import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, orderTone, td, th } from "@/components/ui";
+import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, orderTone, cn, td, th } from "@/components/ui";
 import type { Booking, GrainType } from "@/lib/demo-types";
+import { IconClipboard } from "@/components/icons";
 
 export default function Queue() {
   const { isMock, slots, bookings, serviceRequests, orderDetails, orderError, addBooking, setBookingStatus, updateOrderStatus } = useStore();
@@ -30,7 +31,7 @@ export default function Queue() {
 
   return (
     <>
-      <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." />
+      <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." icon={<IconClipboard className="h-6 w-6" />} />
       {isMock && <>
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {slots.map((s) => {
@@ -38,9 +39,9 @@ export default function Queue() {
           const isFull = s.booked >= s.capacity;
           return (
             <Card key={s.id}>
-              <div className="flex items-center justify-between"><p className="font-bold">{s.date}, {s.time}</p><Badge tone={isFull ? "bad" : pct >= 75 ? "warn" : "ok"}>{isFull ? "Full" : `${s.capacity - s.booked} left`}</Badge></div>
+              <div className="flex items-center justify-between"><p className="font-bold tracking-tight">{s.date}, {s.time}</p><Badge tone={isFull ? "bad" : pct >= 75 ? "warn" : "ok"}>{isFull ? "Full" : `${s.capacity - s.booked} left`}</Badge></div>
               <Bar pct={pct} tone={isFull ? "bad" : "ok"} label={`${s.booked} of ${s.capacity} booked`} />
-              <p className="text-sm text-sub">{s.booked} of {s.capacity} booked</p>
+              <p className="tnum text-sm text-sub">{s.booked} of {s.capacity} booked</p>
             </Card>
           );
         })}
