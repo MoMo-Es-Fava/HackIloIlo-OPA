@@ -6,12 +6,12 @@ import { OrderStatus, OrderType } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { orderAmount, orderSteps, orderTypeLabel, serviceLabel, statusLabel } from "@/lib/orders";
-import { Badge, Button, Card, Empty, PageHeader, cn, orderTone } from "@/components/ui";
+import { Badge, Button, Card, Empty, PageHeader, Notice, cn, orderTone } from "@/components/ui";
 import { IconCheck, IconChevronRight, IconReceipt, IconTrace } from "@/components/icons";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
-  const { orders, orderDetails, orderError, cancelOrder } = useStore();
+  const { orders, orderDetails, orderError, cancelOrder, confirmWeight } = useStore();
   const o = orders.find((row) => row.id === Number(id));
   if (!o)
     return (
@@ -27,6 +27,10 @@ export default function OrderDetail() {
   const idx = steps.indexOf(o.status);
   const hasReceipt = o.type === OrderType.BUY_RICE && (o.status === OrderStatus.PAID || o.status === OrderStatus.COMPLETED);
   const closed = o.status === OrderStatus.CANCELLED || o.status === OrderStatus.REJECTED;
+  const weightAwaitingConfirmation =
+    (o.status === OrderStatus.WEIGHED || (o.status === OrderStatus.DRYING && Boolean(o.dryKg))) &&
+    !o.weightConfirmedAt;
+  const recordedWeight = o.status === OrderStatus.DRYING ? o.dryKg : o.wetKg ?? o.dryKg;
   return (
     <div className="flex flex-col gap-6">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm font-bold text-sub">
@@ -82,6 +86,23 @@ export default function OrderDetail() {
           </ol>
         )}
       </Card>
+      {weightAwaitingConfirmation && (
+        <Notice tone="warn">
+          <p className="font-bold">
+            IRPC weighed your palay: {recordedWeight ? kgf(recordedWeight) : "recorded weight not available"}.
+          </p>
+          <p className="mt-1 text-sm">
+            {recordedWeight
+              ? "If this does not match what you saw at the scale, tell IRPC staff before confirming."
+              : "Please ask IRPC staff to check the recorded weight before confirming."}
+          </p>
+          {recordedWeight && (
+            <div className="mt-3">
+              <Button onClick={() => void confirmWeight(o.id)}>Yes, the weight is correct</Button>
+            </div>
+          )}
+        </Notice>
+      )}
       {orderError && <p role="alert" className="text-clay">{orderError}</p>}
       <div className="flex flex-wrap gap-3">
         {details?.batchId && (

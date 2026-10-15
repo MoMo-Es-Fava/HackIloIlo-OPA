@@ -1,6 +1,6 @@
 "use client";
 
-import { ACTIVE_STATUSES, OrderStatus, OrderType, PriceItem, type OrderDto } from "@irpc/types";
+import { ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceItem, type OrderDto } from "@irpc/types";
 import Link from "next/link";
 import Image from "next/image";
 import { useStore } from "@/lib/store";
@@ -8,7 +8,7 @@ import { peso, kgf, dateLabel } from "@/lib/format";
 import { currentPrice, orderAmount, orderTypeLabel, statusLabel } from "@/lib/orders";
 import { imageCredits } from "@/lib/credits";
 import { Badge, Card, PageHeader, Stat, orderTone } from "@/components/ui";
-import { IconClipboard, IconBag, IconChart, IconArrowRight, IconWrench, IconTrace, IconLeaf } from "@/components/icons";
+import { IconClipboard, IconBag, IconChart, IconArrowRight, IconWrench, IconLeaf } from "@/components/icons";
 
 const nextStep: Partial<Record<OrderStatus, string>> = {
   PENDING: "IRPC will review your request and confirm availability.",
@@ -31,6 +31,13 @@ export default function BuyerHome() {
   const dry = currentPrice(prices, PriceItem.PALAY_DRY)?.pricePerKg ?? null;
   const open = offers.filter((offer) => offer.kgAvailable > 0);
   const featured = open.slice(0, 2);
+  const seller = profile.type === AccountType.FARMER || profile.type === AccountType.COOPERATIVE;
+  const startActions = [
+    { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, and stock.", cta: "View offers", image: "/images/nagacadan-farmers.jpg", imagePosition: "center 60%", accent: !seller },
+    { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/ifugao-terraces.jpg", imagePosition: "center 65%", accent: seller },
+    { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service", image: "/images/sunset-ifugao.jpg", imagePosition: "center 75%", accent: false },
+    { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/ifugao-terraces.jpg", imagePosition: "center 35%", accent: false },
+  ].sort((a, b) => Number(b.accent) - Number(a.accent));
 
   return (
     <div className="flex flex-col gap-8">
@@ -44,18 +51,22 @@ export default function BuyerHome() {
           className="pointer-events-none absolute -right-4 top-8 h-44 w-44 rounded-full bg-husk/10 blur-2xl"
         />
         <div className="relative flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-end">
-          <div className="max-w-xl">
+          <div className="max-w-2xl">
             <p className="mb-2 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[12px] font-bold uppercase tracking-[0.14em] text-husk">
-              Buyer workspace
+              {seller ? "Seller workspace" : "Buyer workspace"}
             </p>
-            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl">Welcome, {profile.name}</h1>
-            <p className="mt-3 text-white/80">Find quality rice, keep an eye on your orders, and see what is happening at IRPC.</p>
+            <h1 className="text-3xl font-bold leading-tight tracking-tight sm:text-4xl xl:text-5xl">Welcome, {profile.name}</h1>
+            <p className="mt-3 text-white/80">
+              {seller
+                ? `Sell your palay to IRPC. Today's buying price: fresh ${peso(fresh, 0)}/kg, dry ${peso(dry, 0)}/kg.`
+                : "Find quality rice, keep an eye on your orders, and see what is happening at IRPC."}
+            </p>
           </div>
           <Link
-            href="/buyer/offers"
+            href={seller ? "/buyer/sell" : "/buyer/offers"}
             className="group inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-husk px-5 font-bold text-ink shadow-[0_6px_18px_-8px_rgba(0,0,0,0.5)] transition-all hover:bg-[#f5d98f] hover:gap-3 sm:w-auto"
           >
-            Browse rice
+            {seller ? "Sell palay" : "Browse rice"}
             <IconArrowRight className="h-[18px] w-[18px] transition-transform group-hover:translate-x-0.5" />
           </Link>
         </div>
@@ -126,17 +137,12 @@ export default function BuyerHome() {
 
       <section className="flex flex-col gap-4">
         <PageHeader level={2} title="A good place to start" sub="Your most-used actions, all in one place." />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {[
-            { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, stock, and batch origin.", cta: "View offers", image: "/images/nagacadan-farmers.jpg", imagePosition: "center 60%" },
-            { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/ifugao-terraces.jpg", imagePosition: "center 65%" },
-            { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service", image: "/images/sunset-ifugao.jpg", imagePosition: "center 75%" },
-            { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/ifugao-terraces.jpg", imagePosition: "center 35%" },
-          ].map((a) => (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {startActions.map((a) => (
             <Link
               key={a.href}
               href={a.href}
-              className="group relative isolate flex min-h-[18rem] flex-col overflow-hidden rounded-2xl border border-white/25 bg-ink p-2 shadow-raised transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-husk/70 hover:shadow-pop focus-visible:outline-offset-4"
+              className={`group relative isolate flex min-h-[18rem] flex-col overflow-hidden rounded-2xl border bg-ink p-2 shadow-raised transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-husk/70 hover:shadow-pop focus-visible:outline-offset-4 ${a.accent ? "border-husk ring-2 ring-husk/60" : "border-white/25"}`}
             >
               <Image
                 src={a.image}
@@ -180,7 +186,7 @@ export default function BuyerHome() {
         <PageHeader
           level={2}
           title="Recently available"
-          sub="Every offer links back to its source batch for traceability."
+          sub="Rice available to buy from IRPC."
           actions={
             <Link href="/buyer/offers" className="group inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
               All offers <IconArrowRight className="h-4 w-4 transition-all group-hover:translate-x-0.5" />
@@ -189,10 +195,10 @@ export default function BuyerHome() {
         />
         {featured.length === 0 ? (
           <Card>
-            <p className="flex items-center gap-2 text-sub"><IconTrace className="h-5 w-5" /> No rice offers are available right now. Please check again later.</p>
+            <p className="flex items-center gap-2 text-sub"><IconBag className="h-5 w-5" /> No rice offers are available right now. Please check again later.</p>
           </Card>
         ) : (
-          <div className="grid gap-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2">
             {featured.map((offer) => (
               <Link key={offer.id} href={`/buyer/offers/${offer.id}`} className="group rounded-2xl border border-line/80 bg-white p-5 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised">
                 <div className="flex items-start justify-between gap-3">

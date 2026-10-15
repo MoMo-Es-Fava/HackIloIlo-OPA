@@ -23,24 +23,29 @@ export default function TraceSearch() {
     <div className="flex flex-col gap-6">
       <PageHeader title="Trace a batch" sub="See every step from first buy to sale." icon={<IconTrace className="h-6 w-6" />} />
       <Card>
-        <TextField
-          label="Batch ID"
-          placeholder="IR-1014-027"
-          value={q}
-          error={error}
-          onChange={(e) => { setQ(e.target.value); setError(undefined); }}
-          onKeyDown={(e) => e.key === "Enter" && go()}
-        />
-        <Button arrow disabled={!q.trim()} onClick={go}>
-          Trace
-        </Button>
+        <div className="flex flex-col gap-3 md:flex-row md:items-end">
+          <div className="flex-1">
+            <TextField
+              label="Batch ID"
+              placeholder="IR-1014-027"
+              value={q}
+              error={error}
+              hint="Enter the batch ID shown on your receipt."
+              onChange={(e) => { setQ(e.target.value); setError(undefined); }}
+              onKeyDown={(e) => e.key === "Enter" && go()}
+            />
+          </div>
+          <Button arrow disabled={!q.trim()} onClick={go}>
+            Trace batch
+          </Button>
+        </div>
       </Card>
       <section className="flex flex-col gap-3">
         <h2 className="text-lg font-bold tracking-tight">Batches in your orders</h2>
         {mine.length === 0 ? (
           <p className="text-sub">Your ordered batches will appear here for quick access.</p>
         ) : (
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {mine.map((id) => (
               <Link
                 key={id}

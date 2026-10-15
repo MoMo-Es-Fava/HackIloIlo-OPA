@@ -172,6 +172,11 @@ a {
   opacity: 1;
 }
 
+.buyer-content .page-header-title {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  line-height: 1.12;
+}
+
 .auth-spinner,
 .loading-spinner {
   animation: auth-spin 800ms linear infinite;
