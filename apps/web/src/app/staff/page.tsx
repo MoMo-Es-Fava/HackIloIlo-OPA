@@ -5,7 +5,7 @@ import Link from "next/link";
 import { OrderStatus, OrderType, PalayCondition, type AdminSummaryDto, type MoneySummaryDto, type OrderDto } from "@irpc/types";
 import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
-import { kgf, peso } from "@/lib/format";
+import { kgf, peso, pesoAccounting } from "@/lib/format";
 import { serviceLabel } from "@/lib/orders";
 import { Badge, Bar, Card, Empty, PageHeader, Stat } from "@/components/ui";
 import { IconArrowRight, IconChart, IconClock, IconFlame, IconLeaf, IconScale, IconBox } from "@/components/icons";
@@ -228,8 +228,8 @@ export default function Today() {
           <Stat label="Palay bought" value={money ? peso(money.boughtPalay, 0) : "–"} hint="Paid to farmers in cash" icon={<IconLeaf className="h-4 w-4" />} />
           <Stat label="Rice sales" value={money ? peso(money.soldRice, 0) : "–"} hint="From rice buyers" icon={<IconBox className="h-4 w-4" />} />
           <Stat label="Service fees" value={money ? peso(money.serviceFees, 0) : "–"} hint="Drying and milling" icon={<IconFlame className="h-4 w-4" />} />
-          <Stat label="Gross profit" value={money ? peso(money.grossProfit, 0) : "–"}
-            hint={profit !== null && profit < 0 ? "Loss so far: more spent on palay than earned" : "Rice sales + service fees − palay bought"}
+          <Stat label="Gross profit" value={money ? pesoAccounting(money.grossProfit) : "–"}
+            hint={profit !== null && profit < 0 ? "In parentheses: a loss. More spent on palay than earned" : "Rice sales + service fees − palay bought"}
             loss={profit !== null && profit < 0} icon={<IconChart className="h-4 w-4" />} />
         </div>
       </section>}
