@@ -175,6 +175,25 @@ describe('Auth (e2e)', () => {
       .expect(200);
   });
 
+  it('lets plant staff use admin routes (one admin level for now)', async () => {
+    await users.create({
+      name: 'IRPC Plant Staff',
+      phone: '+639170000002',
+      role: Role.PLANT_STAFF,
+      pinHash: await bcrypt.hash('4321', 4),
+      accountType: null,
+      language: 'EN',
+      municipality: null,
+      cooperative: null,
+      consentAt: null,
+    });
+    const staff = await login('09170000002', '4321').expect(200);
+    await http()
+      .get('/test-admin')
+      .set('Authorization', `Bearer ${(staff.body as AuthResponse).token}`)
+      .expect(200);
+  });
+
   it('locks a phone after 5 wrong PINs, even if the 6th is correct', async () => {
     const res = await verifiedRegister();
     expect(res.status).toBe(201);

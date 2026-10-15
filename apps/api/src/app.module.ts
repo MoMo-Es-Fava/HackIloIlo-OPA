@@ -8,6 +8,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SmsModule } from './integrations/textbee/sms.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { OrdersModule } from './modules/orders/orders.module';
     SmsModule,
     CatalogModule,
     OrdersModule,
+    ReportsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

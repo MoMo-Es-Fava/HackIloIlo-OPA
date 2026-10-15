@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { OrderStatus, OrderType, PalayCondition, type AdminSummaryDto, type MoneySummaryDto, type OrderDto } from "@irpc/types";
+import { OrderStatus, OrderType, PalayCondition, type AdminSummaryDto, type AnswerStatsDto, type MoneySummaryDto, type OrderDto } from "@irpc/types";
 import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { kgf, peso, pesoAccounting } from "@/lib/format";
@@ -21,7 +21,7 @@ const timeLabel = (d: Date) => d.toLocaleTimeString("en-PH", { timeZone: MANILA,
 const boardFor: Record<OrderType, string> = {
   [OrderType.SELL_PALAY]: "/staff/palay",
   [OrderType.SERVICE]: "/staff/services",
-  [OrderType.BUY_RICE]: "/staff/sales",
+  [OrderType.BUY_RICE]: "/staff/rice-sales",
 };
 
 const awaitingConfirmation = (o: OrderDto) =>
@@ -83,13 +83,15 @@ export default function Today() {
   const [orders, setOrders] = useState<OrderDto[] | null>(null);
   const [summary, setSummary] = useState<AdminSummaryDto | null>(null);
   const [money, setMoney] = useState<MoneySummaryDto | null>(null);
+  const [answers, setAnswers] = useState<AnswerStatsDto | null>(null);
   // Money totals are admin-only; plant staff simply don't see that section.
   const [canSeeMoney, setCanSeeMoney] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [o, s, m] = await Promise.allSettled([api.adminListOrders(), api.getAdminSummary(), api.getMoney(monthStart(), todayIso())]);
+    const [o, s, m, a] = await Promise.allSettled([api.adminListOrders(), api.getAdminSummary(), api.getMoney(monthStart(), todayIso()), api.getAnswerStats(monthStart(), todayIso())]);
+    if (a.status === "fulfilled") setAnswers(a.value);
     if (o.status === "fulfilled") setOrders(o.value);
     if (s.status === "fulfilled") setSummary(s.value);
     if (m.status === "fulfilled") setMoney(m.value);
@@ -139,7 +141,9 @@ export default function Today() {
         <Link href="/staff/palay" className="rounded-2xl outline-offset-4">
           <Stat label="Palay offers to answer" value={orders ? String(palayToAnswer) : "–"} hint={allToAnswer > palayToAnswer ? `${allToAnswer} requests in all` : "Answer the same day"} icon={<IconLeaf className="h-4 w-4" />} />
         </Link>
-        <Stat label="Arriving today" value={summary ? String(summary.arrivingToday) : "–"} hint="Accepted for today's date" icon={<IconClock className="h-4 w-4" />} />
+        <Stat label="Answered same day" value={answers?.sameDayPct != null ? `${answers.sameDayPct}%` : "–"}
+          hint={answers ? (answers.offers ? `${answers.answeredSameDay} of ${answers.offers} palay offers this month` : "No palay offers yet this month") : "Palay offers this month"}
+          icon={<IconClock className="h-4 w-4" />} />
         <Stat label="Weights to confirm" value={orders ? String(toConfirm) : "–"} hint="Customer must agree before paying" icon={<IconScale className="h-4 w-4" />} />
         <Stat label="Ready for pickup" value={orders ? String(ready) : "–"} hint="Collect payment in cash" icon={<IconBox className="h-4 w-4" />} />
       </section>
@@ -193,7 +197,7 @@ export default function Today() {
                   <Badge tone={full ? "bad" : pct >= 75 ? "warn" : "ok"}>{full ? "Over capacity" : `${kgf(capacity - booked)} left`}</Badge>
                 </div>
                 <Bar pct={pct} tone={full ? "bad" : "ok"} label={`${Math.round(pct)}% of drying capacity booked`} />
-                <p className="tnum text-sm text-sub">{Math.round(pct)}% booked{summary.inDrying ? ` · ${summary.inDrying} drying now` : ""}</p>
+                <p className="tnum text-sm text-sub">{Math.round(pct)}% booked · {summary.arrivingToday} arriving today{summary.inDrying ? ` · ${summary.inDrying} drying now` : ""}</p>
               </>
             ) : (
               <p className="text-sub">{summary ? "Drying capacity is not set." : "Loading…"}</p>
