@@ -16,21 +16,20 @@ config({ path: path.resolve(process.cwd(), '../../.env'), quiet: true });
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
-  throw new Error(
-    'DATABASE_URL is not set. Check the repository root .env file.',
-  );
+  throw new Error('DATABASE_URL is not set. Check the repository root .env file.');
 }
 
-const adapter = new PrismaPg({ connectionString: databaseUrl });
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: databaseUrl }),
+});
 
-// Demo-only PIN shared by every seeded account so the team can log in as each role.
-// Override with SEED_DEMO_PIN in .env. Never use seeded accounts in production.
+// Demo credentials only. Set SEED_DEMO_PIN in the root .env to change the PIN
+// used when a seeded account is first created. Reruns do not reset account PINs.
 const DEMO_PIN = process.env.SEED_DEMO_PIN?.trim() || '1234';
 if (!/^\d{4,6}$/.test(DEMO_PIN)) {
   throw new Error('SEED_DEMO_PIN must be 4 to 6 digits.');
 }
-const SEEDED_PIN_HASH = bcrypt.hashSync(DEMO_PIN, 10);
+
 const EFFECTIVE_AT = new Date('2026-10-01T00:00:00.000Z');
 
 const users = [
@@ -109,116 +108,121 @@ const sharedPrices = [
   { item: PriceItem.MILLING_FEE, pricePerKg: '3.30' },
 ] as const;
 
+type SeedPrice = {
+  item: PriceItem;
+  riceTypeId: number | null;
+  pricePerKg: string;
+  createdById: number;
+};
+
 async function createPriceIfMissing(
   tx: Prisma.TransactionClient,
-  where: {
-    item: PriceItem;
-    riceTypeId: number | null;
-  },
-  data: {
-    item: PriceItem;
-    riceTypeId: number | null;
-    pricePerKg: string;
-    basis: PriceBasis;
-    effectiveAt: Date;
-    createdById: number;
-  },
+  price: SeedPrice,
 ) {
-  const existing = await tx.price.findFirst({ where });
-  if (!existing) await tx.price.create({ data });
+  const existing = await tx.price.findFirst({
+    where: { item: price.item, riceTypeId: price.riceTypeId },
+    select: { id: true },
+  });
+  if (existing) return false;
+
+  await tx.price.create({
+    data: {
+      ...price,
+      basis: PriceBasis.MARKET,
+      effectiveAt: EFFECTIVE_AT,
+    },
+  });
+  return true;
 }
 
 async function main() {
-  await prisma.$transaction(async (tx) => {
-    const seededUsers = new Map<string, number>();
+  const pinHash = await bcrypt.hash(DEMO_PIN, 10);
+
+  const result = await prisma.$transaction(async (tx) => {
+    const savedUsers = new Map<string, number>();
 
     for (const user of users) {
       const saved = await tx.user.upsert({
         where: { phone: user.phone },
-        update: {
-          name: user.name,
-          role: user.role,
-          accountType: user.accountType,
-          language: Language.HIL,
-          municipality: 'municipality' in user ? user.municipality : null,
-          cooperative: 'cooperative' in user ? user.cooperative : null,
-          isActive: true,
-          pinHash: SEEDED_PIN_HASH,
-        },
+        // Preserve PINs and profile changes made after the initial seed.
+        update: {},
         create: {
           ...user,
-          pinHash: SEEDED_PIN_HASH,
-          consentAt: new Date(),
+          pinHash,
           language: Language.HIL,
+          consentAt: new Date(),
         },
       });
-      seededUsers.set(user.phone, saved.id);
+      savedUsers.set(user.phone, saved.id);
     }
 
-    const adminId = seededUsers.get('+639170000001')!;
+    const adminId = savedUsers.get('+639170000001');
+    if (adminId === undefined) throw new Error('Seed administrator was not created.');
 
+    let riceTypesCreated = 0;
     const savedRiceTypes = [];
     for (const riceType of riceTypes) {
-      savedRiceTypes.push(
-        await tx.riceType.upsert({
-          where: { name: riceType.name },
-          update: { ...riceType, isActive: true },
-          create: riceType,
-        }),
-      );
+      const existed = await tx.riceType.findUnique({
+        where: { name: riceType.name },
+        select: { id: true },
+      });
+      const saved = await tx.riceType.upsert({
+        where: { name: riceType.name },
+        // In particular, do not reset current stock when this seed is rerun.
+        update: {},
+        create: riceType,
+      });
+      if (!existed) riceTypesCreated++;
+      savedRiceTypes.push(saved);
     }
 
+    let pricesCreated = 0;
     for (const price of sharedPrices) {
-      await createPriceIfMissing(
-        tx,
-        {
-          item: price.item,
-          riceTypeId: null,
-        },
-        {
-          ...price,
-          riceTypeId: null,
-          basis: PriceBasis.MARKET,
-          effectiveAt: EFFECTIVE_AT,
-          createdById: adminId,
-        },
-      );
+      if (await createPriceIfMissing(tx, { ...price, riceTypeId: null, createdById: adminId })) {
+        pricesCreated++;
+      }
     }
-
     for (const riceType of savedRiceTypes) {
-      await createPriceIfMissing(
-        tx,
-        {
-          item: PriceItem.RICE,
-          riceTypeId: riceType.id,
-        },
-        {
-          item: PriceItem.RICE,
-          riceTypeId: riceType.id,
-          pricePerKg: '50.70',
-          basis: PriceBasis.MARKET,
-          effectiveAt: EFFECTIVE_AT,
-          createdById: adminId,
-        },
-      );
+      if (await createPriceIfMissing(tx, {
+        item: PriceItem.RICE,
+        riceTypeId: riceType.id,
+        pricePerKg: '50.70',
+        createdById: adminId,
+      })) {
+        pricesCreated++;
+      }
     }
 
+    let settingsCreated = 0;
     for (const [key, value] of Object.entries({
       millingRecovery: 0.6,
       dryingRecovery: 0.8,
       sackKg: 50,
       dryingCapacityKg: 56000,
     })) {
+      const existed = await tx.setting.findUnique({ where: { key }, select: { key: true } });
       await tx.setting.upsert({
         where: { key },
-        update: { value },
+        // Preserve settings an administrator has changed since the first seed.
+        update: {},
         create: { key, value },
       });
+      if (!existed) settingsCreated++;
     }
 
-    console.log(
-      `Seeded ${users.length} users, ${savedRiceTypes.length} rice types, prices, and settings.`,
-    );
+    return {
+      riceTypesCreated,
+      pricesCreated,
+      settingsCreated,
+    };
+  });
+
+  console.log('Database seed complete:', {
+    demoAccounts: users.length,
+    riceTypesCreated: result.riceTypesCreated,
+    pricesCreated: result.pricesCreated,
+    settingsCreated: result.settingsCreated,
+    demoPin: DEMO_PIN,
   });
 }
 
