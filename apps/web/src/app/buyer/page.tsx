@@ -32,10 +32,10 @@ export default function BuyerHome() {
   const featured = open.slice(0, 2);
   const seller = profile.type === AccountType.FARMER || profile.type === AccountType.COOPERATIVE;
   const startActions = [
-    { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, and stock.", cta: "View offers", image: "/images/palay.jpg", imagePosition: "center 60%", accent: !seller },
+    { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, and stock.", cta: "View offers", image: "/images/nagacadan-farmers.jpg", imagePosition: "center 60%", accent: !seller },
     { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/palay.jpg", imagePosition: "center 65%", accent: seller },
     { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service", image: "/images/mill.jpg", imagePosition: "center 75%", accent: false },
-    { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/palay.jpg", imagePosition: "center 35%", accent: false },
+    { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/sunset-ifugao.jpg", imagePosition: "center 35%", accent: false },
   ].sort((a, b) => Number(b.accent) - Number(a.accent));
 
   return (

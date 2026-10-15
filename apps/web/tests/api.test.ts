@@ -161,7 +161,43 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
   assert.deepEqual(calls, []);
 });
 
-test("buyer and staff mock workspaces use matching roles while clients remain isolated", async () => {
+const roleClient = (role: Role) => createApiClient({
+  useMock: false,
+  baseUrl: "http://api.test",
+  getToken: () => "demo-token",
+  fetcher: async (url) => {
+    switch (new URL(String(url)).pathname) {
+      case "/prices": return json([]);
+      case "/rice-types": return json([]);
+      case "/auth/me": return json({ id: 1, name: "Demo User", phone: "+639171234567", accountType: "BUYER", role });
+      case "/admin/orders":
+      case "/orders/mine": return json([]);
+      default: return json({ message: "Not found" }, 404);
+    }
+  },
+});
+
+test("workspace role checks accept the matching account and reject the wrong one", async () => {
+  await loadWorkspace(roleClient(Role.USER), "/buyer", true);
+  await loadWorkspace(roleClient(Role.PLANT_STAFF), "/staff", true);
+  await loadWorkspace(roleClient(Role.MAO_STAFF), "/staff", true);
+
+  await assert.rejects(loadWorkspace(roleClient(Role.USER), "/staff", true), (error: ApiError) => error.status === 403);
+  await assert.rejects(loadWorkspace(roleClient(Role.PLANT_STAFF), "/buyer", true), (error: ApiError) => error.status === 403);
+  await assert.rejects(loadWorkspace(roleClient(Role.ADMIN), "/buyer", true), (error: ApiError) => error.status === 403);
+});
+
+test("admin route bypasses buyer/staff workspace loading for its own role check", async () => {
+  const client = createApiClient({
+    useMock: false,
+    baseUrl: "http://api.test",
+    fetcher: async () => { assert.fail("AdminShell, not the workspace loader, verifies admin access"); },
+  });
+  const data = await loadWorkspace(client, "/admin", false);
+  assert.deepEqual(data.orders, []);
+  assert.deepEqual(data.prices, []);
+});
+
 test("authentication routes load without depending on workspace API availability", async () => {
   const calls: string[] = [];
   const client = createApiClient({
