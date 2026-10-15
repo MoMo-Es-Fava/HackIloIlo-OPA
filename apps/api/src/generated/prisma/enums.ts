@@ -115,3 +115,15 @@ export const SmsDirection = {
 } as const
 
 export type SmsDirection = (typeof SmsDirection)[keyof typeof SmsDirection]
+
+
+export const BatchStatus = {
+  NONE: 'NONE',
+  DRYING: 'DRYING',
+  MILLING: 'MILLING',
+  COMPLETE: 'COMPLETE',
+  BAD_INPUT: 'BAD_INPUT',
+  DAMAGED: 'DAMAGED'
+} as const
+
+export type BatchStatus = (typeof BatchStatus)[keyof typeof BatchStatus]

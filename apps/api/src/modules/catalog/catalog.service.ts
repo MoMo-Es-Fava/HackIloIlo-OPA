@@ -130,15 +130,23 @@ export class CatalogService {
     return this.prisma.$transaction(async (tx) => {
       const rice = await tx.riceType.findUnique({ where: { id } });
       if (!rice || !rice.isActive) throw new NotFoundException('Rice type not found.');
-      const newStock = Number(rice.stockKg) + change;
-      if (newStock < 0) throw new BadRequestException('Stock cannot be less than zero.');
+      const adjusted = await tx.riceType.updateMany({
+        where: {
+          id,
+          isActive: true,
+          ...(change < 0 ? { stockKg: { gte: Math.abs(change).toFixed(2) } } : {}),
+        },
+        data: { stockKg: { increment: change.toFixed(2) } },
+      });
+      if (adjusted.count === 0) {
+        const current = await tx.riceType.findUnique({ where: { id }, select: { id: true, isActive: true } });
+        if (!current?.isActive) throw new NotFoundException('Rice type not found.');
+        throw new BadRequestException('Stock cannot be less than zero.');
+      }
       await tx.stockAdjustment.create({
         data: { riceTypeId: id, changeKg: change.toFixed(2), reason: reason.trim(), actorId },
       });
-      const updated = await tx.riceType.update({
-        where: { id },
-        data: { stockKg: newStock.toFixed(2) },
-      });
+      const updated = await tx.riceType.findUniqueOrThrow({ where: { id } });
       const prices = await tx.price.findMany({
         where: { item: PriceItem.RICE, riceTypeId: id, effectiveAt: { lte: new Date() } },
         orderBy: [{ effectiveAt: 'desc' }, { id: 'desc' }],

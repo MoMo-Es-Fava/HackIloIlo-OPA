@@ -9,6 +9,8 @@ import { SmsModule } from './integrations/textbee/sms.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { BatchesModule } from './modules/batches/batches.module';
+import { LogsModule } from './modules/logs/logs.module';
 
 @Module({
   imports: [
@@ -27,6 +29,8 @@ import { ReportsModule } from './modules/reports/reports.module';
     CatalogModule,
     OrdersModule,
     ReportsModule,
+    BatchesModule,
+    LogsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
-import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconArrowRight, IconLeaf } from "./icons";
+import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconArrowRight, IconLeaf, IconClipboard } from "./icons";
 import AuthControls from "./AuthControls";
 
 // Only pages that work on the real API. The older demo pages (booking slots, weigh-in slips,
@@ -17,6 +17,8 @@ const groups = [
     items: [
       { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
       { href: "/staff/services", label: "Drying and milling", Icon: IconFlame },
+      { href: "/staff/processing", label: "Batch records", Icon: IconClipboard },
+      { href: "/staff/bad-inputs", label: "Bad-input batches", Icon: IconClipboard },
       { href: "/staff/rice-sales", label: "Rice sales", Icon: IconBox },
     ],
   },
@@ -25,6 +27,7 @@ const groups = [
     items: [
       { href: "/staff/report", label: "Report", Icon: IconChart },
       { href: "/staff/pricing", label: "Pricing and stock", Icon: IconReceipt },
+      { href: "/staff/logs", label: "IRPC logs", Icon: IconClipboard },
     ],
   },
 ];

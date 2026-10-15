@@ -24,6 +24,25 @@ export type ApiUser = UserDto;
 export type AuthResponse = SharedAuthResponse;
 export interface HealthResponse { status: string; time: string }
 export type AdminOrder = OrderDto & { customer?: ApiUser };
+export type BatchStatus = "NONE" | "DRYING" | "MILLING" | "COMPLETE" | "BAD_INPUT" | "DAMAGED";
+export interface BatchRecordDto {
+  id: number; code: string; status: BatchStatus; statusBeforeBadInput: BatchStatus | null;
+  wetKg: string; dryKg: string | null; riceKg: string | null; damagedKg: string;
+  palayCost: string; dryingCost: string; millingCost: string; totalCost: string;
+  badInputReason: string | null; receivedAt: string; completedAt: string | null;
+  items: { id: number; orderId: number; farmerName: string; kg: string; unitPrice: string; orderCost: string; order: { palayCondition: "FRESH" | "DRY" | null; variety: string | null } }[];
+  events: { id: number; fromStatus: BatchStatus | null; toStatus: BatchStatus; note: string | null; createdAt: string; actor: { name: string } | null }[];
+  damages: { id: number; fromStatus: BatchStatus; kg: string; costAmount: string; note: string | null; occurredAt: string }[];
+}
+export interface EligibleBatchOrderDto {
+  id: number; farmerName: string; palayCondition: "FRESH" | "DRY" | null;
+  variety: string | null; kg: string; unitPrice: string; receivedAt: string;
+}
+export interface IrpcLogDto {
+  id: string; createdAt: string; actor: string;
+  category: "Order" | "Batch" | "Inventory" | "SMS" | "Pricing";
+  action: string; target: string; details: string | null;
+}
 
 const TOKEN_KEY = "irpc.auth.token";
 export function getAuthToken() {
@@ -130,6 +149,17 @@ export function createApiClient(options: ApiClientOptions) {
     createPrice: (body: PriceRequest) => request<CurrentPrice>("/admin/prices", "POST", body),
     getPriceHistory: (item?: PriceItem) => request<CurrentPrice[]>(`/admin/prices/history${query({ item })}`),
     updateStock: (id: number, changeKg: string, reason: string) => request<RiceTypeDto>(`/admin/rice-types/${idPath(id)}/stock`, "POST", { changeKg, reason }),
+    adminListBatches: () => request<BatchRecordDto[]>("/admin/batches"),
+    adminListBadInputs: () => request<BatchRecordDto[]>("/admin/batches/bad-inputs"),
+    adminEligibleBatchOrders: () => request<EligibleBatchOrderDto[]>("/admin/batches/eligible-orders"),
+    createBatch: (orderIds: number[]) => request<BatchRecordDto>("/admin/batches", "POST", { orderIds }),
+    startBatchDrying: (id: number) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-drying`, "POST"),
+    startBatchMilling: (id: number, dryKg?: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-milling`, "POST", dryKg ? { dryKg } : {}),
+    completeBatchMilling: (id: number, riceKg: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/complete-milling`, "POST", { riceKg }),
+    markBatchBadInput: (id: number, reason: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/bad-input`, "POST", { reason }),
+    restoreBatch: (id: number) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/restore`, "POST"),
+    recordBatchDamage: (id: number, kg: string, note?: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/damages`, "POST", { kg, note }),
+    getAdminLogs: () => request<IrpcLogDto[]>("/admin/logs"),
     getMoney: (from?: string, to?: string) => request<MoneySummaryDto>(`/admin/money${query({ from, to })}`),
     getReport: (from?: string, to?: string) => request<ReportDto>(`/admin/report${query({ from, to })}`),
     getAnswerStats: (from?: string, to?: string) => request<AnswerStatsDto>(`/admin/report/answers${query({ from, to })}`),
@@ -151,5 +181,7 @@ export const {
   getHealth, getMe, register, login, getPrices, getRiceTypes, getSettings, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
   updateOrderStatus, weighInOrder, staffCreateOrder, staffConfirmWeight, getAdminSummary, createPrice, getPriceHistory, updateStock,
-  getMoney, getReport, getAnswerStats, getSmsLogs,
+  getMoney, getReport, getAnswerStats, getSmsLogs, adminListBatches, adminListBadInputs,
+  adminEligibleBatchOrders, createBatch, startBatchDrying, startBatchMilling,
+  completeBatchMilling, markBatchBadInput, restoreBatch, recordBatchDamage, getAdminLogs,
 } = api;
