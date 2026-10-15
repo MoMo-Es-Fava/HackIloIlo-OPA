@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ReportDto, ReportPartyDto, ReportTownDto, StatementLinesDto } from "@irpc/types";
 import { api, ApiError } from "@/lib/api";
-import { fmt, peso } from "@/lib/format";
+import { fmt, peso, pesoAccounting } from "@/lib/format";
 import { Badge, Button, Card, Empty, Notice, PageHeader, Stat, TableWrap, TextField, cn, td, th } from "@/components/ui";
 import { IconChart, IconLeaf, IconBox } from "@/components/icons";
 
@@ -150,8 +150,8 @@ export default function Report() {
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Total income" value={total ? peso(total.totalIncome, 0) : "–"} hint="Rice, custom milling and custom drying" icon={<IconBox className="h-4 w-4" />} />
         <Stat label="Raw materials (palay)" value={total ? peso(total.rawMaterials, 0) : "–"} hint="Paid to farmers in cash" icon={<IconLeaf className="h-4 w-4" />} />
-        <Stat label={profit < 0 ? "Gross loss" : "Gross profit"} value={total ? peso(Math.abs(profit), 0) : "–"}
-          hint={profit < 0 ? "More spent on palay than earned" : "Total income less raw materials"} loss={profit < 0} icon={<IconChart className="h-4 w-4" />} />
+        <Stat label="Gross profit" value={total ? pesoAccounting(total.grossProfit) : "–"}
+          hint={profit < 0 ? "In parentheses: a loss. More spent on palay than earned" : "Total income less raw materials"} loss={profit < 0} icon={<IconChart className="h-4 w-4" />} />
       </div>
 
       {report && !hasData && <Empty>No paid or completed orders in this period. Try &quot;This year&quot; or a wider date range.</Empty>}
@@ -162,7 +162,7 @@ export default function Report() {
             <Card>
               <h2 className="text-lg font-bold">Gross profit by month</h2>
               <div className="flex h-40 items-end gap-3" role="img"
-                aria-label={`Gross profit by month: ${report.months.map((m) => `${monthLabel(m.month)} ${peso(m.grossProfit, 0)}`).join(", ")}`}>
+                aria-label={`Gross profit by month: ${report.months.map((m) => `${monthLabel(m.month)} ${Number(m.grossProfit) < 0 ? "loss of " : ""}${peso(Math.abs(Number(m.grossProfit)), 0)}`).join(", ")}`}>
                 {report.months.map((m) => {
                   const v = Number(m.grossProfit);
                   return (
@@ -195,7 +195,7 @@ export default function Report() {
                     {[...report.months.map((m) => m[l.key]), report.total[l.key]].map((v, i, all) => (
                       <td key={i} className={cn(td, "tnum whitespace-nowrap text-right", (l.kind !== "item" || i === all.length - 1) && "font-bold",
                         l.kind === "result" && Number(v) < 0 && "text-clay")}>
-                        {l.kind === "less" ? `(${peso(v, 0)})` : peso(v, 0)}
+                        {l.kind === "less" ? `(${peso(v, 0)})` : pesoAccounting(v)}
                       </td>
                     ))}
                   </tr>
