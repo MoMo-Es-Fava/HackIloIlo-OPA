@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
@@ -32,18 +31,7 @@ const Ctx = createContext<Store | null>(null);
 
 function WorkspaceStatus({ children }: { children: ReactNode }) {
   return (
-    <main className="relative isolate flex min-h-screen items-center justify-center overflow-hidden bg-ink px-4 py-10">
-      <div aria-hidden className="absolute inset-0 -z-10">
-        <Image
-          src="/images/nagacadan-farmers.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-ink/70" />
-        <div className="absolute inset-0 bg-gradient-to-br from-ink/55 via-ink/35 to-paddy-d/70" />
-      </div>
+    <main className="relative flex min-h-screen items-center justify-center bg-ink px-4 py-10">
       <section className="w-full max-w-lg rounded-3xl border border-white/20 bg-white/[0.12] p-7 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9">
         {children}
       </section>
@@ -193,20 +181,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   let content = children;
+  const loading = !demoOnlyRoute(path) && loadedPath !== path;
   if (!api.useMock && demoOnlyRoute(path)) {
     content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">This view is not connected yet</h1><p className="my-4">It will be available when the required service is ready.</p><Link className="font-bold underline" href={path.startsWith("/staff") ? "/staff/sales" : "/buyer"}>Back to orders</Link></main>;
-  } else if (loadedPath !== path) {
-    content = (
-      <WorkspaceStatus>
-        <div role="status" aria-live="polite" className="flex flex-col items-center text-center">
-          <span aria-hidden className="loading-spinner mb-5 h-9 w-9 rounded-full border-[3px] border-white/25 border-t-husk" />
-          <h1 className="text-2xl font-bold">Preparing your workspace</h1>
-          <p className="mt-2 text-white/75">Loading the latest IRPC information so you can pick up where you left off.</p>
-          <p className="mt-6 text-sm font-bold text-husk">Rice offers · order updates · batch traceability</p>
-        </div>
-      </WorkspaceStatus>
-    );
-  } else if (loadError) {
+  } else if (loadedPath === path && loadError) {
     content = (
       <WorkspaceStatus>
         <h1 className="text-2xl font-bold">Unable to load this page</h1>
@@ -218,5 +196,24 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       </WorkspaceStatus>
     );
   }
-  return <Ctx.Provider value={value}><div aria-busy={busy}>{content}</div></Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      <div aria-busy={busy || loading}>
+        <div aria-hidden={loading} inert={loading} className={loading ? "loading-underlay" : undefined}>
+          {content}
+        </div>
+        {loading && (
+          <div className="loading-overlay">
+            <section role="status" aria-live="polite" className="loading-panel">
+              <span aria-hidden className="loading-spinner h-9 w-9 rounded-full border-[3px] border-white/30 border-t-husk" />
+              <h1 className="mt-5 text-2xl font-bold">Preparing your workspace</h1>
+              <p className="mt-2 max-w-sm text-center leading-relaxed text-white/80">
+                Loading the latest IRPC information so you can pick up where you left off.
+              </p>
+            </section>
+          </div>
+        )}
+      </div>
+    </Ctx.Provider>
+  );
 }

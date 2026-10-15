@@ -2,9 +2,11 @@
 
 import { ACTIVE_STATUSES, OrderStatus, OrderType, PriceItem, type OrderDto } from "@irpc/types";
 import Link from "next/link";
+import Image from "next/image";
 import { useStore } from "@/lib/store";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { currentPrice, orderAmount, orderTypeLabel, statusLabel } from "@/lib/orders";
+import { imageCredits } from "@/lib/credits";
 import { Badge, Card, PageHeader, Stat, orderTone } from "@/components/ui";
 import { IconClipboard, IconBag, IconChart, IconArrowRight, IconWrench, IconTrace, IconLeaf } from "@/components/icons";
 
@@ -126,28 +128,52 @@ export default function BuyerHome() {
         <PageHeader level={2} title="A good place to start" sub="Your most-used actions, all in one place." />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {[
-            { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, stock, and batch origin.", cta: "View offers", accent: true },
-            { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay" },
-            { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service" },
-            { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history" },
+            { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, stock, and batch origin.", cta: "View offers", image: "/images/nagacadan-farmers.jpg", imagePosition: "center 60%" },
+            { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/ifugao-terraces.jpg", imagePosition: "center 65%" },
+            { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service", image: "/images/sunset-ifugao.jpg", imagePosition: "center 75%" },
+            { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/ifugao-terraces.jpg", imagePosition: "center 35%" },
           ].map((a) => (
             <Link
               key={a.href}
               href={a.href}
-              className={`group flex flex-col rounded-2xl border bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-raised ${a.accent ? "border-paddy-d/40" : "border-line/80 hover:border-paddy/40"}`}
+              className="group relative isolate flex min-h-[18rem] flex-col overflow-hidden rounded-2xl border border-white/25 bg-ink p-2 shadow-raised transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-husk/70 hover:shadow-pop focus-visible:outline-offset-4"
             >
-              <span className={`grid h-11 w-11 place-items-center rounded-xl ${a.accent ? "bg-paddy-d/8 text-paddy-d" : "bg-mist text-paddy-d"}`}>
-                <a.Icon className="h-[22px] w-[22px]" />
-              </span>
-              <h2 className="mt-3 text-lg font-bold tracking-tight">{a.title}</h2>
-              <p className="mt-1 text-sm text-sub">{a.desc}</p>
-              <span className="mt-4 inline-flex min-h-8 items-center gap-1.5 font-bold text-paddy-d">
-                {a.cta}
-                <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+              <Image
+                src={a.image}
+                alt=""
+                aria-hidden
+                fill
+                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                style={{ objectPosition: a.imagePosition }}
+              />
+              <span aria-hidden className="absolute inset-0 bg-ink/50 backdrop-blur-[4px] transition-colors group-hover:bg-ink/40" />
+              <span className="relative flex min-h-[16rem] flex-1 flex-col items-start p-4 text-white sm:p-5">
+                <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-white/40 bg-husk text-ink shadow-[0_4px_18px_-4px_rgba(0,0,0,0.65)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105">
+                  <a.Icon className="h-6 w-6" />
+                </span>
+                <span className="mt-4 text-xs font-bold uppercase tracking-[0.14em] text-husk">{a.kicker}</span>
+                <span className="mt-1 text-lg font-bold leading-snug tracking-tight">{a.title}</span>
+                <span className="mt-1 text-sm leading-relaxed text-white/85">{a.desc}</span>
+                <span className="mt-auto inline-flex min-h-11 items-center gap-1.5 pt-4 font-bold text-white">
+                  {a.cta}
+                  <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
               </span>
             </Link>
           ))}
         </div>
+        <p className="text-xs leading-relaxed text-sub" aria-label="Photo credits">
+          Photos: {imageCredits.map((credit, index) => (
+            <span key={credit.file}>
+              {index > 0 && " · "}
+              <a href={credit.source} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-paddy-d">
+                {credit.title} — {credit.author}
+              </a>{" "}
+              (<a href={credit.licenseUrl} target="_blank" rel="noreferrer" className="font-bold underline underline-offset-2 hover:text-paddy-d">{credit.license}</a>)
+            </span>
+          ))}
+        </p>
       </section>
 
       <section className="flex flex-col gap-4">
