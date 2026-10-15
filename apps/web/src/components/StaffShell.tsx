@@ -84,10 +84,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
         </Link>
         <Menu />
         <div className="mt-auto border-t border-white/10 pt-4">
-          <Link
-            href="/buyer"
-            className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
+          <Link href="/buyer" className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white">
             Open buyer portal
             <IconArrowRight className="h-4 w-4" />
           </Link>
@@ -102,11 +99,11 @@ export default function StaffShell({ children }: { children: ReactNode }) {
                 <BrandLogo size={40} />
                 <span className="flex flex-col leading-tight">
                   <span className="text-lg tracking-wide">ALAGARAB</span>
-                  <span className="text-[13px] font-normal text-sub">Staff workspace</span>
+                  <span className="text-[13px] font-normal text-sub max-[380px]:hidden">Staff workspace</span>
                 </span>
               </Link>
               <span className="hidden text-base font-bold text-ink lg:inline">Operations console</span>
-              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
+              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "ALAGARAB"}</span>
             </div>
             <div className="flex items-center justify-end gap-2">
               <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">

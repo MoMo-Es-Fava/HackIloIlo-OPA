@@ -5,5 +5,5 @@ import Receipt from "@/components/Receipt";
 
 export default function StaffReceipt() {
   const { id } = useParams<{ id: string }>();
-  return <Receipt orderId={id} backHref="/staff/sales" />;
+  return <Receipt orderId={id} backHref="/staff/rice-sales" />;
 }

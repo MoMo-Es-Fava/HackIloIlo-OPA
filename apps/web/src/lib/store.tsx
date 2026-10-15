@@ -187,7 +187,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   let content = children;
   const loading = !demoOnlyRoute(path) && loadedPath !== path;
   if (!api.useMock && demoOnlyRoute(path)) {
-    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">This view is not connected yet</h1><p className="my-4">It will be available when the required service is ready.</p><Link className="font-bold underline" href={path.startsWith("/staff") ? "/staff/sales" : "/buyer"}>Back to orders</Link></main>;
+    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">This view is not connected yet</h1><p className="my-4">It will be available when the required service is ready.</p><Link className="font-bold underline" href={path.startsWith("/staff") ? "/staff/rice-sales" : "/buyer"}>Back to orders</Link></main>;
   } else if (loadedPath === path && loadError) {
     content = (
       <WorkspaceStatus>

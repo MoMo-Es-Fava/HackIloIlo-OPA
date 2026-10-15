@@ -10,7 +10,7 @@ const portals = [
     icon: IconBag,
     eyebrow: "For rice buyers and farmers",
     title: "Buy rice or sell palay",
-    description: "Buyers can browse IRPC rice, compare prices, and track orders. Farmers can offer palay for sale and follow its progress.",
+    description: "Buyers can browse ALAGARAB rice, compare prices, and track orders. Farmers can offer palay for sale and follow its progress.",
     action: "Open buyer / farmer portal",
     btn: "bg-husk text-ink hover:bg-[#f5d98f]",
     detail: "Rice offers · palay sales · orders · prices · batch traceability",
@@ -18,7 +18,7 @@ const portals = [
   {
     href: "/login?next=%2Fstaff",
     icon: IconWrench,
-    eyebrow: "For IRPC staff",
+    eyebrow: "For ALAGARAB staff",
     title: "Run today's operations",
     description: "Coordinate arrivals, record weights, move batches through processing, and manage sales and prices.",
     action: "Open staff workspace",
@@ -78,7 +78,7 @@ export default function Landing() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/80 sm:text-xl">
-                One place to find IRPC rice, follow every batch, and keep plant operations moving.
+                One place to find ALAGARAB rice, follow every batch, and keep plant operations moving.
                 Choose the workspace that fits what you need to do.
               </p>
             </div>

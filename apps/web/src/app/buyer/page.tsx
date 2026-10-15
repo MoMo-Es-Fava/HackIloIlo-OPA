@@ -6,7 +6,6 @@ import Image from "next/image";
 import { useStore } from "@/lib/store";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { currentPrice, orderAmount, orderTypeLabel, statusLabel } from "@/lib/orders";
-import { imageCredits } from "@/lib/credits";
 import { Badge, Card, PageHeader, Stat, orderTone } from "@/components/ui";
 import { IconClipboard, IconBag, IconChart, IconArrowRight, IconWrench, IconLeaf } from "@/components/icons";
 
@@ -33,8 +32,8 @@ export default function BuyerHome() {
   const featured = open.slice(0, 2);
   const seller = profile.type === AccountType.FARMER || profile.type === AccountType.COOPERATIVE;
   const startActions = [
-    { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, and stock.", cta: "View offers", image: "/images/nagacadan-farmers.jpg", imagePosition: "center 60%", accent: !seller },
-    { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/ifugao-terraces.jpg", imagePosition: "center 65%", accent: seller },
+    { href: "/buyer/offers", Icon: IconBag, kicker: "Buy rice", title: "Browse available rice", desc: "Compare price, grade, and stock.", cta: "View offers", image: "/images/palay.jpg", imagePosition: "center 60%", accent: !seller },
+    { href: "/buyer/sell", Icon: IconLeaf, kicker: "Sell palay", title: "Sell your palay", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg buying price.`, cta: "Sell palay", image: "/images/palay.jpg", imagePosition: "center 65%", accent: seller },
     { href: "/buyer/service", Icon: IconWrench, kicker: "Book a service", title: "Drying or milling", desc: "Send a request to the IRPC team for review.", cta: "Request a service", image: "/images/mill.jpg", imagePosition: "center 75%", accent: false },
     { href: "/buyer/prices", Icon: IconChart, kicker: "Check prices", title: "Today's palay prices", desc: `Fresh ${peso(fresh, 0)}/kg · Dry ${peso(dry, 0)}/kg`, cta: "See price history", image: "/images/palay.jpg", imagePosition: "center 35%", accent: false },
   ].sort((a, b) => Number(b.accent) - Number(a.accent));
@@ -98,9 +97,9 @@ export default function BuyerHome() {
         {active.length === 0 ? (
           <Card className="border-dashed bg-white/60">
             <p className="font-bold">No active orders yet</p>
-            <p className="text-sub">Your next rice reservation will show up here, along with its progress.</p>
-            <Link href="/buyer/offers" className="inline-flex min-h-11 items-center font-bold text-paddy-d hover:underline">
-              Explore rice offers
+            <p className="text-sub">{seller ? "Your palay sales and service requests will appear here with their latest progress." : "Your rice reservations will appear here with their latest progress."}</p>
+            <Link href={seller ? "/buyer/sell" : "/buyer/offers"} className="inline-flex min-h-11 items-center font-bold text-paddy-d hover:underline">
+              {seller ? "Start a palay sale" : "Explore rice offers"}
             </Link>
           </Card>
         ) : (
@@ -144,17 +143,18 @@ export default function BuyerHome() {
               href={a.href}
               className={`group relative isolate flex min-h-[18rem] flex-col overflow-hidden rounded-2xl border bg-ink p-2 shadow-raised transition-[border-color,transform,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-husk/70 hover:shadow-pop focus-visible:outline-offset-4 ${a.accent ? "border-husk ring-2 ring-husk/60" : "border-white/25"}`}
             >
-              <Image
-                src={a.image}
-                alt=""
-                aria-hidden
-                fill
-                sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
-                className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
-                style={{ objectPosition: a.imagePosition }}
-              />
-              <span aria-hidden className="absolute inset-0 bg-ink/50 backdrop-blur-[4px] transition-colors group-hover:bg-ink/40" />
-              <span className="relative flex min-h-[16rem] flex-1 flex-col items-start p-4 text-white sm:p-5">
+              <span aria-hidden className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+                <Image
+                  src={a.image}
+                  alt=""
+                  fill
+                  sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+                  style={{ objectPosition: a.imagePosition }}
+                />
+              </span>
+              <span aria-hidden className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-t from-ink/95 via-ink/60 to-ink/20 transition-colors group-hover:from-ink/90" />
+              <span className="relative z-10 flex min-h-[16rem] flex-1 flex-col items-start p-4 text-white sm:p-5">
                 <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-white/40 bg-husk text-ink shadow-[0_4px_18px_-4px_rgba(0,0,0,0.65)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:scale-105">
                   <a.Icon className="h-6 w-6" />
                 </span>
@@ -169,17 +169,6 @@ export default function BuyerHome() {
             </Link>
           ))}
         </div>
-        <p className="text-xs leading-relaxed text-sub" aria-label="Photo credits">
-          Photos: {imageCredits.map((credit, index) => (
-            <span key={credit.file}>
-              {index > 0 && " · "}
-              <a href={credit.source} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-paddy-d">
-                {credit.title} — {credit.author}
-              </a>{" "}
-              (<a href={credit.licenseUrl} target="_blank" rel="noreferrer" className="font-bold underline underline-offset-2 hover:text-paddy-d">{credit.license}</a>)
-            </span>
-          ))}
-        </p>
       </section>
 
       <section className="flex flex-col gap-4">
@@ -206,7 +195,7 @@ export default function BuyerHome() {
                     <p className="font-bold">{offer.grade}</p>
                     <p className="tnum mt-1 text-2xl font-bold tracking-tight text-paddy-d">{peso(offer.pricePerKg)}<span className="text-sm font-normal text-sub"> / kg</span></p>
                   </div>
-                  <Badge tone="info">{offer.id}</Badge>
+                  <Badge tone="info">Offer {offer.id}</Badge>
                 </div>
                 <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3 text-sm">
                   <span className="tnum">{kgf(offer.kgAvailable)} available</span>
