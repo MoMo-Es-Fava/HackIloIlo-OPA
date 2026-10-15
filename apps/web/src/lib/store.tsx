@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { ACCEPT_STATUS, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type DeliveryMethod } from "@irpc/types";
-import { api, ApiError, getAuthToken } from "./api";
+import { api, ApiError, getAuthToken, setAuthToken } from "./api";
 import type { DemoActions } from "./demo-types";
 import type { TransitionOptions } from "./mock-orders";
 import { currentPrice } from "./orders";
 import { dateLabel } from "./format";
-import { demoOnlyRoute, emptyWorkspace, loadWorkspace, type Workspace } from "./workspace";
+import { demoOnlyRoute, emptyWorkspace, loadWorkspace, requiresAuthRoute, type Workspace } from "./workspace";
 
 export interface SellPalayInput {
   condition: PalayCondition; kg: number; variety: string; preferredDate: string; deliveryMethod: DeliveryMethod;
@@ -50,6 +50,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const reload = useCallback(async () => {
     const selectedPath = pathRef.current;
     const request = ++generation.current;
+    if (!api.useMock && requiresAuthRoute(selectedPath) && !getAuthToken()) {
+      const next = `${selectedPath}${window.location.search}`;
+      window.location.replace(`/login?next=${encodeURIComponent(next)}`);
+      return true;
+    }
     try {
       const next = await loadWorkspace(api, selectedPath, Boolean(getAuthToken()));
       if (request === generation.current) {
@@ -57,6 +62,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       }
       return true;
     } catch (error) {
+      if (!api.useMock && error instanceof ApiError && error.status === 401) {
+        setAuthToken(null);
+        window.location.replace(`/login?next=${encodeURIComponent(`${selectedPath}${window.location.search}`)}`);
+        return false;
+      }
+      if (!api.useMock && error instanceof ApiError && error.status === 403) {
+        window.location.replace(selectedPath.startsWith("/staff") ? "/buyer" : "/staff");
+        return false;
+      }
       if (request === generation.current) {
         setData(emptyWorkspace()); setLoadedPath(selectedPath); setLoadError(message(error));
       }

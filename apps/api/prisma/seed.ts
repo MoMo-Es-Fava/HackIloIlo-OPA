@@ -1,7 +1,7 @@
 import path from 'node:path';
 import { config } from 'dotenv';
-import { PrismaPg } from '@prisma/adapter-pg';
 import * as bcrypt from 'bcryptjs';
+import { PrismaPg } from '@prisma/adapter-pg';
 import {
   AccountType,
   Language,
@@ -26,7 +26,7 @@ const prisma = new PrismaClient({ adapter });
 
 // Demo-only PIN shared by every seeded account so the team can log in as each role.
 // Override with SEED_DEMO_PIN in .env. Never use seeded accounts in production.
-const DEMO_PIN = process.env.SEED_DEMO_PIN?.trim() || '2026';
+const DEMO_PIN = process.env.SEED_DEMO_PIN?.trim() || '1234';
 if (!/^\d{4,6}$/.test(DEMO_PIN)) {
   throw new Error('SEED_DEMO_PIN must be 4 to 6 digits.');
 }
@@ -142,8 +142,8 @@ async function main() {
           language: Language.HIL,
           municipality: 'municipality' in user ? user.municipality : null,
           cooperative: 'cooperative' in user ? user.cooperative : null,
-          pinHash: SEEDED_PIN_HASH,
           isActive: true,
+          pinHash: SEEDED_PIN_HASH,
         },
         create: {
           ...user,

@@ -144,3 +144,26 @@ export class AdminOrdersController {
     return this.orders.weighIn(user, id, dto);
   }
 }
+
+@Roles('ADMIN', 'PLANT_STAFF')
+@Controller('admin')
+export class AdminDashboardController {
+  constructor(private readonly orders: OrdersService) {}
+
+  @Get('summary')
+  summary() {
+    return this.orders.summary();
+  }
+
+  @Roles('ADMIN')
+  @Get('money')
+  money(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.orders.moneySummary(from, to);
+  }
+
+  @Roles('ADMIN')
+  @Get('sms-logs')
+  smsLogs() {
+    return this.orders.smsLogs();
+  }
+}

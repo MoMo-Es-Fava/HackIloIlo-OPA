@@ -14,12 +14,16 @@ import {
   OrderType,
   PalayCondition,
   PriceItem,
+  ServiceType,
   canTransition,
   estimateOrderAmount,
   orderRef,
+  type AdminSummaryDto,
   type AdminOrderDto,
   type CurrentPrice,
+  type MoneySummaryDto,
   type OrderDto,
+  type SmsLogDto,
   type UserDto,
 } from '@irpc/types';
 import { Prisma } from '../../generated/prisma/client';
@@ -52,6 +56,21 @@ type Tx = Prisma.TransactionClient;
 const D = (value: string | number | Prisma.Decimal) =>
   new Prisma.Decimal(value);
 const EVENTS = { orderBy: { createdAt: 'asc' as const } };
+const formatMoney = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
+const manilaDate = () => new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
+function manilaDayBounds(date: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    throw new BadRequestException('Dates must use YYYY-MM-DD format.');
+  }
+  const [year, month, day] = date.split('-').map(Number);
+  if (new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) !== date) {
+    throw new BadRequestException('Choose a valid calendar date.');
+  }
+  const start = new Date(Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000);
+  return { start, end: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
+}
 // A random PIN nobody knows: staff-created customers can't log in until they set their own PIN.
 const UNUSABLE_PIN_HASH = bcrypt.hashSync(randomBytes(24).toString('hex'), 10);
 const STALE =
@@ -285,6 +304,68 @@ export class OrdersService {
       events: dto.events ?? [],
       customer: toUserDto(order.customer),
     };
+  }
+
+  async summary(): Promise<AdminSummaryDto> {
+    const { start, end } = manilaDayBounds(manilaDate());
+    const [needsApproval, arrivingToday, inDrying, readyForPickup, dryingOrders, settings] = await Promise.all([
+      this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
+      this.prisma.order.count({ where: { scheduledDate: { gte: start, lt: end }, OR: [
+        { type: OrderType.SELL_PALAY, status: OrderStatus.ACCEPTED },
+        { type: OrderType.SERVICE, status: OrderStatus.SCHEDULED },
+      ] } }),
+      this.prisma.order.count({ where: { type: OrderType.SERVICE, status: OrderStatus.DRYING } }),
+      this.prisma.order.count({ where: { status: OrderStatus.READY_FOR_PICKUP } }),
+      this.prisma.order.findMany({
+        where: { scheduledDate: { gte: start, lt: end }, OR: [
+          { type: OrderType.SERVICE, serviceType: { in: [ServiceType.DRYING, ServiceType.DRYING_AND_MILLING] } },
+          { type: OrderType.SELL_PALAY, palayCondition: PalayCondition.FRESH },
+        ] },
+        select: { requestedKg: true },
+      }),
+      this.pricing.settings(),
+    ]);
+    const dryingKgBookedToday = dryingOrders.reduce((sum, order) => sum + Number(order.requestedKg), 0);
+    return {
+      needsApproval, arrivingToday, inDrying, readyForPickup,
+      dryingKgBookedToday: formatMoney(dryingKgBookedToday),
+      dryingCapacityKg: settings.dryingCapacityKg,
+    };
+  }
+
+  async moneySummary(from?: string, to?: string): Promise<MoneySummaryDto> {
+    const today = manilaDate();
+    const startDate = from ?? `${today.slice(0, 7)}-01`;
+    const endDate = to ?? today;
+    const { start } = manilaDayBounds(startDate);
+    const { end } = manilaDayBounds(endDate);
+    if (start > end) throw new BadRequestException('The start date must be on or before the end date.');
+    const rows = await this.prisma.order.findMany({
+      where: { status: { in: [OrderStatus.PAID, OrderStatus.COMPLETED] }, paidAt: { gte: start, lt: end } },
+      select: { type: true, finalAmount: true },
+    });
+    const totals = { boughtPalay: 0, soldRice: 0, serviceFees: 0 };
+    for (const row of rows) {
+      const amount = Number(row.finalAmount ?? 0);
+      if (row.type === OrderType.SELL_PALAY) totals.boughtPalay += amount;
+      else if (row.type === OrderType.BUY_RICE) totals.soldRice += amount;
+      else totals.serviceFees += amount;
+    }
+    return {
+      from: startDate, to: endDate,
+      boughtPalay: formatMoney(totals.boughtPalay),
+      soldRice: formatMoney(totals.soldRice),
+      serviceFees: formatMoney(totals.serviceFees),
+      grossProfit: formatMoney(totals.soldRice + totals.serviceFees - totals.boughtPalay),
+    };
+  }
+
+  async smsLogs(): Promise<SmsLogDto[]> {
+    const rows = await this.prisma.smsLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
+    return rows.map((row) => ({
+      id: row.id, direction: row.direction, phone: row.phone, message: row.message,
+      status: row.status, orderId: row.orderId, createdAt: row.createdAt.toISOString(),
+    }));
   }
 
   async accept(

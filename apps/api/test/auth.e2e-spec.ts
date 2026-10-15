@@ -10,6 +10,7 @@ import { Roles } from '../src/common/auth.decorators';
 import { PrismaService } from '../src/database/prisma.service';
 import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
+import { createPrismaServiceMock } from './prisma-service.mock';
 
 // Test-only route to check role enforcement.
 @Controller('test-admin')
@@ -44,7 +45,7 @@ describe('Auth (e2e)', () => {
       .overrideProvider(UsersRepository)
       .useClass(InMemoryUsersRepository)
       .overrideProvider(PrismaService)
-      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .useValue(createPrismaServiceMock())
       .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);

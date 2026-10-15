@@ -158,6 +158,9 @@ export function createMockApi() {
     }
     if (route === "/prices" && method === "GET") return prices;
     if (route === "/rice-types" && method === "GET") return riceTypes;
+    if (route === "/settings" && method === "GET") return {
+      dryingRecovery: "0.80", millingRecovery: "0.60", sackKg: "50", dryingCapacityKg: "56000.00",
+    };
     if (route === "/orders/mine" && method === "GET") return orders.filter((order) =>
       workspace.orderDetails[order.id]?.ownerId === workspace.profile.id && (url.searchParams.get("active") !== "true" || ACTIVE_STATUSES.includes(order.status)));
     if (route === "/orders" && method === "POST") {

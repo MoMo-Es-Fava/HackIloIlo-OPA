@@ -19,6 +19,9 @@ export const demoOnlyRoute = (path: string) => [
   "/staff/forecast", "/staff/users", "/staff/audit", "/staff/traceability",
 ].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 
+export const requiresAuthRoute = (path: string) => path.startsWith("/staff") || path === "/buyer" ||
+  /^\/buyer\/(orders|service|sell|me)(\/|$)/.test(path);
+
 const text = (value: unknown) => typeof value === "string" ? value : "";
 function profileFromUser(user: ApiUser): DemoWorkspace["profile"] {
   return { id: String(user.id ?? ""), name: text(user.name), contact: text(user.phone),
@@ -32,7 +35,7 @@ export async function loadWorkspace(client: typeof api, path: string, authentica
   const base = { ...emptyWorkspace(), ...demo };
   if (path === "/") return base;
   const staff = path.startsWith("/staff");
-  const privatePage = staff || /^\/buyer\/(orders|service|sell|me)(\/|$)/.test(path);
+  const privatePage = requiresAuthRoute(path);
   const needsUser = client.useMock || authenticated || privatePage;
   const needsOrders = staff || path === "/buyer" && needsUser || /^\/buyer\/(orders|service)(\/|$)/.test(path);
   const detail = path.match(/^\/(?:buyer\/orders|staff\/sales)\/([^/]+)/);
@@ -45,6 +48,8 @@ export async function loadWorkspace(client: typeof api, path: string, authentica
   if (!Array.isArray(prices) || !Array.isArray(riceTypes) || !Array.isArray(list)) throw new ApiError(502, "The API returned an unexpected response.");
   const orders = order ? [order, ...list.filter((row) => row.id !== order.id)] : list;
   const profile = user ? profileFromUser(user) : base.profile;
+  if (user && staff && user.role === "USER") throw new ApiError(403, "This workspace is for staff accounts.");
+  if (user && !staff && user.role !== "USER") throw new ApiError(403, "Staff accounts should use the staff workspace.");
   const orderDetails = { ...base.orderDetails };
   if (!client.useMock) {
     for (const row of orders) {

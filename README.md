@@ -98,6 +98,8 @@ npm install
 
 npx prisma migrate dev --name init
 npx prisma generate
+# for seeding the db with data
+npx prisma db seed
 ```
 
 ## Demo accounts
