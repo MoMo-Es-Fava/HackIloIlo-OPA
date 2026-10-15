@@ -1,5 +1,6 @@
 import path from 'node:path';
 import { config } from 'dotenv';
+import * as bcrypt from 'bcryptjs';
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
   AccountType,
@@ -21,9 +22,8 @@ if (!databaseUrl) {
 const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-// Development-only credential placeholder. Replace with a real password/PIN hash
-// if authentication is added to the seed workflow.
-const SEEDED_PIN_HASH = 'seeded-demo-pin';
+// Local demo users all use PIN 1234. Change this before using the seed outside development.
+const SEEDED_PIN_HASH = bcrypt.hashSync('1234', 10);
 const EFFECTIVE_AT = new Date('2026-10-01T00:00:00.000Z');
 
 const users = [
@@ -136,6 +136,7 @@ async function main() {
           municipality: 'municipality' in user ? user.municipality : null,
           cooperative: 'cooperative' in user ? user.cooperative : null,
           isActive: true,
+          pinHash: SEEDED_PIN_HASH,
         },
         create: {
           ...user,

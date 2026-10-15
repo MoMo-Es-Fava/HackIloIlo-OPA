@@ -5,6 +5,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { PrismaService } from '../src/database/prisma.service';
+import { createPrismaServiceMock } from './prisma-service.mock';
 
 describe('API (e2e)', () => {
   let app: INestApplication<App>;
@@ -15,7 +16,7 @@ describe('API (e2e)', () => {
       imports: [AppModule],
     })
       .overrideProvider(PrismaService)
-      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .useValue(createPrismaServiceMock())
       .compile();
 
     app = moduleRef.createNestApplication();

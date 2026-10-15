@@ -31,7 +31,7 @@ services:
       PORT: 4000
       # "postgres" is the service name, so the API reaches the DB over the compose network
       DATABASE_URL: postgresql://${POSTGRES_USER:-irpc}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-irpc}?schema=public
-      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_SECRET: 4a3c51b13b8d0dbe1564a3748550df50c6a425a00d8026e42df73298cd8f2449
       SMS_PROVIDER: ${SMS_PROVIDER:-mock}
       WEB_ORIGIN: http://localhost:3000
     ports:
@@ -45,7 +45,7 @@ services:
         # Baked into the browser bundle at build time, so this must be a URL
         # the browser can reach (the published API port), not http://api:4000
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
-        NEXT_PUBLIC_USE_MOCK: ${NEXT_PUBLIC_USE_MOCK:-true}
+        NEXT_PUBLIC_USE_MOCK: ${NEXT_PUBLIC_USE_MOCK:-false}
     container_name: irpc_web
     restart: unless-stopped
     depends_on:

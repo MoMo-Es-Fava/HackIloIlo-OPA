@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { cn } from "./ui";
 import { IconHome, IconBag, IconClipboard, IconChart, IconUser, IconSpark } from "./icons";
+import AuthControls from "./AuthControls";
 
 const nav = [
   { href: "/buyer", label: "Home", exact: true, Icon: IconHome },
@@ -48,10 +49,13 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <span className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold sm:inline-flex">
-            <IconSpark className="h-3.5 w-3.5" />
-            {isMock ? "DEMO · Sample data" : "IRPC"}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold sm:inline-flex">
+              <IconSpark className="h-3.5 w-3.5" />
+              {isMock ? "DEMO · Sample data" : "IRPC"}
+            </span>
+            {!isMock && <AuthControls />}
+          </div>
         </div>
       </header>
 

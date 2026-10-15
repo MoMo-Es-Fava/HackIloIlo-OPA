@@ -5,7 +5,7 @@ import { imageCredits } from "@/lib/credits";
 
 const portals = [
   {
-    href: "/buyer",
+    href: "/login?next=%2Fbuyer",
     icon: IconBag,
     eyebrow: "For rice buyers",
     title: "Buy rice and track orders",
@@ -15,7 +15,7 @@ const portals = [
     detail: "Offers · orders · prices · batch traceability",
   },
   {
-    href: "/staff",
+    href: "/login?next=%2Fstaff",
     icon: IconWrench,
     eyebrow: "For IRPC staff",
     title: "Run today's operations",
@@ -138,7 +138,7 @@ export default function Landing() {
               <span aria-hidden className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white/80">
                 i
               </span>
-              Demo workspace: sample records are shared between portals and reset when you reload. No sign-in or real transactions.
+              Sign in with your phone and PIN. SMS verification is being added later; prices and rice offers can be browsed without an account.
             </p>
             <p className="shrink-0">
               Hero photo: {hero.title} — {hero.author},{" "}

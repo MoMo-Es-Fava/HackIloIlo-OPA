@@ -1,6 +1,6 @@
 import type {
-  AccountType, CreateOrderRequest, CurrentPrice, Language, OrderDto, OrderStatus,
-  OrderType, PriceBasis, PriceItem, RiceTypeDto,
+  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto,
+  OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
 } from "@irpc/types";
 import type { DemoActions, DemoWorkspace } from "./demo-types";
 
@@ -17,8 +17,8 @@ export interface RegisterRequest {
   municipality?: string; consent: true;
 }
 // These response shapes are not yet specified in the shared package.
-export type ApiUser = Record<string, unknown>;
-export interface AuthResponse { token: string; user: ApiUser }
+export type ApiUser = UserDto;
+export type AuthResponse = SharedAuthResponse;
 export interface HealthResponse { status: string; time: string }
 export type AdminOrder = OrderDto & { customer?: ApiUser };
 
@@ -26,11 +26,11 @@ const TOKEN_KEY = "irpc.auth.token";
 export function getAuthToken() {
   return typeof window === "undefined" ? null : window.sessionStorage.getItem(TOKEN_KEY);
 }
-export function setAuthToken(token: string | null) {
+export function setAuthToken(token: string | null, notify = true) {
   if (typeof window === "undefined") return;
   if (token) window.sessionStorage.setItem(TOKEN_KEY, token);
   else window.sessionStorage.removeItem(TOKEN_KEY);
-  window.dispatchEvent(new Event("irpc-auth-change"));
+  if (notify) window.dispatchEvent(new Event("irpc-auth-change"));
 }
 
 export interface ApiClientOptions {
@@ -105,6 +105,7 @@ export function createApiClient(options: ApiClientOptions) {
     getMe: () => request<ApiUser>("/auth/me"),
     getPrices: () => request<CurrentPrice[]>("/prices", "GET", undefined, false),
     getRiceTypes: () => request<RiceTypeDto[]>("/rice-types", "GET", undefined, false),
+    getSettings: () => request<PublicSettingsDto>("/settings", "GET", undefined, false),
     createOrder: (body: CreateOrderRequest) => request<OrderDto>("/orders", "POST", body),
     getMyOrders: (active?: boolean) => request<OrderDto[]>(`/orders/mine${query({ active })}`),
     getOrder: (id: number) => request<OrderDto>(`/orders/${idPath(id)}`),
@@ -116,12 +117,12 @@ export function createApiClient(options: ApiClientOptions) {
     rejectOrder: (id: number, reason: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/reject`, "PATCH", { reason }),
     updateOrderStatus: (id: number, status: OrderStatus, note?: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/status`, "PATCH", { status, note }),
     weighInOrder: (id: number, weights: { wetKg?: string; dryKg?: string; riceKg?: string }) => request<OrderDto>(`/admin/orders/${idPath(id)}/weigh-in`, "POST", weights),
-    getAdminSummary: () => request<Record<string, number>>("/admin/summary"),
+    getAdminSummary: () => request<AdminSummaryDto>("/admin/summary"),
     createPrice: (body: PriceRequest) => request<CurrentPrice>("/admin/prices", "POST", body),
     getPriceHistory: (item?: PriceItem) => request<CurrentPrice[]>(`/admin/prices/history${query({ item })}`),
     updateStock: (id: number, changeKg: string, reason: string) => request<RiceTypeDto>(`/admin/rice-types/${idPath(id)}/stock`, "POST", { changeKg, reason }),
-    getMoney: (from?: string, to?: string) => request<Record<"boughtPalay" | "soldRice" | "serviceFees" | "grossProfit", string>>(`/admin/money${query({ from, to })}`),
-    getSmsLogs: () => request<Record<string, unknown>[]>("/admin/sms-logs"),
+    getMoney: (from?: string, to?: string) => request<MoneySummaryDto>(`/admin/money${query({ from, to })}`),
+    getSmsLogs: () => request<SmsLogDto[]>("/admin/sms-logs"),
     // Ancillary prototype screens have no API routes. They are explicitly mock-only.
     getDemoWorkspace: async (): Promise<DemoWorkspace | null> => options.useMock ? (await getMock()).getWorkspace() : null,
     demoAction: async <K extends keyof DemoActions>(name: K, ...args: Parameters<DemoActions[K]>): Promise<ReturnType<DemoActions[K]>> => {
@@ -136,7 +137,7 @@ export const api = createApiClient({
   baseUrl: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000",
 });
 export const {
-  getHealth, getMe, register, login, getPrices, getRiceTypes, createOrder, getMyOrders,
+  getHealth, getMe, register, login, getPrices, getRiceTypes, getSettings, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
   updateOrderStatus, weighInOrder, getAdminSummary, createPrice, getPriceHistory, updateStock,
   getMoney, getSmsLogs,

@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
-import { InMemoryUsersRepository } from './in-memory-users.repository';
+import { PrismaUsersRepository } from './prisma-users.repository';
 import { UsersRepository } from './users.repository';
 
 @Module({
-  providers: [{ provide: UsersRepository, useClass: InMemoryUsersRepository }],
+  providers: [{ provide: UsersRepository, useClass: PrismaUsersRepository }],
   exports: [UsersRepository],
 })
 export class UsersModule {}
