@@ -46,7 +46,7 @@ function CapacityCheck({ order, all, date }: { order: OrderDto; all: OrderDto[];
         <Badge tone={full ? "bad" : pct >= 75 ? "warn" : "ok"}>{full ? "Over capacity" : `${kgf(DRYING_CAPACITY_KG - after)} left`}</Badge>
       </div>
       <Bar pct={pct} tone={full ? "bad" : "ok"} label={`${kgf(after)} of ${kgf(DRYING_CAPACITY_KG)} booked`} />
-      <p className="tnum text-sm text-sub">{kgf(booked)} booked + {kgf(order.requestedKg)} this offer, of {kgf(DRYING_CAPACITY_KG)} a day</p>
+      <p className="tnum text-sm text-sub">{kgf(booked)} booked + {kgf(order.requestedKg)} {order.type === OrderType.SELL_PALAY ? "this offer" : "this request"}, of {kgf(DRYING_CAPACITY_KG)} a day</p>
       {full && <p className="text-sm text-clay">Pick another date, or accept if the plant can run longer.</p>}
     </div>
   );
@@ -97,6 +97,8 @@ function OrderCard({ order, all, onChanged }: { order: OrderDto; all: OrderDto[]
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const weigh = weightStep(order);
+  // Service customers can be buyers or cooperatives, not only farmers.
+  const who = order.type === OrderType.SELL_PALAY ? "farmer" : "customer";
   const move = nextMove(order);
 
   async function act(run: () => Promise<unknown>) {
@@ -163,9 +165,9 @@ function OrderCard({ order, all, onChanged }: { order: OrderDto; all: OrderDto[]
 
       {awaitingConfirmation(order) && (
         <>
-          <Notice tone="warn"><p className="font-bold">Waiting for the farmer to agree to this weight.</p></Notice>
+          <Notice tone="warn"><p className="font-bold">Waiting for the {who} to agree to this weight.</p></Notice>
           <div className="flex gap-2">
-            <Button className="min-h-11" disabled={busy} onClick={() => act(() => api.staffConfirmWeight(order.id))}>Farmer confirmed at the scale</Button>
+            <Button className="min-h-11" disabled={busy} onClick={() => act(() => api.staffConfirmWeight(order.id))}>{who === "farmer" ? "Farmer" : "Customer"} confirmed at the scale</Button>
           </div>
         </>
       )}
