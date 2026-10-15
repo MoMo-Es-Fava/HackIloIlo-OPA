@@ -24,7 +24,9 @@ test("fixtures serialize to API records with all order types and legal event his
   for (const order of orders) {
     assert.equal(order.ref, orderRef(order.id));
     assert.ok(Object.values(OrderStatus).includes(order.status));
-    assert.ok(!("buyerId" in order) && !("batchId" in order) && !("contactName" in order));
+    assert.ok(!("buyerId" in order) && !("batchId" in order));
+    assert.ok(order.contactName.trim().length > 0);
+    assert.match(order.contactPhone, /^\+639\d{9}$/);
     for (const field of decimalFields) {
       if (order[field] !== null) assert.match(order[field]!, /^\d+\.\d{2}$/);
     }
@@ -51,7 +53,7 @@ test("pending order uses the rice-specific price, decimal quantities, and no loc
   const before = JSON.stringify(seedRiceTypes);
   const order = create();
   assert.equal(order.ref, "IRPC-0042");
-  assert.equal(order.estimatedAmount, "3819.00");
+  assert.equal(order.estimatedAmount, "5095.35");
   assert.equal(order.requestedKg, "100.50");
   assert.equal(order.unitPrice, null);
   assert.equal(order.scheduledDate, null);

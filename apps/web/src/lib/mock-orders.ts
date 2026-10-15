@@ -6,7 +6,7 @@ import {
 import { currentPrice, nextOrderStatus } from "./orders";
 
 // Demo assumption until the API exposes the plant's milling recovery setting.
-export const MOCK_MILLING_RECOVERY = 0.65;
+export const MOCK_MILLING_RECOVERY = 0.60;
 
 function rate(prices: CurrentPrice[], item: PriceItem, riceTypeId: number | null = null) {
   const price = currentPrice(prices, item, riceTypeId)?.pricePerKg;
@@ -41,6 +41,7 @@ export function createMockOrder(
   }
   return {
     id, ref: orderRef(id), type: request.type, status: OrderStatus.PENDING,
+    contactName: request.contactName.trim(), contactPhone: request.contactPhone,
     requestedKg: kg.toFixed(2), preferredDate: request.preferredDate, scheduledDate: null,
     riceTypeId: request.type === OrderType.BUY_RICE ? request.riceTypeId! : null,
     palayCondition: request.type !== OrderType.BUY_RICE ? request.palayCondition ?? null : null,
