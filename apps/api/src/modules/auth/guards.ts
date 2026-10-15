@@ -56,6 +56,13 @@ export class JwtAuthGuard implements CanActivate {
   }
 }
 
+// For now IRPC has one admin level: plant staff can do everything an admin can.
+// Set to false to bring back admin-only routes (money, report, prices, stock).
+const STAFF_IS_ADMIN = true;
+const allowed = (role: Role, roles: Role[]) =>
+  roles.includes(role) ||
+  (STAFF_IS_ADMIN && role === Role.PLANT_STAFF && roles.includes(Role.ADMIN));
+
 // Global: enforces @Roles(...) when present. Runs after JwtAuthGuard.
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -69,7 +76,7 @@ export class RolesGuard implements CanActivate {
     if (!roles?.length) return true;
     const user = requestOf(context).user;
     if (!user) throw new UnauthorizedException(SIGN_IN);
-    if (!roles.includes(user.role)) throw new ForbiddenException(NO_ACCESS);
+    if (!allowed(user.role, roles)) throw new ForbiddenException(NO_ACCESS);
     return true;
   }
 }
@@ -80,7 +87,8 @@ export class AdminGuard implements CanActivate {
   canActivate(context: ExecutionContext) {
     const user = requestOf(context).user;
     if (!user) throw new UnauthorizedException(SIGN_IN);
-    if (user.role !== Role.ADMIN) throw new ForbiddenException(NO_ACCESS);
+    if (!allowed(user.role, [Role.ADMIN]))
+      throw new ForbiddenException(NO_ACCESS);
     return true;
   }
 }

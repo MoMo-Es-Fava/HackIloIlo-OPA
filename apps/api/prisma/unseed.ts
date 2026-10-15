@@ -52,6 +52,11 @@ async function wipeAll() {
     const smsLogs = await tx.smsLog.deleteMany();
     const events = await tx.orderEvent.deleteMany();
     const stockAdjustments = await tx.stockAdjustment.deleteMany();
+    const batchEvents = await tx.batchEvent.deleteMany();
+    const batchDamages = await tx.batchDamage.deleteMany();
+    const batchSales = await tx.batchSale.deleteMany();
+    const batchItems = await tx.batchItem.deleteMany();
+    const batchRecords = await tx.batchRecord.deleteMany();
     const prices = await tx.price.deleteMany();
     const orders = await tx.order.deleteMany();
     const riceTypes = await tx.riceType.deleteMany();
@@ -61,6 +66,11 @@ async function wipeAll() {
       smsLogs: smsLogs.count,
       events: events.count,
       stockAdjustments: stockAdjustments.count,
+      batchEvents: batchEvents.count,
+      batchDamages: batchDamages.count,
+      batchSales: batchSales.count,
+      batchItems: batchItems.count,
+      batchRecords: batchRecords.count,
       prices: prices.count,
       orders: orders.count,
       riceTypes: riceTypes.count,
@@ -92,23 +102,31 @@ async function removeSeededData() {
         })
       : [];
     const orderIds = seededOrders.map((order) => order.id);
+    const batchedOrders = orderIds.length
+      ? await tx.batchItem.findMany({
+          where: { orderId: { in: orderIds } },
+          select: { orderId: true },
+        })
+      : [];
+    const retainedOrderIds = new Set(batchedOrders.map((item) => item.orderId));
+    const removableOrderIds = orderIds.filter((id) => !retainedOrderIds.has(id));
 
     const smsLogs = await tx.smsLog.deleteMany({
       where: {
         OR: [
-          { orderId: { in: orderIds } },
+          { orderId: { in: removableOrderIds } },
           { phone: { in: [...SEEDED_PHONES] } },
         ],
       },
     });
     const events = await tx.orderEvent.deleteMany({
       where: {
-        OR: [{ orderId: { in: orderIds } }, { actorId: { in: userIds } }],
+          OR: [{ orderId: { in: removableOrderIds } }, { actorId: { in: userIds } }],
       },
     });
     const stockAdjustments = await tx.stockAdjustment.deleteMany({
       where: {
-        OR: [{ orderId: { in: orderIds } }, { actorId: { in: userIds } }],
+        OR: [{ orderId: { in: removableOrderIds } }, { actorId: { in: userIds } }],
       },
     });
     const prices = await tx.price.deleteMany({
@@ -119,11 +137,27 @@ async function removeSeededData() {
         ],
       },
     });
+    const batchSales = await tx.batchSale.deleteMany({
+      where: {
+        OR: [
+          { buyerId: { in: userIds } },
+          { orderId: { in: removableOrderIds } },
+        ],
+      },
+    });
     const orders = userIds.length
-      ? await tx.order.deleteMany({ where: { customerId: { in: userIds } } })
+      ? await tx.order.deleteMany({ where: { id: { in: removableOrderIds } } })
       : { count: 0 };
+    const usersWithRetainedOrders = await tx.order.findMany({
+      where: { customerId: { in: userIds } },
+      select: { customerId: true },
+      distinct: ['customerId'],
+    });
+    const retainedUserIds = usersWithRetainedOrders.map((order) => order.customerId);
     const deletedUsers = userIds.length
-      ? await tx.user.deleteMany({ where: { id: { in: userIds } } })
+      ? await tx.user.deleteMany({
+          where: { id: { in: userIds, notIn: retainedUserIds } },
+        })
       : { count: 0 };
 
     let deletedRiceTypes = 0;
@@ -159,6 +193,9 @@ async function removeSeededData() {
       settings: settings.count,
       retainedRiceTypes,
       phoneVerifications,
+      retainedOrders: retainedOrderIds.size,
+      retainedUsers: retainedUserIds.length,
+      batchSales: batchSales.count,
     };
   });
   console.log('Removed seeded demo data:', counts);

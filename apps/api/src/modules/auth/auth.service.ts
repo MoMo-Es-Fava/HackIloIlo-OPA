@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -19,6 +20,7 @@ import {
 } from '../users/users.repository';
 import { LoginDto, RegisterDto } from './auth.dto';
 import { LoginAttempts } from './login-attempts';
+import { WeeklyPricesService } from '../weekly-prices/weekly-prices.service';
 
 const BCRYPT_ROUNDS = 10;
 // Compared against when the phone is unknown, so response time doesn't reveal which numbers exist.
@@ -41,6 +43,7 @@ export class AuthService {
     private readonly attempts: LoginAttempts,
     private readonly prisma: PrismaService,
     private readonly sms: SmsService,
+    private readonly weeklyPrices: WeeklyPricesService,
   ) {}
 
   async requestRegistrationCode(phone: string): Promise<{ message: string }> {
@@ -117,6 +120,11 @@ export class AuthService {
       consentAt: new Date(),
     });
     await this.deleteVerification(dto.phone);
+    try {
+      await this.weeklyPrices.afterVerifiedSignup(user.id);
+    } catch {
+      new Logger(AuthService.name).error(`Could not enroll verified user ${user.id} in weekly prices.`);
+    }
     return this.issue(user);
   }
 

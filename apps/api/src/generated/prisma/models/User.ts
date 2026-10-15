@@ -47,6 +47,7 @@ export type UserMinAggregateOutputType = {
   consentAt: Date | null
   isActive: boolean | null
   createdAt: Date | null
+  phoneVerifiedAt: Date | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -62,6 +63,7 @@ export type UserMaxAggregateOutputType = {
   consentAt: Date | null
   isActive: boolean | null
   createdAt: Date | null
+  phoneVerifiedAt: Date | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -77,6 +79,7 @@ export type UserCountAggregateOutputType = {
   consentAt: number
   isActive: number
   createdAt: number
+  phoneVerifiedAt: number
   _all: number
 }
 
@@ -102,6 +105,7 @@ export type UserMinAggregateInputType = {
   consentAt?: true
   isActive?: true
   createdAt?: true
+  phoneVerifiedAt?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -117,6 +121,7 @@ export type UserMaxAggregateInputType = {
   consentAt?: true
   isActive?: true
   createdAt?: true
+  phoneVerifiedAt?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -132,6 +137,7 @@ export type UserCountAggregateInputType = {
   consentAt?: true
   isActive?: true
   createdAt?: true
+  phoneVerifiedAt?: true
   _all?: true
 }
 
@@ -234,6 +240,7 @@ export type UserGroupByOutputType = {
   consentAt: Date | null
   isActive: boolean
   createdAt: Date
+  phoneVerifiedAt: Date | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -272,6 +279,8 @@ export type UserWhereInput = {
   consentAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  phoneVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   events?: Prisma.OrderEventListRelationFilter
   prices?: Prisma.PriceListRelationFilter
@@ -296,6 +305,8 @@ export type UserOrderByWithRelationInput = {
   consentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  phoneVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationOrderByRelationAggregateInput
   orders?: Prisma.OrderOrderByRelationAggregateInput
   events?: Prisma.OrderEventOrderByRelationAggregateInput
   prices?: Prisma.PriceOrderByRelationAggregateInput
@@ -323,6 +334,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   consentAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   isActive?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
+  phoneVerifiedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationListRelationFilter
   orders?: Prisma.OrderListRelationFilter
   events?: Prisma.OrderEventListRelationFilter
   prices?: Prisma.PriceListRelationFilter
@@ -347,6 +360,7 @@ export type UserOrderByWithAggregationInput = {
   consentAt?: Prisma.SortOrderInput | Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  phoneVerifiedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -370,6 +384,7 @@ export type UserScalarWhereWithAggregatesInput = {
   consentAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   isActive?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+  phoneVerifiedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
 }
 
 export type UserCreateInput = {
@@ -384,6 +399,8 @@ export type UserCreateInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -408,6 +425,8 @@ export type UserUncheckedCreateInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -431,6 +450,8 @@ export type UserUpdateInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -455,6 +476,8 @@ export type UserUncheckedUpdateInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -479,6 +502,7 @@ export type UserCreateManyInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -493,6 +517,7 @@ export type UserUpdateManyMutationInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -508,6 +533,7 @@ export type UserUncheckedUpdateManyInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type UserCountOrderByAggregateInput = {
@@ -523,6 +549,7 @@ export type UserCountOrderByAggregateInput = {
   consentAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  phoneVerifiedAt?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -542,6 +569,7 @@ export type UserMaxOrderByAggregateInput = {
   consentAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  phoneVerifiedAt?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -557,6 +585,7 @@ export type UserMinOrderByAggregateInput = {
   consentAt?: Prisma.SortOrder
   isActive?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
+  phoneVerifiedAt?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -611,6 +640,20 @@ export type IntFieldUpdateOperationsInput = {
   decrement?: number
   multiply?: number
   divide?: number
+}
+
+export type UserCreateNestedOneWithoutWeeklyPriceNotificationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedCreateWithoutWeeklyPriceNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWeeklyPriceNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutWeeklyPriceNotificationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedCreateWithoutWeeklyPriceNotificationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWeeklyPriceNotificationsInput
+  upsert?: Prisma.UserUpsertWithoutWeeklyPriceNotificationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWeeklyPriceNotificationsInput, Prisma.UserUpdateWithoutWeeklyPriceNotificationsInput>, Prisma.UserUncheckedUpdateWithoutWeeklyPriceNotificationsInput>
 }
 
 export type UserCreateNestedOneWithoutPricesInput = {
@@ -751,6 +794,120 @@ export type UserUpdateOneWithoutBatchEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutBatchEventsInput, Prisma.UserUpdateWithoutBatchEventsInput>, Prisma.UserUncheckedUpdateWithoutBatchEventsInput>
 }
 
+export type UserCreateWithoutWeeklyPriceNotificationsInput = {
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserUncheckedCreateWithoutWeeklyPriceNotificationsInput = {
+  id?: number
+  name: string
+  phone: string
+  pinHash: string
+  role?: $Enums.Role
+  accountType?: $Enums.AccountType | null
+  language?: $Enums.Language
+  municipality?: string | null
+  cooperative?: string | null
+  consentAt?: Date | string | null
+  isActive?: boolean
+  createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
+  prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
+  batchesCreated?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutCreatedByInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedCreateNestedManyWithoutBadInputByInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutBuyerInput
+  batchEvents?: Prisma.BatchEventUncheckedCreateNestedManyWithoutActorInput
+  batchDamages?: Prisma.BatchDamageUncheckedCreateNestedManyWithoutRecordedByInput
+}
+
+export type UserCreateOrConnectWithoutWeeklyPriceNotificationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedCreateWithoutWeeklyPriceNotificationsInput>
+}
+
+export type UserUpsertWithoutWeeklyPriceNotificationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedUpdateWithoutWeeklyPriceNotificationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedCreateWithoutWeeklyPriceNotificationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWeeklyPriceNotificationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWeeklyPriceNotificationsInput, Prisma.UserUncheckedUpdateWithoutWeeklyPriceNotificationsInput>
+}
+
+export type UserUpdateWithoutWeeklyPriceNotificationsInput = {
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUpdateManyWithoutRecordedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWeeklyPriceNotificationsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  pinHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumRoleFieldUpdateOperationsInput | $Enums.Role
+  accountType?: Prisma.NullableEnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType | null
+  language?: Prisma.EnumLanguageFieldUpdateOperationsInput | $Enums.Language
+  municipality?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  cooperative?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
+  prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
+  stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
+  batchesCreated?: Prisma.BatchRecordUncheckedUpdateManyWithoutCreatedByNestedInput
+  batchesFlagged?: Prisma.BatchRecordUncheckedUpdateManyWithoutBadInputByNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutBuyerNestedInput
+  batchEvents?: Prisma.BatchEventUncheckedUpdateManyWithoutActorNestedInput
+  batchDamages?: Prisma.BatchDamageUncheckedUpdateManyWithoutRecordedByNestedInput
+}
+
 export type UserCreateWithoutPricesInput = {
   name: string
   phone: string
@@ -763,6 +920,8 @@ export type UserCreateWithoutPricesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
@@ -786,6 +945,8 @@ export type UserUncheckedCreateWithoutPricesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
@@ -824,6 +985,8 @@ export type UserUpdateWithoutPricesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
@@ -847,6 +1010,8 @@ export type UserUncheckedUpdateWithoutPricesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
@@ -869,6 +1034,8 @@ export type UserCreateWithoutOrdersInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
@@ -892,6 +1059,8 @@ export type UserUncheckedCreateWithoutOrdersInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
@@ -930,6 +1099,8 @@ export type UserUpdateWithoutOrdersInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
@@ -953,6 +1124,8 @@ export type UserUncheckedUpdateWithoutOrdersInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
@@ -975,6 +1148,8 @@ export type UserCreateWithoutEventsInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentCreateNestedManyWithoutActorInput
@@ -998,6 +1173,8 @@ export type UserUncheckedCreateWithoutEventsInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
   stockChanges?: Prisma.StockAdjustmentUncheckedCreateNestedManyWithoutActorInput
@@ -1036,6 +1213,8 @@ export type UserUpdateWithoutEventsInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUpdateManyWithoutActorNestedInput
@@ -1059,6 +1238,8 @@ export type UserUncheckedUpdateWithoutEventsInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
   stockChanges?: Prisma.StockAdjustmentUncheckedUpdateManyWithoutActorNestedInput
@@ -1081,6 +1262,8 @@ export type UserCreateWithoutStockChangesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1104,6 +1287,8 @@ export type UserUncheckedCreateWithoutStockChangesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1142,6 +1327,8 @@ export type UserUpdateWithoutStockChangesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1165,6 +1352,8 @@ export type UserUncheckedUpdateWithoutStockChangesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1187,6 +1376,8 @@ export type UserCreateWithoutBatchesFlaggedInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1210,6 +1401,8 @@ export type UserUncheckedCreateWithoutBatchesFlaggedInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1237,6 +1430,8 @@ export type UserCreateWithoutBatchesCreatedInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1260,6 +1455,8 @@ export type UserUncheckedCreateWithoutBatchesCreatedInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1298,6 +1495,8 @@ export type UserUpdateWithoutBatchesFlaggedInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1321,6 +1520,8 @@ export type UserUncheckedUpdateWithoutBatchesFlaggedInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1354,6 +1555,8 @@ export type UserUpdateWithoutBatchesCreatedInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1377,6 +1580,8 @@ export type UserUncheckedUpdateWithoutBatchesCreatedInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1399,6 +1604,8 @@ export type UserCreateWithoutBatchSalesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1422,6 +1629,8 @@ export type UserUncheckedCreateWithoutBatchSalesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1460,6 +1669,8 @@ export type UserUpdateWithoutBatchSalesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1483,6 +1694,8 @@ export type UserUncheckedUpdateWithoutBatchSalesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1505,6 +1718,8 @@ export type UserCreateWithoutBatchDamagesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1528,6 +1743,8 @@ export type UserUncheckedCreateWithoutBatchDamagesInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1566,6 +1783,8 @@ export type UserUpdateWithoutBatchDamagesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1589,6 +1808,8 @@ export type UserUncheckedUpdateWithoutBatchDamagesInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1611,6 +1832,8 @@ export type UserCreateWithoutBatchEventsInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceCreateNestedManyWithoutCreatedByInput
@@ -1634,6 +1857,8 @@ export type UserUncheckedCreateWithoutBatchEventsInput = {
   consentAt?: Date | string | null
   isActive?: boolean
   createdAt?: Date | string
+  phoneVerifiedAt?: Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedCreateNestedManyWithoutUserInput
   orders?: Prisma.OrderUncheckedCreateNestedManyWithoutCustomerInput
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutActorInput
   prices?: Prisma.PriceUncheckedCreateNestedManyWithoutCreatedByInput
@@ -1672,6 +1897,8 @@ export type UserUpdateWithoutBatchEventsInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUpdateManyWithoutCreatedByNestedInput
@@ -1695,6 +1922,8 @@ export type UserUncheckedUpdateWithoutBatchEventsInput = {
   consentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   isActive?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  phoneVerifiedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  weeklyPriceNotifications?: Prisma.WeeklyPriceNotificationUncheckedUpdateManyWithoutUserNestedInput
   orders?: Prisma.OrderUncheckedUpdateManyWithoutCustomerNestedInput
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutActorNestedInput
   prices?: Prisma.PriceUncheckedUpdateManyWithoutCreatedByNestedInput
@@ -1711,6 +1940,7 @@ export type UserUncheckedUpdateWithoutBatchEventsInput = {
  */
 
 export type UserCountOutputType = {
+  weeklyPriceNotifications: number
   orders: number
   events: number
   prices: number
@@ -1723,6 +1953,7 @@ export type UserCountOutputType = {
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  weeklyPriceNotifications?: boolean | UserCountOutputTypeCountWeeklyPriceNotificationsArgs
   orders?: boolean | UserCountOutputTypeCountOrdersArgs
   events?: boolean | UserCountOutputTypeCountEventsArgs
   prices?: boolean | UserCountOutputTypeCountPricesArgs
@@ -1742,6 +1973,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountWeeklyPriceNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WeeklyPriceNotificationWhereInput
 }
 
 /**
@@ -1821,6 +2059,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   consentAt?: boolean
   isActive?: boolean
   createdAt?: boolean
+  phoneVerifiedAt?: boolean
+  weeklyPriceNotifications?: boolean | Prisma.User$weeklyPriceNotificationsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   prices?: boolean | Prisma.User$pricesArgs<ExtArgs>
@@ -1846,6 +2086,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   consentAt?: boolean
   isActive?: boolean
   createdAt?: boolean
+  phoneVerifiedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1861,6 +2102,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   consentAt?: boolean
   isActive?: boolean
   createdAt?: boolean
+  phoneVerifiedAt?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1876,10 +2118,12 @@ export type UserSelectScalar = {
   consentAt?: boolean
   isActive?: boolean
   createdAt?: boolean
+  phoneVerifiedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "pinHash" | "role" | "accountType" | "language" | "municipality" | "cooperative" | "consentAt" | "isActive" | "createdAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "phone" | "pinHash" | "role" | "accountType" | "language" | "municipality" | "cooperative" | "consentAt" | "isActive" | "createdAt" | "phoneVerifiedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  weeklyPriceNotifications?: boolean | Prisma.User$weeklyPriceNotificationsArgs<ExtArgs>
   orders?: boolean | Prisma.User$ordersArgs<ExtArgs>
   events?: boolean | Prisma.User$eventsArgs<ExtArgs>
   prices?: boolean | Prisma.User$pricesArgs<ExtArgs>
@@ -1897,6 +2141,7 @@ export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensi
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
+    weeklyPriceNotifications: Prisma.$WeeklyPriceNotificationPayload<ExtArgs>[]
     orders: Prisma.$OrderPayload<ExtArgs>[]
     events: Prisma.$OrderEventPayload<ExtArgs>[]
     prices: Prisma.$PricePayload<ExtArgs>[]
@@ -1920,6 +2165,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     consentAt: Date | null
     isActive: boolean
     createdAt: Date
+    phoneVerifiedAt: Date | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -2314,6 +2560,7 @@ readonly fields: UserFieldRefs;
  */
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  weeklyPriceNotifications<T extends Prisma.User$weeklyPriceNotificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$weeklyPriceNotificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WeeklyPriceNotificationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   orders<T extends Prisma.User$ordersArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   events<T extends Prisma.User$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   prices<T extends Prisma.User$pricesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$pricesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$PricePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -2364,6 +2611,7 @@ export interface UserFieldRefs {
   readonly consentAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly isActive: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
+  readonly phoneVerifiedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
     
 
@@ -2754,6 +3002,30 @@ export type UserDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
    * Limit how many Users to delete.
    */
   limit?: number
+}
+
+/**
+ * User.weeklyPriceNotifications
+ */
+export type User$weeklyPriceNotificationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WeeklyPriceNotification
+   */
+  select?: Prisma.WeeklyPriceNotificationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WeeklyPriceNotification
+   */
+  omit?: Prisma.WeeklyPriceNotificationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WeeklyPriceNotificationInclude<ExtArgs> | null
+  where?: Prisma.WeeklyPriceNotificationWhereInput
+  orderBy?: Prisma.WeeklyPriceNotificationOrderByWithRelationInput | Prisma.WeeklyPriceNotificationOrderByWithRelationInput[]
+  cursor?: Prisma.WeeklyPriceNotificationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WeeklyPriceNotificationScalarFieldEnum | Prisma.WeeklyPriceNotificationScalarFieldEnum[]
 }
 
 /**

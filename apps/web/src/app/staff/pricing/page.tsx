@@ -7,9 +7,12 @@ import PriceChart from "@/components/PriceChart";
 import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, cn, td, th } from "@/components/ui";
 import { PriceBasis } from "@irpc/types";
 import { IconChart } from "@/components/icons";
+import RicePricesAndStock from "@/components/RicePricesAndStock";
+import { useIsAdmin } from "@/lib/useIsAdmin";
 
 export default function Pricing() {
   const { palayPrices: prices, history, orderError, setPrices } = useStore();
+  const isAdmin = useIsAdmin();
   const [fresh, setFresh] = useState(prices.fresh?.toString() ?? "");
   const [dry, setDry] = useState(prices.dry?.toString() ?? "");
   const [basis, setBasis] = useState<PriceBasis>(prices.basis);
@@ -18,19 +21,20 @@ export default function Pricing() {
   const bad = !(f > 0) || !(d > 0) || d < f;
   return (
     <>
-      <PageHeader title="Pricing and rates" sub={`Current: fresh ${peso(prices.fresh, 0)}, dry ${peso(prices.dry, 0)} per kg (${prices.basis}). Updated ${prices.updated}.`} icon={<IconChart className="h-6 w-6" />} />
-      <Card>
-        <h2 className="text-lg font-bold tracking-tight">Set this week&apos;s prices</h2>
+      <PageHeader title="Pricing and stock" sub={`Palay buying price now: fresh ${peso(prices.fresh, 0)}, dry ${peso(prices.dry, 0)} per kg (${prices.basis}). Updated ${prices.updated}.`} icon={<IconChart className="h-6 w-6" />} />
+      {isAdmin && <Card>
+        <h2 className="text-lg font-bold tracking-tight">Palay buying prices this week</h2>
         <div className="grid gap-3 md:grid-cols-3">
           <TextField label="Fresh (₱ per kg)" type="number" inputMode="decimal" step="0.5" value={fresh} onChange={(e) => setFresh(e.target.value)} />
           <TextField label="Dry (₱ per kg)" type="number" inputMode="decimal" step="0.5" value={dry} onChange={(e) => setDry(e.target.value)} error={d < f && dry !== "" ? "Dry price should not be below fresh" : undefined} />
           <SelectField label="Price basis" value={basis} onChange={(e) => setBasis(e.target.value as PriceBasis)}><option value={PriceBasis.MARKET}>Market</option><option value={PriceBasis.NFA}>NFA</option></SelectField>
         </div>
         {big && !bad && <p><Badge tone="warn">Check</Badge> This is more than ₱2 from the current price. Weekly changes are usually ₱1 to ₱2.</p>}
-        <p className="text-sm text-sub">Publishing updates the buyer price page and is written to the audit log.</p>
+        <p className="text-sm text-sub">Publishing updates the prices farmers see. Offers already accepted keep their locked price.</p>
         <div><Button arrow disabled={bad} onClick={() => setPrices(f, d, basis)}>Publish prices</Button></div>
-      </Card>
+      </Card>}
       {orderError && <p role="alert" className="font-bold text-clay">{orderError}</p>}
+      <RicePricesAndStock />
       {history.length > 0 && <>
       <Card><h2 className="text-lg font-bold tracking-tight">History</h2><PriceChart data={history} /></Card>
       <TableWrap>

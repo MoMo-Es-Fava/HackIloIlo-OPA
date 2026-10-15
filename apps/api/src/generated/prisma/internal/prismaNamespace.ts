@@ -399,6 +399,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   PhoneVerification: 'PhoneVerification',
+  WeeklyPriceNotification: 'WeeklyPriceNotification',
   RiceType: 'RiceType',
   Price: 'Price',
   Order: 'Order',
@@ -426,7 +427,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "phoneVerification" | "riceType" | "price" | "order" | "orderEvent" | "stockAdjustment" | "smsLog" | "setting" | "batchRecord" | "batchItem" | "batchSale" | "batchDamage" | "batchEvent"
+    modelProps: "user" | "phoneVerification" | "weeklyPriceNotification" | "riceType" | "price" | "order" | "orderEvent" | "stockAdjustment" | "smsLog" | "setting" | "batchRecord" | "batchItem" | "batchSale" | "batchDamage" | "batchEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -575,6 +576,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.PhoneVerificationCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.PhoneVerificationCountAggregateOutputType> | number
+        }
+      }
+    }
+    WeeklyPriceNotification: {
+      payload: Prisma.$WeeklyPriceNotificationPayload<ExtArgs>
+      fields: Prisma.WeeklyPriceNotificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.WeeklyPriceNotificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.WeeklyPriceNotificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        findFirst: {
+          args: Prisma.WeeklyPriceNotificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.WeeklyPriceNotificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        findMany: {
+          args: Prisma.WeeklyPriceNotificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>[]
+        }
+        create: {
+          args: Prisma.WeeklyPriceNotificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        createMany: {
+          args: Prisma.WeeklyPriceNotificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.WeeklyPriceNotificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>[]
+        }
+        delete: {
+          args: Prisma.WeeklyPriceNotificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        update: {
+          args: Prisma.WeeklyPriceNotificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.WeeklyPriceNotificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.WeeklyPriceNotificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.WeeklyPriceNotificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.WeeklyPriceNotificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$WeeklyPriceNotificationPayload>
+        }
+        aggregate: {
+          args: Prisma.WeeklyPriceNotificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateWeeklyPriceNotification>
+        }
+        groupBy: {
+          args: Prisma.WeeklyPriceNotificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeeklyPriceNotificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.WeeklyPriceNotificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.WeeklyPriceNotificationCountAggregateOutputType> | number
         }
       }
     }
@@ -1517,7 +1592,8 @@ export const UserScalarFieldEnum = {
   cooperative: 'cooperative',
   consentAt: 'consentAt',
   isActive: 'isActive',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  phoneVerifiedAt: 'phoneVerifiedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1533,6 +1609,21 @@ export const PhoneVerificationScalarFieldEnum = {
 } as const
 
 export type PhoneVerificationScalarFieldEnum = (typeof PhoneVerificationScalarFieldEnum)[keyof typeof PhoneVerificationScalarFieldEnum]
+
+
+export const WeeklyPriceNotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  weekStart: 'weekStart',
+  status: 'status',
+  message: 'message',
+  providerId: 'providerId',
+  queuedAt: 'queuedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WeeklyPriceNotificationScalarFieldEnum = (typeof WeeklyPriceNotificationScalarFieldEnum)[keyof typeof WeeklyPriceNotificationScalarFieldEnum]
 
 
 export const RiceTypeScalarFieldEnum = {
@@ -2190,6 +2281,7 @@ export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaC
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   phoneVerification?: Prisma.PhoneVerificationOmit
+  weeklyPriceNotification?: Prisma.WeeklyPriceNotificationOmit
   riceType?: Prisma.RiceTypeOmit
   price?: Prisma.PriceOmit
   order?: Prisma.OrderOmit

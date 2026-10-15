@@ -10,6 +10,7 @@
  */
 export type * from './models/User.js'
 export type * from './models/PhoneVerification.js'
+export type * from './models/WeeklyPriceNotification.js'
 export type * from './models/RiceType.js'
 export type * from './models/Price.js'
 export type * from './models/Order.js'

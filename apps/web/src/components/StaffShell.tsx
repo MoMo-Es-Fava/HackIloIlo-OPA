@@ -5,43 +5,29 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
-import {
-  IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconBolt, IconChart,
-  IconTrace, IconUser, IconBox, IconArrowRight, IconLeaf,
-} from "./icons";
+import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconArrowRight, IconLeaf, IconClipboard } from "./icons";
 import AuthControls from "./AuthControls";
 
+// Only pages that work on the real API. The older demo pages (booking slots, weigh-in slips,
+// costing, energy, batch search, users, audit) stay in the code but are off the menu for now.
 const groups = [
   { title: "Workspace", items: [{ href: "/staff", label: "Today", Icon: IconHome }] },
   {
     title: "Operations",
     items: [
       { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
-      { href: "/staff/queue", label: "Booking and queue", Icon: IconClipboard },
-      { href: "/staff/intake", label: "Weigh-in and slips", Icon: IconScale },
       { href: "/staff/services", label: "Drying and milling", Icon: IconFlame },
+      { href: "/staff/processing", label: "Batch records", Icon: IconClipboard },
+      { href: "/staff/bad-inputs", label: "Bad-input batches", Icon: IconClipboard },
+      { href: "/staff/rice-sales", label: "Rice sales", Icon: IconBox },
     ],
   },
   {
-    title: "Sales and costs",
+    title: "Money",
     items: [
-      { href: "/staff/sales", label: "Sales and receipts", Icon: IconReceipt },
-      { href: "/staff/costing", label: "Real-time costing", Icon: IconBolt },
-      { href: "/staff/financials", label: "Financials and energy", Icon: IconChart },
-    ],
-  },
-  {
-    title: "Planning",
-    items: [
-      { href: "/staff/pricing", label: "Pricing and rates", Icon: IconChart },
-    ],
-  },
-  { title: "Traceability", items: [{ href: "/staff/traceability", label: "Batch search", Icon: IconTrace }] },
-  {
-    title: "Administration",
-    items: [
-      { href: "/staff/users", label: "Users and roles", Icon: IconUser },
-      { href: "/staff/audit", label: "Audit log", Icon: IconClipboard },
+      { href: "/staff/report", label: "Report", Icon: IconChart },
+      { href: "/staff/pricing", label: "Pricing and stock", Icon: IconReceipt },
+      { href: "/staff/logs", label: "IRPC logs", Icon: IconClipboard },
     ],
   },
 ];

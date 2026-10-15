@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type PhoneVerification = Prisma.PhoneVerificationModel
 /**
+ * Model WeeklyPriceNotification
+ * 
+ */
+export type WeeklyPriceNotification = Prisma.WeeklyPriceNotificationModel
+/**
  * Model RiceType
  * 
  */

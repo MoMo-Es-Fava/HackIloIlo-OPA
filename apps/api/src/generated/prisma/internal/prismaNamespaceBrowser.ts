@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   PhoneVerification: 'PhoneVerification',
+  WeeklyPriceNotification: 'WeeklyPriceNotification',
   RiceType: 'RiceType',
   Price: 'Price',
   Order: 'Order',
@@ -95,7 +96,8 @@ export const UserScalarFieldEnum = {
   cooperative: 'cooperative',
   consentAt: 'consentAt',
   isActive: 'isActive',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  phoneVerifiedAt: 'phoneVerifiedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -111,6 +113,21 @@ export const PhoneVerificationScalarFieldEnum = {
 } as const
 
 export type PhoneVerificationScalarFieldEnum = (typeof PhoneVerificationScalarFieldEnum)[keyof typeof PhoneVerificationScalarFieldEnum]
+
+
+export const WeeklyPriceNotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  weekStart: 'weekStart',
+  status: 'status',
+  message: 'message',
+  providerId: 'providerId',
+  queuedAt: 'queuedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WeeklyPriceNotificationScalarFieldEnum = (typeof WeeklyPriceNotificationScalarFieldEnum)[keyof typeof WeeklyPriceNotificationScalarFieldEnum]
 
 
 export const RiceTypeScalarFieldEnum = {
