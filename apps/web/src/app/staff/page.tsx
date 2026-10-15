@@ -7,7 +7,6 @@ import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { kgf, peso, pesoAccounting } from "@/lib/format";
 import { serviceLabel } from "@/lib/orders";
-import { LineChart } from "@/components/LineChart";
 import { Badge, Bar, Card, Empty, PageHeader, Stat } from "@/components/ui";
 import { IconArrowRight, IconChart, IconClock, IconFlame, IconLeaf, IconScale, IconBox } from "@/components/icons";
 
@@ -85,33 +84,25 @@ export default function Today() {
   const [summary, setSummary] = useState<AdminSummaryDto | null>(null);
   const [money, setMoney] = useState<MoneySummaryDto | null>(null);
   const [answers, setAnswers] = useState<AnswerStatsDto | null>(null);
-  const [trend, setTrend] = useState<Awaited<ReturnType<typeof api.getOperationsTrend>> | null>(null);
-  const [financeTrend, setFinanceTrend] = useState<Awaited<ReturnType<typeof api.getFinanceTrend>> | null>(null);
   // Money totals are admin-only; plant staff simply don't see that section.
   const [canSeeMoney, setCanSeeMoney] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const trendRequest = api.useMock ? Promise.resolve(null) : api.getOperationsTrend(14);
-    const financeRequest = api.useMock ? Promise.resolve(null) : api.getFinanceTrend(14);
-    const [o, s, m, a, t, f] = await Promise.allSettled([
+    const [o, s, m, a] = await Promise.allSettled([
       api.adminListOrders(),
       api.getAdminSummary(),
       api.getMoney(monthStart(), todayIso()),
       api.getAnswerStats(monthStart(), todayIso()),
-      trendRequest,
-      financeRequest,
     ]);
     if (a.status === "fulfilled") setAnswers(a.value);
     if (o.status === "fulfilled") setOrders(o.value);
     if (s.status === "fulfilled") setSummary(s.value);
     if (m.status === "fulfilled") setMoney(m.value);
-    if (t.status === "fulfilled" && t.value) setTrend(t.value);
-    if (f.status === "fulfilled" && f.value) setFinanceTrend(f.value);
     const forbidden = m.status === "rejected" && m.reason instanceof ApiError && m.reason.status === 403;
     setCanSeeMoney(!forbidden);
-    const failed = [o, s, forbidden ? null : m, forbidden ? null : f, t].find((r) => r?.status === "rejected") as PromiseRejectedResult | undefined;
+    const failed = [o, s, forbidden ? null : m].find((r) => r?.status === "rejected") as PromiseRejectedResult | undefined;
     setError(failed ? (failed.reason instanceof ApiError ? failed.reason.message : "Some numbers could not be loaded.") : null);
     setUpdated(new Date());
   }, []);
@@ -161,70 +152,6 @@ export default function Today() {
         <Stat label="Weights to confirm" value={orders ? String(toConfirm) : "–"} hint="Customer must agree before paying" icon={<IconScale className="h-4 w-4" />} />
         <Stat label="Ready for pickup" value={orders ? String(ready) : "–"} hint="Collect payment in cash" icon={<IconBox className="h-4 w-4" />} />
       </section>
-
-      <Card>
-        {api.useMock ? (
-          <p className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
-            Daily trends are available when connected to the live database. The dashboard is currently showing demo data.
-          </p>
-        ) : <>
-          <LineChart
-            title="Daily operations"
-            description="Requests created each day and requests answered over the last 14 days."
-            points={(trend?.daily ?? []).map((point) => ({
-              key: point.date,
-              label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
-            }))}
-            series={[
-              { key: "palayOffers", label: "Palay offers", color: "var(--color-paddy-d)", values: (trend?.daily ?? []).map((point) => point.palayOffers) },
-              { key: "riceOrders", label: "Rice orders", color: "var(--color-sky-d)", values: (trend?.daily ?? []).map((point) => point.riceOrders), dash: "7 5" },
-              { key: "serviceRequests", label: "Service requests", color: "#806319", values: (trend?.daily ?? []).map((point) => point.serviceRequests), dash: "2 5" },
-              { key: "answered", label: "Requests answered", color: "var(--color-clay)", values: (trend?.daily ?? []).map((point) => point.answered) },
-            ]}
-            formatValue={(value) => Math.round(value).toString()}
-          />
-          <div className="border-t border-line/80 pt-5">
-            <LineChart
-              title="Processing milestones"
-              description="Daily requests for customer weight confirmation and orders entering drying or ready for pickup."
-              points={(trend?.daily ?? []).map((point) => ({
-                key: point.date,
-                label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
-              }))}
-              series={[
-                { key: "weightsToConfirm", label: "Weights to confirm", color: "var(--color-sky-d)", values: (trend?.daily ?? []).map((point) => point.weightsToConfirm) },
-                { key: "inDrying", label: "Entered drying", color: "#70528f", values: (trend?.daily ?? []).map((point) => point.inDrying), dash: "7 5" },
-                { key: "readyForPickup", label: "Ready for pickup", color: "var(--color-clay)", values: (trend?.daily ?? []).map((point) => point.readyForPickup), dash: "2 5" },
-              ]}
-              formatValue={(value) => Math.round(value).toString()}
-            />
-          </div>
-        </>}
-      </Card>
-
-      {canSeeMoney && <Card>
-        {api.useMock ? (
-          <p className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
-            Daily financial trends are available when connected to the live database. The dashboard is currently showing demo data.
-          </p>
-        ) : (
-          <LineChart
-            title="Daily financial activity"
-            description="Paid and completed orders by payment date over the last 14 days."
-            points={(financeTrend?.daily ?? []).map((point) => ({
-              key: point.date,
-              label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
-            }))}
-            series={[
-              { key: "soldRice", label: "Rice sales", color: "var(--color-paddy-d)", values: (financeTrend?.daily ?? []).map((point) => Number(point.soldRice)) },
-              { key: "serviceFees", label: "Service fees", color: "var(--color-sky-d)", values: (financeTrend?.daily ?? []).map((point) => Number(point.serviceFees)), dash: "7 5" },
-              { key: "boughtPalay", label: "Palay paid", color: "#806319", values: (financeTrend?.daily ?? []).map((point) => Number(point.boughtPalay)), dash: "2 5" },
-              { key: "grossProfit", label: "Gross profit / loss", color: "var(--color-clay)", values: (financeTrend?.daily ?? []).map((point) => Number(point.grossProfit)) },
-            ]}
-            formatValue={(value) => pesoAccounting(value)}
-          />
-        )}
-      </Card>}
 
       <div className="grid items-start gap-4 xl:grid-cols-[1.4fr_1fr]">
         <Card>

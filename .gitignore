@@ -47,3 +47,6 @@ apps/api/src/modules/analytics/analytics.controller.ts
 apps/api/src/modules/analytics/analytics.module.ts
 apps/api/src/modules/analytics/analytics.service.spec.ts
 apps/api/src/modules/analytics/analytics.service.ts
+!apps/api/src/modules/analytics/analytics.controller.ts
+!apps/api/src/modules/analytics/analytics.module.ts
+!apps/api/src/modules/analytics/analytics.service.ts

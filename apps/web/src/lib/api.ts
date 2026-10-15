@@ -1,5 +1,5 @@
 import type {
-  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto, AnswerStatsDto,
+  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto, AnswerStatsDto, Role,
   CatalogAnalyticsDto, FinanceTrendDto, LogTrendDto, OperationsTrendDto, OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
 } from "@irpc/types";
 import type { DemoActions, DemoWorkspace } from "./demo-types";
@@ -21,6 +21,11 @@ export interface RegisterRequest {
 }
 // These response shapes are not yet specified in the shared package.
 export type ApiUser = UserDto;
+export interface ManagedUser extends ApiUser { isActive: boolean; createdAt: string }
+export interface ManagedUserInput {
+  name: string; phone: string; role: Role; accountType: AccountType | null; language?: Language;
+  municipality?: string | null; cooperative?: string | null; pin?: string; isActive?: boolean;
+}
 export type AuthResponse = SharedAuthResponse;
 export interface HealthResponse { status: string; time: string }
 export type AdminOrder = OrderDto & { customer?: ApiUser };
@@ -142,6 +147,9 @@ export function createApiClient(options: ApiClientOptions) {
     updateOrderStatus: (id: number, status: OrderStatus, note?: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/status`, "PATCH", { status, note }),
     weighInOrder: (id: number, weights: { wetKg?: string; dryKg?: string; riceKg?: string }) => request<OrderDto>(`/admin/orders/${idPath(id)}/weigh-in`, "POST", weights),
     getAdminSummary: () => request<AdminSummaryDto>("/admin/summary"),
+    adminListUsers: () => request<ManagedUser[]>("/admin/users"),
+    adminCreateUser: (body: ManagedUserInput & { pin: string }) => request<ManagedUser>("/admin/users", "POST", body),
+    adminUpdateUser: (id: number, body: Partial<ManagedUserInput>) => request<ManagedUser>(`/admin/users/${idPath(id)}`, "PATCH", body),
     getOperationsTrend: (days = 14) => request<OperationsTrendDto>(`/admin/analytics/operations${query({ days })}`),
     getFinanceTrend: (days = 14) => request<FinanceTrendDto>(`/admin/analytics/finance${query({ days })}`),
     getCatalogAnalytics: (days = 30) => request<CatalogAnalyticsDto>(`/admin/analytics/catalog${query({ days })}`),

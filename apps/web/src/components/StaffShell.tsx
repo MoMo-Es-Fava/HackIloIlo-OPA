@@ -12,7 +12,10 @@ import BrandLogo from "./BrandLogo";
 // Only pages that work on the real API. The older demo pages (booking slots, weigh-in slips,
 // costing, energy, batch search, users, audit) stay in the code but are off the menu for now.
 const groups = [
-  { title: "Workspace", items: [{ href: "/staff", label: "Today", Icon: IconHome }] },
+  { title: "Workspace", items: [
+    { href: "/staff", label: "Today", Icon: IconHome },
+    { href: "/staff/analytics", label: "Analytics", Icon: IconChart },
+  ] },
   {
     title: "Operations",
     items: [

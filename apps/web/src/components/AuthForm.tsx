@@ -10,7 +10,7 @@ import BrandLogo from "@/components/BrandLogo";
 
 const fieldClass = "mt-1 min-h-12 w-full rounded-xl border border-white/20 bg-white/10 px-3.5 text-base text-white outline-none placeholder:text-white/50 focus:border-husk focus:ring-2 focus:ring-husk/30";
 const labelClass = "block text-sm font-bold text-white/90";
-const isValidNext = (value: string | null): value is string => !!value && (value === "/buyer" || value.startsWith("/buyer/") || value === "/staff" || value.startsWith("/staff/"));
+const isValidNext = (value: string | null): value is string => !!value && ["/buyer", "/staff", "/admin"].some((base) => value === base || value.startsWith(`${base}/`));
 
 export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
@@ -45,10 +45,11 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             consent: true,
           })
         : await api.login(phone, pin);
-      const staff = result.user.role === Role.ADMIN || result.user.role === Role.PLANT_STAFF || result.user.role === Role.MAO_STAFF;
-      const defaultPath = staff ? "/staff" : "/buyer";
+      const staff = result.user.role === Role.PLANT_STAFF || result.user.role === Role.MAO_STAFF;
+      const defaultPath = result.user.role === Role.ADMIN ? "/admin" : staff ? "/staff" : "/buyer";
       const requested = new URLSearchParams(window.location.search).get("next");
-      const next = isValidNext(requested) && requested.startsWith(staff ? "/staff" : "/buyer")
+      const allowedNext = result.user.role === Role.ADMIN ? "/admin" : staff ? "/staff" : "/buyer";
+      const next = isValidNext(requested) && (requested === allowedNext || requested.startsWith(`${allowedNext}/`))
         ? requested
         : defaultPath;
       router.replace(next);
@@ -135,7 +136,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           </p>
           {!registering && <details className="mt-6 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm text-white/75">
             <summary className="cursor-pointer font-bold text-white">Development demo accounts</summary>
-            <p className="mt-2">Seeded accounts use PIN <strong className="text-white">1234</strong>. Admin: <strong className="text-white">0917 000 0001</strong>; plant staff: <strong className="text-white">0917 000 0002</strong>. Farmer, cooperative, and buyer accounts use numbers ending 0003–0007.</p>
+            <p className="mt-2">Seeded accounts use PIN <strong className="text-white">1234</strong>. Admin: <strong className="text-white">0917 000 0001</strong>; plant staff: <strong className="text-white">0917 000 0002</strong>. Farmers: 0003, 0004, and 0008–0015; cooperative: 0005; rice buyers: 0006, 0007, and 0016–0023.</p>
           </details>}
         </section>
         <p className="mt-4 text-center text-xs text-white/65">Your account details are stored securely by the IRPC service.</p>

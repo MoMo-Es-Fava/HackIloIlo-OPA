@@ -12,15 +12,10 @@ if (!databaseUrl) {
 
 const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
-const SEEDED_PHONES = [
-  '+639170000001', // admin
-  '+639170000002', // plant staff
-  '+639170000003', // farmer
-  '+639170000004', // farmer
-  '+639170000005', // cooperative
-  '+639170000006', // buyer
-  '+639170000007', // buyer
-] as const;
+const SEEDED_PHONES = Array.from(
+  { length: 23 },
+  (_, index) => `+63917${String(index + 1).padStart(7, '0')}`,
+);
 const SEEDED_RICE_TYPES = [
   'Well-milled rice',
   'Regular milled rice',
@@ -207,7 +202,7 @@ async function main() {
     await wipeAll();
     return;
   }
-  console.log('Removing records associated with the seven seeded demo accounts...');
+  console.log(`Removing records associated with ${SEEDED_PHONES.length} seeded demo accounts...`);
   await removeSeededData();
 }
 

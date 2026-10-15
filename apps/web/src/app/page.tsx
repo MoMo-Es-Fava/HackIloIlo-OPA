@@ -149,6 +149,9 @@ export default function Landing() {
                 {hero.license}
               </a>
             </p>
+            <Link href="/login?next=%2Fadmin" className="text-xs text-white/45 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white/80 hover:decoration-white/60">
+              Admin access
+            </Link>
           </footer>
         </div>
       </div>
