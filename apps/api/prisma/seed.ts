@@ -2,71 +2,214 @@ import path from 'node:path';
 import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
 import {
+  AccountType,
+  Language,
+  PriceBasis,
+  PriceItem,
   PrismaClient,
   Role,
-  AccountType,
-  OrderType,
-  OrderStatus,
-  PalayCondition,
-  DeliveryMethod,
 } from '../src/generated/prisma/client';
 
-config({ path: path.resolve(process.cwd(), '../../.env') });
+config({ path: path.resolve(process.cwd(), '../../.env'), quiet: true });
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is not set. Check the repository root .env file.');
+}
+
+const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
+// Development-only credential placeholder. Replace with a real password/PIN hash
+// if authentication is added to the seed workflow.
+const SEEDED_PIN_HASH = 'seeded-demo-pin';
+const EFFECTIVE_AT = new Date('2026-10-01T00:00:00.000Z');
+
+const users = [
+  {
+    name: 'IRPC Administrator',
+    phone: '+639170000001',
+    role: Role.ADMIN,
+    accountType: null,
+  },
+  {
+    name: 'IRPC Plant Staff',
+    phone: '+639170000002',
+    role: Role.PLANT_STAFF,
+    accountType: null,
+  },
+  {
+    name: 'Juan Dela Cruz',
+    phone: '+639170000003',
+    role: Role.USER,
+    accountType: AccountType.FARMER,
+    municipality: 'Pototan',
+  },
+  {
+    name: 'Maria Santos',
+    phone: '+639170000004',
+    role: Role.USER,
+    accountType: AccountType.FARMER,
+    municipality: 'Dumangas',
+  },
+  {
+    name: 'Pototan Farmers Cooperative',
+    phone: '+639170000005',
+    role: Role.USER,
+    accountType: AccountType.COOPERATIVE,
+    municipality: 'Pototan',
+    cooperative: 'Pototan Farmers Cooperative',
+  },
+  {
+    name: 'Iloilo Rice Retailer',
+    phone: '+639170000006',
+    role: Role.USER,
+    accountType: AccountType.BUYER,
+    municipality: 'Iloilo City',
+  },
+  {
+    name: 'Western Visayas Food Services',
+    phone: '+639170000007',
+    role: Role.USER,
+    accountType: AccountType.BUYER,
+    municipality: 'Iloilo City',
+  },
+] as const;
+
+const riceTypes = [
+  {
+    name: 'Well-milled rice',
+    description: 'Starting inventory for well-milled rice',
+    stockKg: '1200.00',
+  },
+  {
+    name: 'Regular milled rice',
+    description: 'Starting inventory for regular milled rice',
+    stockKg: '800.00',
+  },
+  {
+    name: 'Well-milled rice (Coop 2)',
+    description: 'Starting inventory for cooperative well-milled rice',
+    stockKg: '2000.00',
+  },
+] as const;
+
+const sharedPrices = [
+  { item: PriceItem.PALAY_FRESH, pricePerKg: '17.00' },
+  { item: PriceItem.PALAY_DRY, pricePerKg: '22.00' },
+  { item: PriceItem.DRYING_FEE, pricePerKg: '1.60' },
+  { item: PriceItem.MILLING_FEE, pricePerKg: '3.30' },
+] as const;
+
 async function main() {
-  console.log('🌱 Starting database test script...\n');
+  await prisma.$transaction(async (tx) => {
+    const seededUsers = new Map<string, number>();
 
-  // 1. ADD: Create a dummy Farmer user
-  const farmer = await prisma.user.create({
-    data: {
-      name: 'Juan Dela Cruz',
-      phone: '+639171234567',
-      pinHash: '$2b$10$dummyhashedpin123456', // Placeholder hashed PIN
-      role: Role.USER,
-      accountType: AccountType.FARMER,
-      municipality: 'Pototan',
-      cooperative: 'Pototan Farmers Agriculture Cooperative',
-    },
+    for (const user of users) {
+      const saved = await tx.user.upsert({
+        where: { phone: user.phone },
+        update: {
+          name: user.name,
+          role: user.role,
+          accountType: user.accountType,
+          language: Language.HIL,
+          municipality: 'municipality' in user ? user.municipality : null,
+          cooperative: 'cooperative' in user ? user.cooperative : null,
+          isActive: true,
+        },
+        create: {
+          ...user,
+          pinHash: SEEDED_PIN_HASH,
+          language: Language.HIL,
+        },
+      });
+      seededUsers.set(user.phone, saved.id);
+    }
+
+    const adminId = seededUsers.get('+639170000001')!;
+
+    const savedRiceTypes = [];
+    for (const riceType of riceTypes) {
+      savedRiceTypes.push(
+        await tx.riceType.upsert({
+          where: { name: riceType.name },
+          update: { ...riceType, isActive: true },
+          create: riceType,
+        }),
+      );
+    }
+
+    for (const price of sharedPrices) {
+      const existing = await tx.price.findFirst({
+        where: {
+          item: price.item,
+          riceTypeId: null,
+          basis: PriceBasis.MARKET,
+        },
+        orderBy: { effectiveAt: 'desc' },
+      });
+      const data = {
+        ...price,
+        riceTypeId: null,
+        basis: PriceBasis.MARKET,
+        effectiveAt: EFFECTIVE_AT,
+        createdById: adminId,
+      };
+
+      if (existing) {
+        await tx.price.update({ where: { id: existing.id }, data });
+      } else {
+        await tx.price.create({ data });
+      }
+    }
+
+    for (const riceType of savedRiceTypes) {
+      const existing = await tx.price.findFirst({
+        where: {
+          item: PriceItem.RICE,
+          riceTypeId: riceType.id,
+          basis: PriceBasis.MARKET,
+        },
+        orderBy: { effectiveAt: 'desc' },
+      });
+      const data = {
+        item: PriceItem.RICE,
+        riceTypeId: riceType.id,
+        pricePerKg: '50.70',
+        basis: PriceBasis.MARKET,
+        effectiveAt: EFFECTIVE_AT,
+        createdById: adminId,
+      };
+
+      if (existing) {
+        await tx.price.update({ where: { id: existing.id }, data });
+      } else {
+        await tx.price.create({ data });
+      }
+    }
+
+    for (const [key, value] of Object.entries({
+      millingRecovery: 0.6,
+      dryingRecovery: 0.8,
+      sackKg: 50,
+    })) {
+      await tx.setting.upsert({
+        where: { key },
+        update: { value },
+        create: { key, value },
+      });
+    }
+
+    console.log(
+      `Seeded ${users.length} users, ${savedRiceTypes.length} rice types, prices, and settings.`,
+    );
   });
-  console.log('✅ Added User ID:', farmer.id);
-
-  // 2. ADD: Create a "SELL_PALAY" booking for this farmer
-  const newOrder = await prisma.order.create({
-    data: {
-      type: OrderType.SELL_PALAY,
-      status: OrderStatus.PENDING,
-      customerId: farmer.id,
-      contactName: farmer.name,
-      contactPhone: farmer.phone,
-      requestedKg: 2500.00, // 2,500 kg estimated raw palay
-      preferredDate: new Date('2026-10-25'),
-      palayCondition: PalayCondition.FRESH,
-      variety: 'NSIC Rc 222',
-      deliveryMethod: DeliveryMethod.SELF_DELIVER,
-      estimatedAmount: 47500.00, // Estimated payment at ₱19/kg
-    },
-  });
-  console.log('✅ Added Order ID:', newOrder.id);
-
-  // 3. GET: Retrieve the order with its relational customer data
-  const retrievedOrder = await prisma.order.findUnique({
-    where: { id: newOrder.id },
-    include: {
-      customer: true, // Includes the full linked User profile
-    },
-  });
-
-  console.log('\n🔍 Fetched Record from Database:');
-  console.dir(retrievedOrder, { depth: null });
 }
 
 main()
   .catch((error) => {
-    console.error('❌ Database operation failed:', error);
-    process.exit(1);
+    console.error('Database seed failed:', error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

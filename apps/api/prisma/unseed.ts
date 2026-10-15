@@ -64,7 +64,9 @@ async function deleteAllData() {
 }
 
 async function main() {
-  console.log(WIPE_ALL ? '⚠️  Wiping all data...\n' : '🧹 Removing seed data...\n');
+  console.log(
+    WIPE_ALL ? '⚠️  Wiping all data...\n' : '🧹 Removing seed data...\n',
+  );
   if (WIPE_ALL) await deleteAllData();
   else await deleteSeedData();
 }

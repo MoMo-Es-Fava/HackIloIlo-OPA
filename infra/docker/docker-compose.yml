@@ -1,8 +1,8 @@
 services:
   postgres:
+    image: postgres:15-alpine
     build:
       context: ../..
-      dockerfile: infra/docker/Dockerfile.db
     container_name: irpc_postgres
     restart: unless-stopped
     env_file:
