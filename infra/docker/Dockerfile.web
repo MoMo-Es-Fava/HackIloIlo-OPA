@@ -1,0 +1,31 @@
+# Build context is the repo root (see docker-compose.yml)
+FROM node:22-alpine
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+COPY packages/types/package.json packages/types/
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+# Skip the root postinstall (prisma generate); the web app doesn't need Prisma
+RUN npm ci --ignore-scripts
+
+COPY packages/types packages/types
+COPY apps/web apps/web
+
+RUN npm run build -w @irpc/types
+
+# NEXT_PUBLIC_* values are inlined into the browser bundle at build time,
+# so they must be provided as build args, not runtime env vars.
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000
+ARG NEXT_PUBLIC_USE_MOCK=false
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL \
+    NEXT_PUBLIC_USE_MOCK=$NEXT_PUBLIC_USE_MOCK \
+    NEXT_TELEMETRY_DISABLED=1
+
+RUN npm run build -w web
+
+ENV NODE_ENV=production
+EXPOSE 3000
+
+CMD ["npm", "run", "start", "-w", "web", "--", "-p", "3000", "-H", "0.0.0.0"]

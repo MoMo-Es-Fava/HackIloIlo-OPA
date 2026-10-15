@@ -7,6 +7,7 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { Roles } from '../src/common/auth.decorators';
+import { PrismaService } from '../src/database/prisma.service';
 import { UsersRepository } from '../src/modules/users/users.repository';
 
 // Test-only route to check role enforcement.
@@ -38,7 +39,10 @@ describe('Auth (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [AdminProbeController],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
     await app.init();
