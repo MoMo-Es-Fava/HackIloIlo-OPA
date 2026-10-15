@@ -8,11 +8,13 @@ import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AdminGuard, JwtAuthGuard, RolesGuard } from './guards';
 import { LoginAttempts } from './login-attempts';
+import { WeeklyPricesModule } from '../weekly-prices/weekly-prices.module';
 
 @Module({
   imports: [
     UsersModule,
     SmsModule,
+    WeeklyPricesModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
