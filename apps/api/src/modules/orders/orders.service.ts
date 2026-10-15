@@ -56,16 +56,23 @@ type Tx = Prisma.TransactionClient;
 const D = (value: string | number | Prisma.Decimal) =>
   new Prisma.Decimal(value);
 const EVENTS = { orderBy: { createdAt: 'asc' as const } };
-const formatMoney = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
-const manilaDate = () => new Intl.DateTimeFormat('en-CA', {
-  timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
-}).format(new Date());
+const formatMoney = (value: number) =>
+  (Math.round(value * 100) / 100).toFixed(2);
+const manilaDate = () =>
+  new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Manila',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
 function manilaDayBounds(date: string) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new BadRequestException('Dates must use YYYY-MM-DD format.');
   }
   const [year, month, day] = date.split('-').map(Number);
-  if (new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) !== date) {
+  if (
+    new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) !== date
+  ) {
     throw new BadRequestException('Choose a valid calendar date.');
   }
   const start = new Date(Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000);
@@ -308,26 +315,59 @@ export class OrdersService {
 
   async summary(): Promise<AdminSummaryDto> {
     const { start, end } = manilaDayBounds(manilaDate());
-    const [needsApproval, arrivingToday, inDrying, readyForPickup, dryingOrders, settings] = await Promise.all([
+    const [
+      needsApproval,
+      arrivingToday,
+      inDrying,
+      readyForPickup,
+      dryingOrders,
+      settings,
+    ] = await Promise.all([
       this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
-      this.prisma.order.count({ where: { scheduledDate: { gte: start, lt: end }, OR: [
-        { type: OrderType.SELL_PALAY, status: OrderStatus.ACCEPTED },
-        { type: OrderType.SERVICE, status: OrderStatus.SCHEDULED },
-      ] } }),
-      this.prisma.order.count({ where: { type: OrderType.SERVICE, status: OrderStatus.DRYING } }),
-      this.prisma.order.count({ where: { status: OrderStatus.READY_FOR_PICKUP } }),
+      this.prisma.order.count({
+        where: {
+          scheduledDate: { gte: start, lt: end },
+          OR: [
+            { type: OrderType.SELL_PALAY, status: OrderStatus.ACCEPTED },
+            { type: OrderType.SERVICE, status: OrderStatus.SCHEDULED },
+          ],
+        },
+      }),
+      this.prisma.order.count({
+        where: { type: OrderType.SERVICE, status: OrderStatus.DRYING },
+      }),
+      this.prisma.order.count({
+        where: { status: OrderStatus.READY_FOR_PICKUP },
+      }),
       this.prisma.order.findMany({
-        where: { scheduledDate: { gte: start, lt: end }, OR: [
-          { type: OrderType.SERVICE, serviceType: { in: [ServiceType.DRYING, ServiceType.DRYING_AND_MILLING] } },
-          { type: OrderType.SELL_PALAY, palayCondition: PalayCondition.FRESH },
-        ] },
+        where: {
+          scheduledDate: { gte: start, lt: end },
+          OR: [
+            {
+              type: OrderType.SERVICE,
+              serviceType: {
+                in: [ServiceType.DRYING, ServiceType.DRYING_AND_MILLING],
+              },
+            },
+            {
+              type: OrderType.SELL_PALAY,
+              palayCondition: PalayCondition.FRESH,
+            },
+          ],
+        },
         select: { requestedKg: true },
       }),
       this.pricing.settings(),
     ]);
-    const dryingKgBookedToday = dryingOrders.reduce((sum, order) => sum + Number(order.requestedKg), 0);
+    const dryingKgBookedToday = dryingOrders.reduce(
+      (sum, order) => sum + Number(order.requestedKg),
+      0,
+    );
     return {
-      needsApproval, arrivingToday, inDrying, readyForPickup,
+      needsApproval,
+      arrivingToday,
+      inDrying,
+      readyForPickup,
       dryingKgBookedToday: formatMoney(dryingKgBookedToday),
       dryingCapacityKg: settings.dryingCapacityKg,
     };
@@ -339,9 +379,15 @@ export class OrdersService {
     const endDate = to ?? today;
     const { start } = manilaDayBounds(startDate);
     const { end } = manilaDayBounds(endDate);
-    if (start > end) throw new BadRequestException('The start date must be on or before the end date.');
+    if (start > end)
+      throw new BadRequestException(
+        'The start date must be on or before the end date.',
+      );
     const rows = await this.prisma.order.findMany({
-      where: { status: { in: [OrderStatus.PAID, OrderStatus.COMPLETED] }, paidAt: { gte: start, lt: end } },
+      where: {
+        status: { in: [OrderStatus.PAID, OrderStatus.COMPLETED] },
+        paidAt: { gte: start, lt: end },
+      },
       select: { type: true, finalAmount: true },
     });
     const totals = { boughtPalay: 0, soldRice: 0, serviceFees: 0 };
@@ -352,19 +398,30 @@ export class OrdersService {
       else totals.serviceFees += amount;
     }
     return {
-      from: startDate, to: endDate,
+      from: startDate,
+      to: endDate,
       boughtPalay: formatMoney(totals.boughtPalay),
       soldRice: formatMoney(totals.soldRice),
       serviceFees: formatMoney(totals.serviceFees),
-      grossProfit: formatMoney(totals.soldRice + totals.serviceFees - totals.boughtPalay),
+      grossProfit: formatMoney(
+        totals.soldRice + totals.serviceFees - totals.boughtPalay,
+      ),
     };
   }
 
   async smsLogs(): Promise<SmsLogDto[]> {
-    const rows = await this.prisma.smsLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
+    const rows = await this.prisma.smsLog.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+    });
     return rows.map((row) => ({
-      id: row.id, direction: row.direction, phone: row.phone, message: row.message,
-      status: row.status, orderId: row.orderId, createdAt: row.createdAt.toISOString(),
+      id: row.id,
+      direction: row.direction,
+      phone: row.phone,
+      message: row.message,
+      status: row.status,
+      orderId: row.orderId,
+      createdAt: row.createdAt.toISOString(),
     }));
   }
 

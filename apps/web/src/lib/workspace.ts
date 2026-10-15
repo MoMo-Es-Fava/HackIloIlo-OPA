@@ -48,8 +48,9 @@ export async function loadWorkspace(client: typeof api, path: string, authentica
   if (!Array.isArray(prices) || !Array.isArray(riceTypes) || !Array.isArray(list)) throw new ApiError(502, "The API returned an unexpected response.");
   const orders = order ? [order, ...list.filter((row) => row.id !== order.id)] : list;
   const profile = user ? profileFromUser(user) : base.profile;
-  if (user && staff && user.role === "USER") throw new ApiError(403, "This workspace is for staff accounts.");
-  if (user && !staff && user.role !== "USER") throw new ApiError(403, "Staff accounts should use the staff workspace.");
+  // Real accounts stay on their side. The demo user browses both sides, so the rule skips demo mode.
+  if (!client.useMock && user && staff && user.role === "USER") throw new ApiError(403, "This workspace is for staff accounts.");
+  if (!client.useMock && user && !staff && user.role !== "USER") throw new ApiError(403, "Staff accounts should use the staff workspace.");
   const orderDetails = { ...base.orderDetails };
   if (!client.useMock) {
     for (const row of orders) {

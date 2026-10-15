@@ -1,4 +1,8 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import type {
   CurrentPrice,
   PriceItem as PriceItemType,
@@ -51,7 +55,10 @@ export class CatalogService {
 
   async getRiceTypes(): Promise<RiceTypeDto[]> {
     const [types, prices] = await Promise.all([
-      this.prisma.riceType.findMany({ where: { isActive: true }, orderBy: { id: 'asc' } }),
+      this.prisma.riceType.findMany({
+        where: { isActive: true },
+        orderBy: { id: 'asc' },
+      }),
       this.getPrices(),
     ]);
     return types.map((rice) => ({
@@ -59,9 +66,11 @@ export class CatalogService {
       name: rice.name,
       description: rice.description,
       stockKg: rice.stockKg.toString(),
-      pricePerKg: prices.find(
-        (price) => price.item === PriceItem.RICE && price.riceTypeId === rice.id,
-      )?.pricePerKg ?? '0.00',
+      pricePerKg:
+        prices.find(
+          (price) =>
+            price.item === PriceItem.RICE && price.riceTypeId === rice.id,
+        )?.pricePerKg ?? '0.00',
     }));
   }
 
@@ -72,7 +81,10 @@ export class CatalogService {
     const values = new Map(rows.map((row) => [row.key, row.value]));
     const setting = (key: keyof PublicSettingsDto) => {
       const value = values.get(key);
-      return value === undefined || value === null ? DEFAULT_SETTINGS[key] : String(value);
+      // Settings are stored as JSON; only plain numbers or strings count.
+      return typeof value === 'number' || typeof value === 'string'
+        ? String(value)
+        : DEFAULT_SETTINGS[key];
     };
     return {
       dryingRecovery: setting('dryingRecovery'),
@@ -95,7 +107,8 @@ export class CatalogService {
     }
     let riceTypeId: number | null = null;
     if (input.item === PriceItem.RICE) {
-      if (!input.riceTypeId) throw new BadRequestException('Choose a rice type.');
+      if (!input.riceTypeId)
+        throw new BadRequestException('Choose a rice type.');
       const rice = await this.prisma.riceType.findFirst({
         where: { id: input.riceTypeId, isActive: true },
       });
@@ -122,25 +135,43 @@ export class CatalogService {
     return rows.map(priceDto);
   }
 
-  async updateStock(id: number, changeKg: string, reason: string, actorId: number) {
+  async updateStock(
+    id: number,
+    changeKg: string,
+    reason: string,
+    actorId: number,
+  ) {
     const change = Number(changeKg);
     if (!Number.isFinite(change) || change === 0 || !reason.trim()) {
-      throw new BadRequestException('Enter a non-zero stock change and a reason.');
+      throw new BadRequestException(
+        'Enter a non-zero stock change and a reason.',
+      );
     }
     return this.prisma.$transaction(async (tx) => {
       const rice = await tx.riceType.findUnique({ where: { id } });
-      if (!rice || !rice.isActive) throw new NotFoundException('Rice type not found.');
+      if (!rice || !rice.isActive)
+        throw new NotFoundException('Rice type not found.');
       const newStock = Number(rice.stockKg) + change;
-      if (newStock < 0) throw new BadRequestException('Stock cannot be less than zero.');
+      if (newStock < 0)
+        throw new BadRequestException('Stock cannot be less than zero.');
       await tx.stockAdjustment.create({
-        data: { riceTypeId: id, changeKg: change.toFixed(2), reason: reason.trim(), actorId },
+        data: {
+          riceTypeId: id,
+          changeKg: change.toFixed(2),
+          reason: reason.trim(),
+          actorId,
+        },
       });
       const updated = await tx.riceType.update({
         where: { id },
         data: { stockKg: newStock.toFixed(2) },
       });
       const prices = await tx.price.findMany({
-        where: { item: PriceItem.RICE, riceTypeId: id, effectiveAt: { lte: new Date() } },
+        where: {
+          item: PriceItem.RICE,
+          riceTypeId: id,
+          effectiveAt: { lte: new Date() },
+        },
         orderBy: [{ effectiveAt: 'desc' }, { id: 'desc' }],
         take: 1,
       });

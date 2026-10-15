@@ -138,7 +138,7 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
     const path = new URL(String(url)).pathname; calls.push(path);
     if (path === "/prices") return json(prices);
     if (path === "/rice-types") return json(riceTypes);
-    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", accountType: "BUYER" });
+    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", role: "USER", accountType: "BUYER" });
     if (path === "/orders/mine") return json([]);
     if (path === "/orders/9001") return json(realOrder);
     return json({ message: "Not found" }, 404);

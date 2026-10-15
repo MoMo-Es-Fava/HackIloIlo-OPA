@@ -9,7 +9,16 @@ import {
   Query,
 } from '@nestjs/common';
 import { PriceBasis, PriceItem, Role } from '@irpc/types';
-import { IsBoolean, IsIn, IsInt, IsNumberString, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsIn,
+  IsInt,
+  IsNumberString,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min,
+} from 'class-validator';
 import { CurrentUser, Public, Roles } from '../../common/auth.decorators';
 import type { UserDto } from '@irpc/types';
 import { CatalogService } from './catalog.service';

@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { Language } from '@irpc/types';
 import { PrismaService } from '../../database/prisma.service';
 import { SmsService } from '../../integrations/textbee/sms.service';
@@ -9,7 +14,13 @@ import { CatalogService } from '../catalog/catalog.service';
 export function priceWeek(now: Date): { start: Date; due: boolean } {
   const local = new Date(now.getTime() + 8 * 60 * 60 * 1000);
   const day = local.getUTCDay();
-  const start = new Date(Date.UTC(local.getUTCFullYear(), local.getUTCMonth(), local.getUTCDate() - day));
+  const start = new Date(
+    Date.UTC(
+      local.getUTCFullYear(),
+      local.getUTCMonth(),
+      local.getUTCDate() - day,
+    ),
+  );
   return { start, due: day !== 0 || local.getUTCHours() >= 8 };
 }
 
@@ -28,7 +39,9 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
   onModuleInit() {
     // Durable database queue; check each minute and catch up after API downtime.
     if (process.env.NODE_ENV === 'test') return;
-    this.timer = setInterval(() => { void this.tick(); }, 60_000);
+    this.timer = setInterval(() => {
+      void this.tick();
+    }, 60_000);
     this.timer.unref();
     void this.tick();
   }
@@ -59,7 +72,9 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
       if (week.due) await this.enqueueWeek(week.start);
       await this.sendPending(week.start);
     } catch {
-      this.logger.error('Weekly price processing failed; pending records will be checked next minute.');
+      this.logger.error(
+        'Weekly price processing failed; pending records will be checked next minute.',
+      );
     } finally {
       this.running = false;
     }
@@ -78,16 +93,21 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
     if (!prices.length) return; // Keep PENDING until published prices exist.
     const riceTypes = await this.catalog.getRiceTypes();
     // One batch per minute, sequential sends, shared across API replicas.
-    const rows = await this.prisma.$queryRaw<Array<{ id: number; phone: string; language: Language }>>`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ id: number; phone: string; language: Language }>
+    >`
       SELECT n."id", u."phone", u."language"
       FROM "WeeklyPriceNotification" n JOIN "User" u ON u."id" = n."userId"
       WHERE n."status" = 'PENDING' AND n."weekStart" = ${weekStart}::date
         AND u."isActive" = true AND u."consentAt" IS NOT NULL AND u."phoneVerifiedAt" IS NOT NULL
       ORDER BY n."id" LIMIT 20`;
     for (const row of rows) {
-      const language = row.language === Language.HIL ? Language.HIL : Language.EN;
-      const message = (language === Language.HIL ? 'Presyo sini nga semana\n' : 'Weekly prices\n')
-        + buildPriceReply(prices, language, riceTypes);
+      const language =
+        row.language === Language.HIL ? Language.HIL : Language.EN;
+      const message =
+        (language === Language.HIL
+          ? 'Presyo sini nga semana\n'
+          : 'Weekly prices\n') + buildPriceReply(prices, language, riceTypes);
       const claimed = await this.prisma.$executeRaw`
         UPDATE "WeeklyPriceNotification" SET "status" = 'SENDING', "message" = ${message}, "updatedAt" = NOW()
         WHERE "id" = ${row.id} AND "status" = 'PENDING'`;
@@ -104,7 +124,9 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
         // operators must check TextBee history before resetting FAILED/SENDING.
         await this.prisma.$executeRaw`
           UPDATE "WeeklyPriceNotification" SET "status" = 'FAILED', "updatedAt" = NOW() WHERE "id" = ${row.id}`;
-        this.logger.warn(`Weekly price notification ${row.id} needs delivery review.`);
+        this.logger.warn(
+          `Weekly price notification ${row.id} needs delivery review.`,
+        );
       }
     }
   }

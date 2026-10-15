@@ -71,7 +71,7 @@ describe('Auth (e2e)', () => {
       .post('/auth/register/code')
       .send({ phone: register.phone })
       .expect(201);
-    const message = sendSms.mock.calls.at(-1)?.[1] as string;
+    const [, message] = sendSms.mock.calls.at(-1) as [string, string];
     const verificationCode = /\b\d{6}\b/.exec(message)?.[0];
     expect(verificationCode).toBeDefined();
     return http()
