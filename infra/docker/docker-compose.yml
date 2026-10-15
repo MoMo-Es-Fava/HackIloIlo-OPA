@@ -1,20 +1,55 @@
 services:
   postgres:
     image: postgres:15-alpine
-    build:
-      context: ../..
     container_name: irpc_postgres
     restart: unless-stopped
-    env_file:
-      - ../../.env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-irpc}
+      POSTGRES_USER: ${POSTGRES_USER:-irpc}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: irpc_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      # "postgres" is the service name, so the API reaches the DB over the compose network
+      DATABASE_URL: postgresql://${POSTGRES_USER:-irpc}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-irpc}?schema=public
+      WEB_ORIGIN: http://localhost:3000
+    ports:
+      - "4000:4000"
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/docker/Dockerfile.web
+      args:
+        # Baked into the browser bundle at build time, so this must be a URL
+        # the browser can reach (the published API port), not http://api:4000
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:4000}
+        NEXT_PUBLIC_USE_MOCK: ${NEXT_PUBLIC_USE_MOCK:-false}
+    container_name: irpc_web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "3000:3000"
 
 volumes:
   postgres_data:

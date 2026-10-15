@@ -6,6 +6,7 @@ import {
   Language,
   PriceBasis,
   PriceItem,
+  Prisma,
   PrismaClient,
   Role,
 } from '../src/generated/prisma/client';
@@ -101,6 +102,25 @@ const sharedPrices = [
   { item: PriceItem.MILLING_FEE, pricePerKg: '3.30' },
 ] as const;
 
+async function createPriceIfMissing(
+  tx: Prisma.TransactionClient,
+  where: {
+    item: PriceItem;
+    riceTypeId: number | null;
+  },
+  data: {
+    item: PriceItem;
+    riceTypeId: number | null;
+    pricePerKg: string;
+    basis: PriceBasis;
+    effectiveAt: Date;
+    createdById: number;
+  },
+) {
+  const existing = await tx.price.findFirst({ where });
+  if (!existing) await tx.price.create({ data });
+}
+
 async function main() {
   await prisma.$transaction(async (tx) => {
     const seededUsers = new Map<string, number>();
@@ -140,58 +160,45 @@ async function main() {
     }
 
     for (const price of sharedPrices) {
-      const existing = await tx.price.findFirst({
-        where: {
+      await createPriceIfMissing(
+        tx,
+        {
           item: price.item,
           riceTypeId: null,
-          basis: PriceBasis.MARKET,
         },
-        orderBy: { effectiveAt: 'desc' },
-      });
-      const data = {
-        ...price,
-        riceTypeId: null,
-        basis: PriceBasis.MARKET,
-        effectiveAt: EFFECTIVE_AT,
-        createdById: adminId,
-      };
-
-      if (existing) {
-        await tx.price.update({ where: { id: existing.id }, data });
-      } else {
-        await tx.price.create({ data });
-      }
+        {
+          ...price,
+          riceTypeId: null,
+          basis: PriceBasis.MARKET,
+          effectiveAt: EFFECTIVE_AT,
+          createdById: adminId,
+        },
+      );
     }
 
     for (const riceType of savedRiceTypes) {
-      const existing = await tx.price.findFirst({
-        where: {
+      await createPriceIfMissing(
+        tx,
+        {
           item: PriceItem.RICE,
           riceTypeId: riceType.id,
-          basis: PriceBasis.MARKET,
         },
-        orderBy: { effectiveAt: 'desc' },
-      });
-      const data = {
-        item: PriceItem.RICE,
-        riceTypeId: riceType.id,
-        pricePerKg: '50.70',
-        basis: PriceBasis.MARKET,
-        effectiveAt: EFFECTIVE_AT,
-        createdById: adminId,
-      };
-
-      if (existing) {
-        await tx.price.update({ where: { id: existing.id }, data });
-      } else {
-        await tx.price.create({ data });
-      }
+        {
+          item: PriceItem.RICE,
+          riceTypeId: riceType.id,
+          pricePerKg: '50.70',
+          basis: PriceBasis.MARKET,
+          effectiveAt: EFFECTIVE_AT,
+          createdById: adminId,
+        },
+      );
     }
 
     for (const [key, value] of Object.entries({
       millingRecovery: 0.6,
       dryingRecovery: 0.8,
       sackKg: 50,
+      dryingCapacityKg: 56000,
     })) {
       await tx.setting.upsert({
         where: { key },

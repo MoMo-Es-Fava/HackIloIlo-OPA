@@ -16,7 +16,6 @@
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
-    "docker": "docker compose -f infra/docker/docker-compose.yml up -d --build",
-    "postinstall": "prisma generate"
+    "docker": "docker compose -f infra/docker/docker-compose.yml up -d --build"
   }
 }
