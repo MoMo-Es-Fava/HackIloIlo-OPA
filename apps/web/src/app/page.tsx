@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
 import { IconBag, IconWrench, IconArrowRight, IconTrace, IconLeaf, IconBolt } from "@/components/icons";
 import { imageCredits } from "@/lib/credits";
 
@@ -56,8 +57,8 @@ export default function Landing() {
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
         <header className="flex items-center justify-between gap-4">
-          <Link href="/" aria-label="Iloilo Rice Processing Complex home" className="brand-link group/brand flex items-center gap-3 rounded-lg">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-husk font-bold text-ink shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]">IR</span>
+          <Link href="/" aria-label="Iloilo Rice Processing Complex home" className="brand-link brand-logo-link group/brand flex items-center gap-3 rounded-lg">
+            <BrandLogo size={44} />
             <span
               className="brand-wordmark relative block h-6 w-[16rem] overflow-hidden font-bold leading-6 tracking-wide text-white transition-[width] duration-300 group-hover/brand:w-[3.25rem] group-focus-visible/brand:w-[3.25rem]"
             >
@@ -101,9 +102,9 @@ export default function Landing() {
                         <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-white/10 text-husk ring-1 ring-inset ring-white/15">
                           <portal.icon className="h-6 w-6" />
                         </span>
-                        <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-white/70">{portal.eyebrow}</p>
+                        <p className="text-[24px] font-bold uppercase tracking-[0.16em] text-white/70">{portal.eyebrow}</p>
                       </div>
-                      <h2 className="text-1.5xl font-bold tracking-tight text-white">{portal.title}</h2>
+                      <h2 className="text-2xl font-bold tracking-tight text-white">{portal.title}</h2>
                     </div>
                     <span className={`inline-flex min-h-12 w-fit items-center justify-center gap-2 rounded-xl px-5 font-bold shadow-[0_10px_28px_-12px_rgba(0,0,0,0.6)] transition-all group-hover:gap-3 ${portal.btn}`}>
                       {portal.action}
@@ -123,8 +124,8 @@ export default function Landing() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {pillars.map((p) => (
-              <div key={p.label} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-md">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-husk/15 text-husk ring-1 ring-inset ring-husk/20">
+              <div key={p.label} className="flex items-center gap-3 px-2 py-2">
+                <span className="shrink-0 text-husk">
                   <p.icon className="h-5 w-5" />
                 </span>
                 <span className="flex flex-col leading-tight">
@@ -135,20 +136,20 @@ export default function Landing() {
             ))}
           </div>
 
-          <div className="flex flex-col gap-2 border-t border-white/10 pt-5 text-[13px] text-white/55 sm:flex-row sm:items-center sm:justify-between">
-            <p className="flex items-start gap-2">
+          <footer className="flex flex-col items-start gap-3 border-t border-white/10 pt-5 text-[13px] leading-relaxed text-white/65">
+            <p className="flex max-w-3xl items-start gap-2">
               <span aria-hidden className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white/80">
                 i
               </span>
               Sign in with your phone and PIN. SMS verification is being added later; prices and rice offers can be browsed without an account.
             </p>
-            <p className="shrink-0">
+            <p className="max-w-full">
               Hero photo: {hero.title} — {hero.author},{" "}
               <a href={hero.licenseUrl} target="_blank" rel="noreferrer" className="font-bold text-white/70 underline hover:text-white">
                 {hero.license}
               </a>
             </p>
-          </div>
+          </footer>
         </div>
       </div>
     </main>

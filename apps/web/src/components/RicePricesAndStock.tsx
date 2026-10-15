@@ -12,7 +12,7 @@ const priceOf = (prices: CurrentPrice[], item: PriceItem, riceTypeId: number | n
   prices.find((p) => p.item === item && (p.riceTypeId ?? null) === riceTypeId)?.pricePerKg ?? null;
 
 /** Rice selling prices, drying and milling fees, and rice stock. Admins change them; staff can look. */
-export default function RicePricesAndStock() {
+export default function RicePricesAndStock({ onAnalyticsRefresh }: { onAnalyticsRefresh?: () => Promise<void> }) {
   const [prices, setPrices] = useState<CurrentPrice[]>([]);
   const [rice, setRice] = useState<RiceTypeDto[]>([]);
   const isAdmin = useIsAdmin();
@@ -27,6 +27,10 @@ export default function RicePricesAndStock() {
       setError(e instanceof ApiError ? e.message : "Could not load prices and stock.");
     }
   }, []);
+  const refreshAfterSave = useCallback(async () => {
+    await load();
+    await onAnalyticsRefresh?.();
+  }, [load, onAnalyticsRefresh]);
   useEffect(() => { void load(); }, [load]);
 
   return (
@@ -35,8 +39,8 @@ export default function RicePricesAndStock() {
       {isAdmin === false && (
         <Notice tone="info"><p className="font-bold">Only IRPC admins can change prices and stock.</p><p className="text-sm text-sub">You can still see the current numbers below.</p></Notice>
       )}
-      <RatesCard prices={prices} rice={rice} canEdit={!!isAdmin} onSaved={load} />
-      <StockCard rice={rice} canEdit={!!isAdmin} onSaved={load} />
+      <RatesCard prices={prices} rice={rice} canEdit={!!isAdmin} onSaved={refreshAfterSave} />
+      <StockCard rice={rice} canEdit={!!isAdmin} onSaved={refreshAfterSave} />
     </>
   );
 }

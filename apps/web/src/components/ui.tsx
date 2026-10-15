@@ -172,6 +172,7 @@ export function PageHeader({
           {eyebrow && <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-paddy-d/70">{eyebrow}</p>}
           <Heading
             className={cn(
+              level === 1 && "page-header-title",
               "font-bold tracking-tight",
               level === 1 ? "text-[28px] leading-tight sm:text-[32px]" : "text-xl",
             )}

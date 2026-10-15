@@ -30,6 +30,7 @@ function profileFromUser(user: ApiUser): DemoWorkspace["profile"] {
 }
 
 export async function loadWorkspace(client: typeof api, path: string, authenticated: boolean): Promise<Workspace> {
+  if (path === "/login" || path === "/signup" || path === "/register") return emptyWorkspace();
   if (!client.useMock && demoOnlyRoute(path)) return emptyWorkspace();
   const demo = await client.getDemoWorkspace();
   const base = { ...emptyWorkspace(), ...demo };

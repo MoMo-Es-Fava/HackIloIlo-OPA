@@ -1,6 +1,6 @@
 import type {
   AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto, AnswerStatsDto,
-  OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
+  CatalogAnalyticsDto, FinanceTrendDto, LogTrendDto, OperationsTrendDto, OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
 } from "@irpc/types";
 import type { DemoActions, DemoWorkspace } from "./demo-types";
 
@@ -142,6 +142,10 @@ export function createApiClient(options: ApiClientOptions) {
     updateOrderStatus: (id: number, status: OrderStatus, note?: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/status`, "PATCH", { status, note }),
     weighInOrder: (id: number, weights: { wetKg?: string; dryKg?: string; riceKg?: string }) => request<OrderDto>(`/admin/orders/${idPath(id)}/weigh-in`, "POST", weights),
     getAdminSummary: () => request<AdminSummaryDto>("/admin/summary"),
+    getOperationsTrend: (days = 14) => request<OperationsTrendDto>(`/admin/analytics/operations${query({ days })}`),
+    getFinanceTrend: (days = 14) => request<FinanceTrendDto>(`/admin/analytics/finance${query({ days })}`),
+    getCatalogAnalytics: (days = 30) => request<CatalogAnalyticsDto>(`/admin/analytics/catalog${query({ days })}`),
+    getLogsTrend: (days = 30) => request<LogTrendDto>(`/admin/analytics/logs${query({ days })}`),
     // Staff entering an order for a walk-in or phone customer (consent confirmed by staff).
     staffCreateOrder: (body: StaffOrderRequest) => request<OrderDto>("/admin/orders", "POST", body),
     // Staff recording that the customer confirmed the weight in person at the scale.
@@ -182,7 +186,7 @@ export const {
   getHealth, getMe, register, login, getPrices, getRiceTypes, getSettings, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
   updateOrderStatus, weighInOrder, staffCreateOrder, staffConfirmWeight, getAdminSummary, createPrice, getPriceHistory, updateStock,
-  getMoney, getReport, getAnswerStats, getSmsLogs, adminListBatches, adminListBadInputs,
+  getOperationsTrend, getFinanceTrend, getCatalogAnalytics, getLogsTrend, getMoney, getReport, getAnswerStats, getSmsLogs, adminListBatches, adminListBadInputs,
   adminEligibleBatchOrders, createBatch, startBatchDrying, startBatchMilling,
   completeBatchMilling, markBatchBadInput, restoreBatch, recordBatchDamage, getAdminLogs,
 } = api;

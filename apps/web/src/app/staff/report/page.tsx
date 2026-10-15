@@ -6,6 +6,7 @@ import { api, ApiError } from "@/lib/api";
 import { fmt, peso, pesoAccounting } from "@/lib/format";
 import { Badge, Button, Card, Empty, Notice, PageHeader, Stat, TableWrap, TextField, cn, td, th } from "@/components/ui";
 import { IconChart, IconLeaf, IconBox, IconClock } from "@/components/icons";
+import { LineChart } from "@/components/LineChart";
 
 const MANILA = "Asia/Manila";
 const todayIso = () => new Date().toLocaleDateString("en-CA", { timeZone: MANILA });
@@ -98,7 +99,6 @@ export default function Report() {
 
   const total = report?.total;
   const profit = total ? Number(total.grossProfit) : 0;
-  const maxAbs = Math.max(1, ...(report?.months ?? []).map((m) => Math.abs(Number(m.grossProfit))));
   const hasData = !!report && (Number(report.total.totalIncome) !== 0 || Number(report.total.rawMaterials) !== 0);
   const periodText = report ? `${dayLabel(report.from)} to ${dayLabel(report.to)}` : "";
 
@@ -184,20 +184,17 @@ export default function Report() {
         <>
           {report.months.length > 1 && (
             <Card>
-              <h2 className="text-lg font-bold">Gross profit by month</h2>
-              <div className="flex h-40 items-end gap-3" role="img"
-                aria-label={`Gross profit by month: ${report.months.map((m) => `${monthLabel(m.month)} ${Number(m.grossProfit) < 0 ? "loss of " : ""}${peso(Math.abs(Number(m.grossProfit)), 0)}`).join(", ")}`}>
-                {report.months.map((m) => {
-                  const v = Number(m.grossProfit);
-                  return (
-                    <div key={m.month} className="flex h-full flex-1 flex-col justify-end gap-1">
-                      <div className={`rounded-t ${v < 0 ? "bg-clay" : "bg-paddy"}`} style={{ height: `${(Math.abs(v) / maxAbs) * 100}%`, minHeight: 4 }} />
-                      <p className="text-center text-xs text-sub">{monthLabel(m.month).split(" ")[0]}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="text-sm text-sub">Green is profit, red is loss.</p>
+              <LineChart
+                title="Financial performance by month"
+                description="Income, cash paid for palay, and gross profit from paid or completed orders."
+                points={report.months.map((month) => ({ key: month.month, label: monthLabel(month.month) }))}
+                series={[
+                  { key: "income", label: "Total income", color: "var(--color-paddy-d)", values: report.months.map((month) => Number(month.totalIncome)) },
+                  { key: "rawMaterials", label: "Palay paid", color: "var(--color-sky-d)", values: report.months.map((month) => Number(month.rawMaterials)), dash: "7 5" },
+                  { key: "grossProfit", label: "Gross profit / loss", color: "var(--color-clay)", values: report.months.map((month) => Number(month.grossProfit)) },
+                ]}
+                formatValue={(value) => pesoAccounting(value)}
+              />
             </Card>
           )}
 
