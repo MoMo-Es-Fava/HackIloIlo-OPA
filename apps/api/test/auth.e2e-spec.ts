@@ -162,4 +162,23 @@ describe('Auth (e2e)', () => {
   it('keeps /health public', async () => {
     await http().get('/health').expect(200);
   });
+
+  it('rate-limits sign-up: the 11th attempt in a minute is refused', async () => {
+    for (let i = 0; i < 10; i++) {
+      await http()
+        .post('/auth/register')
+        .send({ ...register, phone: `0917555${String(i).padStart(4, '0')}` })
+        .expect(201);
+    }
+    await http()
+      .post('/auth/register')
+      .send({ ...register, phone: '09175559999' })
+      .expect(429);
+  });
+
+  it('sends security headers', async () => {
+    const res = await http().get('/health').expect(200);
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBeDefined();
+  });
 });

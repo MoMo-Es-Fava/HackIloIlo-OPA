@@ -52,6 +52,8 @@ Agree on changes in the group chat before editing this file.
 | Method | Path | Body | Returns |
 |---|---|---|---|
 | GET | `/admin/summary` | | `AdminSummaryDto` (see below) |
+| POST | `/admin/orders` | `CreateOrderRequest` + `consent: true`, optional `accountType`, `municipality` | `OrderDto`. Staff enter an order for a walk-in or phone customer. The customer is found by `contactPhone` or added (they can't log in until they set a PIN). `409` if the number belongs to a staff account. |
+| POST | `/admin/orders/:id/confirm-weight` | | `OrderDto`. Staff record that the customer confirmed the weight in person at the scale. Same rules as the customer's own confirmation. |
 | GET | `/admin/orders?status=&type=` | | `OrderDto[]` |
 | GET | `/admin/orders/:id` | | `AdminOrderDto` (`OrderDto` + `customer: UserDto` + `events`) |
 | PATCH | `/admin/orders/:id/accept` | `{ scheduledDate? }` | `OrderDto`. In one transaction: locks prices, writes an `OrderEvent`, and moves the order out of `PENDING`. BUY_RICE and SELL_PALAY go to `ACCEPTED` (BUY_RICE also reserves stock). **SERVICE goes to `SCHEDULED`**, locking `dryingRate` and `millingRate`; `scheduledDate` is required for SERVICE. For every type, the confirmed date is saved to the order's `scheduledDate` (defaults to `preferredDate` when omitted for BUY_RICE and SELL_PALAY) and included in the acceptance SMS. Use `ACCEPT_STATUS[type]` from `@irpc/types`. |
@@ -113,6 +115,7 @@ This gross profit does not yet subtract electricity or labor; those come with ba
 - **Customer confirmation:** leaving `WEIGHED` or `DRYING` requires `POST /orders/:id/confirm-weight` first (`409` otherwise). Leaving `DRYING` also needs `dryKg`; `MILLING → READY_FOR_PICKUP` needs `riceKg`.
 - **Status changes** must follow `ORDER_FLOW`. `PENDING` can only be left with accept/reject/cancel, and `WEIGHED` is only reached through weigh-in. `PAID` sets `paidAt`.
 - **Two people at once:** if an order changed since it was loaded, the API returns `409` ("This order was just updated by someone else. Reload and try again.").
+- **Rate limits:** 120 requests/minute per IP on every route; 10/minute on `/auth/register` and `/auth/login`; 30/minute on `POST /orders`. Over the limit returns `429`.
 - **Privacy:** another customer's order returns `404`, the same as a missing order. Staff accounts get `403` on `/orders` (customer routes); customers get `403` on `/admin/*`.
 - **SMS:** every status change (and every weigh-in) texts the order's contact phone. A failed SMS is logged and never blocks the change.
 

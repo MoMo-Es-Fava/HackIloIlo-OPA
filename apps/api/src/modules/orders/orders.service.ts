@@ -8,6 +8,8 @@ import {
 import {
   ACCEPT_STATUS,
   ACTIVE_STATUSES,
+  AccountType,
+  Role,
   OrderStatus,
   OrderType,
   PalayCondition,
@@ -24,8 +26,11 @@ import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { SmsService } from '../../integrations/textbee/sms.service';
 import { toUserDto } from '../users/users.repository';
+import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
 import {
   AcceptOrderDto,
+  StaffCreateOrderDto,
   AdminOrdersQuery,
   CreateOrderDto,
   WeighInDto,
@@ -47,6 +52,8 @@ type Tx = Prisma.TransactionClient;
 const D = (value: string | number | Prisma.Decimal) =>
   new Prisma.Decimal(value);
 const EVENTS = { orderBy: { createdAt: 'asc' as const } };
+// A random PIN nobody knows: staff-created customers can't log in until they set their own PIN.
+const UNUSABLE_PIN_HASH = bcrypt.hashSync(randomBytes(24).toString('hex'), 10);
 const STALE =
   'This order was just updated by someone else. Reload and try again.';
 
@@ -65,7 +72,13 @@ export class OrdersService {
 
   // ───────────── Customer actions ─────────────
 
-  async create(user: UserDto, dto: CreateOrderDto): Promise<OrderDto> {
+  /** `actorId` is who entered it: the customer, or IRPC staff for walk-ins and calls. */
+  async create(
+    user: UserDto,
+    dto: CreateOrderDto,
+    actorId = user.id,
+    note: string | null = null,
+  ): Promise<OrderDto> {
     if (dto.preferredDate.slice(0, 10) < manilaToday()) {
       throw new BadRequestException('Choose today or a future date.');
     }
@@ -122,7 +135,8 @@ export class OrdersService {
           orderId: created.id,
           fromStatus: null,
           toStatus: OrderStatus.PENDING,
-          actorId: user.id,
+          actorId,
+          note,
         },
       });
       return created;
@@ -161,6 +175,69 @@ export class OrdersService {
 
   async confirmWeight(user: UserDto, id: number): Promise<OrderDto> {
     const order = await this.ownOrder(user.id, id);
+    return this.recordConfirmation(
+      order,
+      user.id,
+      'Customer confirmed the weight',
+    );
+  }
+
+  // ───────────── Staff actions ─────────────
+
+  /**
+   * Staff enter an order for a walk-in or phone customer. The customer is found by phone,
+   * or added (they can't log in until they set a PIN; their consent is confirmed by staff).
+   */
+  async staffCreate(
+    actor: UserDto,
+    dto: StaffCreateOrderDto,
+  ): Promise<OrderDto> {
+    let customer = await this.prisma.user.findUnique({
+      where: { phone: dto.contactPhone },
+    });
+    if (customer && customer.role !== Role.USER) {
+      throw new ConflictException(
+        'This phone number belongs to a staff account.',
+      );
+    }
+    if (customer && !customer.isActive) {
+      throw new ConflictException('This customer account is deactivated.');
+    }
+    customer ??= await this.prisma.user.create({
+      data: {
+        name: dto.contactName,
+        phone: dto.contactPhone,
+        pinHash: UNUSABLE_PIN_HASH,
+        role: Role.USER,
+        accountType: dto.accountType ?? AccountType.FARMER,
+        municipality: dto.municipality ?? null,
+        consentAt: new Date(),
+      },
+    });
+    return this.create(
+      toUserDto(customer),
+      dto,
+      actor.id,
+      'Entered by IRPC staff (walk-in or phone)',
+    );
+  }
+
+  /** Staff record that the customer confirmed the weight in person at the scale. */
+  async staffConfirmWeight(actor: UserDto, id: number): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    return this.recordConfirmation(
+      order,
+      actor.id,
+      'Customer confirmed the weight at the scale',
+    );
+  }
+
+  private async recordConfirmation(
+    order: OrderRow,
+    actorId: number,
+    note: string,
+  ): Promise<OrderDto> {
+    const id = order.id;
     const awaiting =
       (order.status === OrderStatus.WEIGHED ||
         (order.status === OrderStatus.DRYING && order.dryKg)) &&
@@ -180,15 +257,13 @@ export class OrdersService {
           orderId: id,
           fromStatus: order.status,
           toStatus: order.status,
-          actorId: user.id,
-          note: 'Customer confirmed the weight',
+          actorId,
+          note,
         },
       });
     });
     return this.withEvents(id);
   }
-
-  // ───────────── Staff actions ─────────────
 
   async adminList(query: AdminOrdersQuery): Promise<OrderDto[]> {
     const rows = await this.prisma.order.findMany({
@@ -461,15 +536,15 @@ export class OrdersService {
   /** Texts the customer. A failed SMS never blocks or undoes the order change. */
   private async notify(order: OrderRow) {
     try {
-      await this.sms.notifyStatusChange({
-        ref: orderRef(order.id),
-        status: order.status,
-        scheduledDate: order.scheduledDate
-          ? order.scheduledDate.toISOString().slice(0, 10)
-          : null,
-        rejectReason: order.rejectReason,
-        contactPhone: order.contactPhone,
+      // Texts go out in the customer's chosen language (Hiligaynon or English).
+      const customer = await this.prisma.user.findUnique({
+        where: { id: order.customerId },
+        select: { language: true },
       });
+      await this.sms.notifyStatusChange(
+        { ...toOrderDto(order), contactPhone: order.contactPhone },
+        customer?.language,
+      );
     } catch (error) {
       this.log.warn(
         `SMS for ${orderRef(order.id)} failed: ${(error as Error).message}`,

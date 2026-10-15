@@ -116,6 +116,19 @@ npx prisma generate
 
 Re-running the seed resets these accounts' PINs and roles. Demo accounts are for local and demo use only.
 
+## Live database test
+
+`apps/api/test/live/orders-flow.mjs` runs 58 checks against a real, freshly seeded database: every order flow, stock reservation, farmer confirmation, staff entry for walk-ins, roles and privacy.
+
+```bash
+npm run docker                                   # Postgres
+cd apps/api && npx prisma migrate deploy && npx prisma db seed
+npm run build && node dist/main.js               # in another terminal, with JWT_SECRET set
+node test/live/orders-flow.mjs http://localhost:4000 <demo PIN>
+```
+
+Use a fresh database: the script expects the seeded stock and prices.
+
 ## Using shared types
 
 ```ts

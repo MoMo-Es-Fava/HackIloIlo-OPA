@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import type { AdminOrderDto, OrderDto, UserDto } from '@irpc/types';
 import { CurrentUser, Roles } from '../../common/auth.decorators';
 import {
@@ -17,6 +18,7 @@ import {
   MyOrdersQuery,
   OrderIdParam,
   RejectOrderDto,
+  StaffCreateOrderDto,
   UpdateStatusDto,
   WeighInDto,
 } from './orders.dto';
@@ -28,6 +30,7 @@ import { OrdersService } from './orders.service';
 export class OrdersController {
   constructor(private readonly orders: OrdersService) {}
 
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post()
   create(
     @CurrentUser() user: UserDto,
@@ -80,6 +83,23 @@ export class AdminOrdersController {
   @Get()
   list(@Query() query: AdminOrdersQuery): Promise<OrderDto[]> {
     return this.orders.adminList(query);
+  }
+
+  @Post()
+  create(
+    @CurrentUser() user: UserDto,
+    @Body() dto: StaffCreateOrderDto,
+  ): Promise<OrderDto> {
+    return this.orders.staffCreate(user, dto);
+  }
+
+  @Post(':id/confirm-weight')
+  @HttpCode(200)
+  confirmWeight(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+  ): Promise<OrderDto> {
+    return this.orders.staffConfirmWeight(user, id);
   }
 
   @Get(':id')
