@@ -28,6 +28,17 @@ interface Store extends Workspace, AsyncDemoActions {
   setPrices: (fresh: number, dry: number, basis: PriceBasis) => Promise<boolean>;
 }
 const Ctx = createContext<Store | null>(null);
+
+function WorkspaceStatus({ children }: { children: ReactNode }) {
+  return (
+    <main className="relative flex min-h-screen items-center justify-center bg-ink px-4 py-10">
+      <section className="w-full max-w-lg rounded-3xl border border-white/20 bg-white/[0.12] p-7 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-9">
+        {children}
+      </section>
+    </main>
+  );
+}
+
 export function useStore(): Store {
   const store = useContext(Ctx);
   if (!store) throw new Error("useStore must be used inside StoreProvider");
@@ -170,12 +181,39 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   let content = children;
+  const loading = !demoOnlyRoute(path) && loadedPath !== path;
   if (!api.useMock && demoOnlyRoute(path)) {
     content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">This view is not connected yet</h1><p className="my-4">It will be available when the required service is ready.</p><Link className="font-bold underline" href={path.startsWith("/staff") ? "/staff/sales" : "/buyer"}>Back to orders</Link></main>;
-  } else if (loadedPath !== path) {
-    content = <main className="mx-auto max-w-xl p-6" role="status">Loading…</main>;
-  } else if (loadError) {
-    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">Unable to load this page</h1><p role="alert" className="my-4">{orderError ?? loadError}</p><button className="min-h-12 rounded-xl bg-paddy-d px-5 font-bold text-white" onClick={() => { setLoadedPath(null); void reload(); }}>Try again</button><Link className="ml-4 font-bold underline" href="/">Home</Link></main>;
+  } else if (loadedPath === path && loadError) {
+    content = (
+      <WorkspaceStatus>
+        <h1 className="text-2xl font-bold">Unable to load this page</h1>
+        <p role="alert" className="my-3 text-white/80">{orderError ?? loadError}</p>
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <button className="min-h-12 rounded-xl bg-husk px-5 font-bold text-ink transition-colors hover:bg-[#f5d98f]" onClick={() => { setLoadedPath(null); void reload(); }}>Try again</button>
+          <Link className="font-bold text-white underline underline-offset-4 hover:text-husk" href="/">Home</Link>
+        </div>
+      </WorkspaceStatus>
+    );
   }
-  return <Ctx.Provider value={value}><div aria-busy={busy}>{content}</div></Ctx.Provider>;
+  return (
+    <Ctx.Provider value={value}>
+      <div aria-busy={busy || loading}>
+        <div aria-hidden={loading} inert={loading} className={loading ? "loading-underlay" : undefined}>
+          {content}
+        </div>
+        {loading && (
+          <div className="loading-overlay">
+            <section role="status" aria-live="polite" className="loading-panel">
+              <span aria-hidden className="loading-spinner h-9 w-9 rounded-full border-[3px] border-white/30 border-t-husk" />
+              <h1 className="mt-5 text-2xl font-bold">Preparing your workspace</h1>
+              <p className="mt-2 max-w-sm text-center leading-relaxed text-white/80">
+                Loading the latest IRPC information so you can pick up where you left off.
+              </p>
+            </section>
+          </div>
+        )}
+      </div>
+    </Ctx.Provider>
+  );
 }
