@@ -8,6 +8,9 @@ export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); this.name = "ApiError"; }
 }
 
+export type StaffOrderRequest = CreateOrderRequest & {
+  consent: true; accountType?: AccountType; municipality?: string;
+};
 export interface AdminOrderFilters { status?: OrderStatus; type?: OrderType }
 export interface PriceRequest {
   item: PriceItem; riceTypeId?: number; pricePerKg: string; basis: PriceBasis; notifyUsers: boolean;
@@ -116,6 +119,10 @@ export function createApiClient(options: ApiClientOptions) {
     rejectOrder: (id: number, reason: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/reject`, "PATCH", { reason }),
     updateOrderStatus: (id: number, status: OrderStatus, note?: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/status`, "PATCH", { status, note }),
     weighInOrder: (id: number, weights: { wetKg?: string; dryKg?: string; riceKg?: string }) => request<OrderDto>(`/admin/orders/${idPath(id)}/weigh-in`, "POST", weights),
+    // Staff entering an order for a walk-in or phone customer (consent confirmed by staff).
+    staffCreateOrder: (body: StaffOrderRequest) => request<OrderDto>("/admin/orders", "POST", body),
+    // Staff recording that the customer confirmed the weight in person at the scale.
+    staffConfirmWeight: (id: number) => request<OrderDto>(`/admin/orders/${idPath(id)}/confirm-weight`, "POST"),
     getAdminSummary: () => request<Record<string, number>>("/admin/summary"),
     createPrice: (body: PriceRequest) => request<CurrentPrice>("/admin/prices", "POST", body),
     getPriceHistory: (item?: PriceItem) => request<CurrentPrice[]>(`/admin/prices/history${query({ item })}`),
@@ -138,6 +145,6 @@ export const api = createApiClient({
 export const {
   getHealth, getMe, register, login, getPrices, getRiceTypes, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
-  updateOrderStatus, weighInOrder, getAdminSummary, createPrice, getPriceHistory, updateStock,
+  updateOrderStatus, weighInOrder, staffCreateOrder, staffConfirmWeight, getAdminSummary, createPrice, getPriceHistory, updateStock,
   getMoney, getSmsLogs,
 } = api;
