@@ -12,6 +12,7 @@ import { SmsProvider } from '../src/integrations/textbee/sms.service';
 import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
 import { createPrismaServiceMock } from './prisma-service.mock';
+import { WeeklyPricesService } from '../src/modules/weekly-prices/weekly-prices.service';
 
 // Test-only route to check role enforcement.
 @Controller('test-admin')
@@ -51,6 +52,8 @@ describe('Auth (e2e)', () => {
       .useValue(createPrismaServiceMock())
       .overrideProvider(SmsProvider)
       .useValue({ send: sendSms })
+      .overrideProvider(WeeklyPricesService)
+      .useValue({ afterVerifiedSignup: jest.fn().mockResolvedValue(undefined) })
       .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);

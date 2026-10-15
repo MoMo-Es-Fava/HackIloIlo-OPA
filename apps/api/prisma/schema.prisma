@@ -100,6 +100,8 @@ model User {
   consentAt    DateTime?
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
+  phoneVerifiedAt DateTime?
+  weeklyPriceNotifications WeeklyPriceNotification[]
 
   orders       Order[]           @relation("OrderCustomer")
   events       OrderEvent[]
@@ -115,6 +117,22 @@ model PhoneVerification {
   attempts  Int      @default(0)
   sentAt    DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model WeeklyPriceNotification {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart DateTime @db.Date
+  status String @default("PENDING")
+  message String?
+  providerId String?
+  queuedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+  @@index([status, weekStart])
 }
 
 model RiceType {
