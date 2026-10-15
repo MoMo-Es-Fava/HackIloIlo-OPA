@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, fmt, kgf } from "@/lib/format";
 import { Badge, Bar, Button, Card, PageHeader, Stat, TableWrap, TextField, td, th } from "@/components/ui";
+import { IconBolt } from "@/components/icons";
 
 const TARGET = 3.5;
 
@@ -20,7 +21,7 @@ export default function Costing() {
 
   return (
     <>
-      <PageHeader title="Real-time costing" sub="Sample data for today. Cost per kilo is driven by energy use and idle capacity." />
+      <PageHeader title="Real-time costing" sub="Sample data for today. Cost per kilo is driven by energy use and idle capacity." icon={<IconBolt className="h-6 w-6" />} />
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat label="Average cost per kg" value={peso(avg)} hint={`Target ${peso(TARGET)}`} loss={avg > TARGET} />
         <Stat label="Energy used" value={`${fmt(kwh)} kWh`} hint={`${energy.dryers.length} dryers and the mill`} />

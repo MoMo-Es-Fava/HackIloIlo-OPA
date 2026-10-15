@@ -1,0 +1,221 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+// ─────────────── ENUMS ───────────────
+
+enum Role {
+  USER
+  PLANT_STAFF
+  ADMIN
+  MAO_STAFF
+}
+
+enum AccountType {
+  FARMER
+  COOPERATIVE
+  BUYER
+  INSTITUTION
+}
+
+enum Language {
+  HIL
+  EN
+}
+
+enum OrderType {
+  BUY_RICE
+  SELL_PALAY
+  SERVICE
+}
+
+enum OrderStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+  SCHEDULED
+  PREPARING
+  RECEIVED
+  WEIGHED
+  DRYING
+  MILLING
+  READY_FOR_PICKUP
+  PAID
+  COMPLETED
+}
+
+enum PalayCondition {
+  FRESH
+  DRY
+}
+
+enum ServiceType {
+  DRYING
+  MILLING
+  DRYING_AND_MILLING
+}
+
+enum DeliveryMethod {
+  SELF_DELIVER
+  IRPC_PICKUP
+}
+
+enum PriceItem {
+  PALAY_FRESH
+  PALAY_DRY
+  RICE
+  DRYING_FEE
+  MILLING_FEE
+}
+
+enum PriceBasis {
+  MARKET
+  NFA
+}
+
+enum SmsDirection {
+  OUTBOUND
+  INBOUND
+}
+
+// ─────────────── MODELS ───────────────
+
+model User {
+  id           Int          @id @default(autoincrement())
+  name         String
+  phone        String       @unique
+  pinHash      String
+  role         Role         @default(USER)
+  accountType  AccountType?
+  language     Language     @default(HIL)
+  municipality String?
+  cooperative  String?
+  consentAt    DateTime?
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+
+  orders       Order[]           @relation("OrderCustomer")
+  events       OrderEvent[]
+  prices       Price[]
+  stockChanges StockAdjustment[]
+}
+
+model RiceType {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  stockKg     Decimal  @default(0) @db.Decimal(12, 2)
+  isActive    Boolean  @default(true)
+
+  prices       Price[]
+  orders       Order[]
+  stockChanges StockAdjustment[]
+}
+
+model Price {
+  id          Int        @id @default(autoincrement())
+  item        PriceItem
+  riceTypeId  Int?
+  riceType    RiceType?  @relation(fields: [riceTypeId], references: [id])
+  commodity   String     @default("rice")
+  pricePerKg  Decimal    @db.Decimal(10, 2)
+  basis       PriceBasis @default(MARKET)
+  effectiveAt DateTime   @default(now())
+  createdById Int
+  createdBy   User       @relation(fields: [createdById], references: [id])
+
+  @@index([item, riceTypeId, effectiveAt])
+}
+
+model Order {
+  id                 Int             @id @default(autoincrement())
+  type               OrderType
+  status             OrderStatus     @default(PENDING)
+  commodity          String          @default("rice")
+  customerId         Int
+  customer           User            @relation("OrderCustomer", fields: [customerId], references: [id])
+  contactName        String
+  contactPhone       String
+  requestedKg        Decimal         @db.Decimal(12, 2)
+  preferredDate      DateTime
+  scheduledDate      DateTime?
+  riceTypeId         Int?
+  riceType           RiceType?       @relation(fields: [riceTypeId], references: [id])
+  palayCondition     PalayCondition?
+  variety            String?
+  deliveryMethod     DeliveryMethod?
+  serviceType        ServiceType?
+  unitPrice          Decimal?        @db.Decimal(10, 2)
+  dryingRate         Decimal?        @db.Decimal(10, 2)
+  millingRate        Decimal?        @db.Decimal(10, 2)
+  wetKg              Decimal?        @db.Decimal(12, 2)
+  dryKg              Decimal?        @db.Decimal(12, 2)
+  riceKg             Decimal?        @db.Decimal(12, 2)
+  weightConfirmedAt DateTime?
+  estimatedAmount    Decimal         @db.Decimal(12, 2)
+  finalAmount        Decimal?        @db.Decimal(12, 2)
+  rejectReason       String?
+  paidAt             DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  events  OrderEvent[]
+  smsLogs SmsLog[]
+
+  @@index([status, type])
+  @@index([customerId])
+}
+
+model OrderEvent {
+  id         Int          @id @default(autoincrement())
+  orderId    Int
+  order      Order        @relation(fields: [orderId], references: [id])
+  fromStatus OrderStatus?
+  toStatus   OrderStatus
+  kg         Decimal?     @db.Decimal(12, 2)
+  note       String?
+  actorId    Int?
+  actor      User?        @relation(fields: [actorId], references: [id])
+  createdAt  DateTime     @default(now())
+
+  @@index([orderId])
+}
+
+model StockAdjustment {
+  id         Int      @id @default(autoincrement())
+  riceTypeId Int
+  riceType   RiceType @relation(fields: [riceTypeId], references: [id])
+  changeKg   Decimal  @db.Decimal(12, 2)
+  reason     String
+  orderId    Int?
+  actorId    Int?
+  actor      User?    @relation(fields: [actorId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model SmsLog {
+  id         Int          @id @default(autoincrement())
+  direction  SmsDirection
+  phone      String
+  message    String
+  status     String       @default("QUEUED")
+  providerId String?
+  orderId    Int?
+  order      Order?       @relation(fields: [orderId], references: [id])
+  createdAt  DateTime     @default(now())
+
+  @@index([phone])
+}
+
+model Setting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}

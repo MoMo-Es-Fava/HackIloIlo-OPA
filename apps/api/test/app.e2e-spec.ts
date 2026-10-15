@@ -3,16 +3,27 @@ import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
+import { configureApp } from '../src/app.setup';
+import { PrismaService } from '../src/database/prisma.service';
+import { UsersRepository } from '../src/modules/users/users.repository';
+import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 
 describe('API (e2e)', () => {
   let app: INestApplication<App>;
 
   beforeEach(async () => {
+    process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-characters';
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(UsersRepository)
+      .useClass(InMemoryUsersRepository)
+      .overrideProvider(PrismaService)
+      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .compile();
 
     app = moduleRef.createNestApplication();
+    configureApp(app);
     await app.init();
   });
 

@@ -5,37 +5,41 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
+import {
+  IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconBolt, IconChart,
+  IconTrace, IconUser, IconBox, IconArrowRight,
+} from "./icons";
 
 const groups = [
-  { title: "Workspace", items: [{ href: "/staff", label: "Today" }] },
+  { title: "Workspace", items: [{ href: "/staff", label: "Today", Icon: IconHome }] },
   {
     title: "Operations",
     items: [
-      { href: "/staff/queue", label: "Booking and queue" },
-      { href: "/staff/intake", label: "Weigh-in and slips" },
-      { href: "/staff/processing", label: "Drying and milling" },
+      { href: "/staff/queue", label: "Booking and queue", Icon: IconClipboard },
+      { href: "/staff/intake", label: "Weigh-in and slips", Icon: IconScale },
+      { href: "/staff/processing", label: "Drying and milling", Icon: IconFlame },
     ],
   },
   {
     title: "Sales and costs",
     items: [
-      { href: "/staff/sales", label: "Sales and receipts" },
-      { href: "/staff/costing", label: "Real-time costing" },
-      { href: "/staff/financials", label: "Financials and energy" },
+      { href: "/staff/sales", label: "Sales and receipts", Icon: IconReceipt },
+      { href: "/staff/costing", label: "Real-time costing", Icon: IconBolt },
+      { href: "/staff/financials", label: "Financials and energy", Icon: IconChart },
     ],
   },
   {
     title: "Planning",
     items: [
-      { href: "/staff/pricing", label: "Pricing and rates" },
+      { href: "/staff/pricing", label: "Pricing and rates", Icon: IconChart },
     ],
   },
-  { title: "Traceability", items: [{ href: "/staff/traceability", label: "Batch search" }] },
+  { title: "Traceability", items: [{ href: "/staff/traceability", label: "Batch search", Icon: IconTrace }] },
   {
     title: "Administration",
     items: [
-      { href: "/staff/users", label: "Users and roles" },
-      { href: "/staff/audit", label: "Audit log" },
+      { href: "/staff/users", label: "Users and roles", Icon: IconUser },
+      { href: "/staff/audit", label: "Audit log", Icon: IconClipboard },
     ],
   },
 ];
@@ -48,7 +52,7 @@ function Menu({ onPick }: { onPick?: () => void }) {
     <nav className="flex flex-col gap-6" aria-label="Staff navigation">
       {groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-1">
-          <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/50">{group.title}</p>
+          <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/40">{group.title}</p>
           {group.items.map((item) => (
             <Link
               key={item.href}
@@ -56,10 +60,13 @@ function Menu({ onPick }: { onPick?: () => void }) {
               onClick={onPick}
               aria-current={on(item.href) ? "page" : undefined}
               className={cn(
-                "flex min-h-11 items-center rounded-xl px-3 text-sm transition-colors",
-                on(item.href) ? "bg-husk font-bold text-ink" : "text-white/85 hover:bg-white/10 hover:text-white",
+                "flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm transition-colors",
+                on(item.href)
+                  ? "bg-husk font-bold text-ink shadow-[0_2px_10px_-4px_rgba(0,0,0,0.4)]"
+                  : "text-white/80 hover:bg-white/10 hover:text-white",
               )}
             >
+              <item.Icon className="h-[18px] w-[18px] shrink-0" />
               {item.label}
             </Link>
           ))}
@@ -75,29 +82,33 @@ export default function StaffShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen lg:flex">
-      <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 overflow-y-auto bg-ink px-4 py-6 text-white lg:flex">
+      <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 overflow-y-auto border-r border-black/20 bg-ink px-4 py-6 text-white lg:flex">
         <Link href="/staff" className="flex min-h-11 items-center gap-3 px-2" aria-label="IRPC staff home">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink">IR</span>
+          <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]">IR</span>
           <span className="flex flex-col leading-tight">
             <span className="font-bold">IRPC</span>
-            <span className="text-xs text-white/65">Staff workspace</span>
+            <span className="text-xs text-white/60">Staff workspace</span>
           </span>
         </Link>
         <Menu />
         <div className="mt-auto border-t border-white/10 pt-4">
-          <Link href="/buyer" className="flex min-h-11 items-center rounded-lg px-3 text-sm text-white/75 hover:bg-white/10 hover:text-white">
+          <Link
+            href="/buyer"
+            className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+          >
             Open buyer portal
+            <IconArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="no-print sticky top-0 z-20 border-b border-line bg-white/95 shadow-sm backdrop-blur">
+        <header className="no-print sticky top-0 z-20 border-b border-line bg-white/90 shadow-sm backdrop-blur-md">
           <div className="flex min-h-[68px] items-center justify-between gap-4 px-4 sm:px-6">
             <div className="flex items-center gap-3">
               <Link href="/staff" className="font-bold text-ink lg:hidden">IRPC staff</Link>
               <span className="hidden text-sm font-bold text-ink lg:inline">Operations console</span>
-              <span className="hidden rounded-full bg-mist px-3 py-1 text-xs font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
+              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">

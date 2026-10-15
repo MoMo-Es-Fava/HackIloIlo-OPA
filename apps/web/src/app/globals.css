@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* ─────────────────────────────────────────────────────────────
+   IRPC design language — "Milled & Modern"
+   A warm, dimensional operations tool for the Iloilo rice
+   processing complex. Deep paddy ink, husk-gold accents used
+   sparingly, terracotta for alerts. Real elevation, tabular
+   data, quiet affordances.
+   ───────────────────────────────────────────────────────────── */
 @theme {
   --color-ink: #17261f;
   --color-sub: #53635a;
@@ -12,19 +19,48 @@
   --color-clay-l: #fbebe4;
   --color-sky-d: #225673;
   --color-sky-l: #e3f0f5;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  --font-sans: "Atkinson Hyperlegible", "Inter", ui-sans-serif, system-ui, sans-serif;
+
+  /* Elevation scale — soft, warm, layered (not glassy) */
+  --shadow-card: 0 1px 2px rgba(23, 38, 31, 0.05), 0 1px 3px rgba(23, 38, 31, 0.05);
+  --shadow-raised: 0 12px 32px -14px rgba(23, 38, 31, 0.28), 0 2px 6px rgba(23, 38, 31, 0.06);
+  --shadow-pop: 0 20px 48px -20px rgba(23, 38, 31, 0.38), 0 3px 10px rgba(23, 38, 31, 0.08);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
-  background: #f5f8f5;
+  min-height: 100dvh;
   color: var(--color-ink);
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  /* Warm paper: a whisper of paddy-green and husk warmth in the corners */
+  background:
+    radial-gradient(1100px 620px at 100% -12%, rgba(52, 114, 79, 0.07), transparent 60%),
+    radial-gradient(900px 520px at -12% 112%, rgba(239, 201, 111, 0.1), transparent 55%),
+    #f6f8f4;
+  background-attachment: fixed;
+}
+
+/* Fine paper grain — an intentional, barely-there texture */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.028;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 button,
@@ -46,13 +82,37 @@ a {
 }
 
 ::selection {
-  background: #d8e9dc;
+  background: #cfe6d6;
   color: var(--color-ink);
+}
+
+::placeholder {
+  color: color-mix(in srgb, var(--color-sub) 70%, transparent);
 }
 
 :focus-visible {
   outline: 3px solid #bd8b1c;
   outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@layer components {
+  /* Quiet link: no underline at rest, underline on hover — clean, not noisy */
+  .lnk {
+    font-weight: 700;
+    color: var(--color-paddy-d);
+    border-radius: 6px;
+  }
+  .lnk:hover {
+    color: var(--color-paddy);
+    text-decoration: underline;
+  }
+
+  /* Tabular figures for all numeric / data presentation */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum" 1;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -67,6 +127,14 @@ a {
 }
 
 @media print {
-  .no-print { display: none !important; }
-  body { background: white; }
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  body::after {
+    display: none !important;
+  }
 }
+

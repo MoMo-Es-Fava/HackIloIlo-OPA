@@ -2,7 +2,8 @@
 
 import { useStore } from "@/lib/store";
 import { peso, fmt } from "@/lib/format";
-import { Badge, Card, PageHeader, Stat, TableWrap, td, th } from "@/components/ui";
+import { Badge, Card, PageHeader, Stat, TableWrap, cn, td, th } from "@/components/ui";
+import { IconChart } from "@/components/icons";
 
 export default function Financials() {
   const { financeDays, kwhPrice } = useStore();
@@ -16,7 +17,7 @@ export default function Financials() {
   const max = Math.max(...rows.map((r) => Math.abs(r.profit)), 1);
   return (
     <>
-      <PageHeader title="Financials and energy" sub={`Last 7 days, sample data. Electricity at ${peso(kwhPrice)} per kWh (change it in Real-time costing).`} />
+      <PageHeader title="Financials and energy" sub={`Last 7 days, sample data. Electricity at ${peso(kwhPrice)} per kWh (change it in Real-time costing).`} icon={<IconChart className="h-6 w-6" />} />
       <div className="grid gap-3 sm:grid-cols-3">
         <Stat label="Revenue" value={peso(revenue, 0)} />
         <Stat label="Energy cost" value={peso(energyShare, 0)} hint={`${fmt((energyShare / revenue) * 100, 1)}% of revenue`} />
@@ -37,7 +38,7 @@ export default function Financials() {
         <thead><tr><th className={th}>Day</th><th className={th}>Revenue</th><th className={th}>Other costs</th><th className={th}>Energy (kWh)</th><th className={th}>Energy cost</th><th className={th}>Result</th></tr></thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.day}><td className={td}>{r.day}</td><td className={td}>{peso(r.revenue, 0)}</td><td className={td}>{peso(r.otherCost, 0)}</td><td className={td}>{fmt(r.kwh)}</td><td className={td}>{peso(r.energyCost, 0)}</td>
+            <tr key={r.day} className="transition-colors hover:bg-mist/50"><td className={td}>{r.day}</td><td className={cn(td, "tnum")}>{peso(r.revenue, 0)}</td><td className={cn(td, "tnum")}>{peso(r.otherCost, 0)}</td><td className={cn(td, "tnum")}>{fmt(r.kwh)}</td><td className={cn(td, "tnum")}>{peso(r.energyCost, 0)}</td>
               <td className={td}><Badge tone={r.profit < 0 ? "bad" : "ok"}>{r.profit < 0 ? "Loss" : "Profit"} {peso(Math.abs(r.profit), 0)}</Badge></td></tr>
           ))}
         </tbody>

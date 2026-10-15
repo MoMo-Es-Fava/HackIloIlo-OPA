@@ -1,0 +1,38 @@
+# Build context is the repo root (see docker-compose.yml)
+FROM node:22-slim
+
+# Prisma's schema engine needs OpenSSL
+RUN apt-get update -y \
+    && apt-get install -y --no-install-recommends openssl ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install dependencies first so this layer is cached until a package.json changes.
+# --ignore-scripts skips the root "postinstall: prisma generate", which is run
+# explicitly below once the API source is present.
+COPY package.json package-lock.json ./
+COPY packages/types/package.json packages/types/
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+RUN npm ci --ignore-scripts
+
+COPY packages/types packages/types
+COPY apps/api apps/api
+
+# Shared types first (the API imports @irpc/types from its compiled dist)
+RUN npm run build -w @irpc/types
+
+WORKDIR /app/apps/api
+
+# prisma.config.ts reads DATABASE_URL while loading; this dummy value is only
+# for the generate step. The real URL comes from docker-compose at runtime.
+RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" npx prisma generate \
+    && npm run build
+
+ENV NODE_ENV=production
+EXPOSE 4000
+
+# Apply committed migrations, then start the API.
+# Needs apps/api/prisma/migrations to be committed.
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

@@ -9,3 +9,6 @@ dist/
 .next/
 coverage/
 *.log
+
+# db
+apps/api/src/generated/

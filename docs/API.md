@@ -22,6 +22,13 @@ Agree on changes in the group chat before editing this file.
 
 `UserDto` never contains the PIN or its hash.
 
+- **Phone:** accepts how people type it (`0917 123 4567`, `+63 917-123-4567`, `639171234567`) and stores `+639171234567`. Use `normalizePhPhone()` from `@irpc/types` to check numbers in forms.
+- **PIN:** 4–6 digits (`PIN_PATTERN` in `@irpc/types`).
+- **Errors:** `400` invalid input (plain-language `message`), `409` phone already registered, `401` wrong phone or PIN (same message whether or not the phone exists), `429` after 5 wrong PINs for that phone, locked for 5 minutes.
+- **Token:** JWT valid for 7 days. Every protected request re-checks that the user still exists and is active.
+- Sign-up always creates role `USER`; sending `role` is rejected. Staff accounts are created by an admin.
+- The API needs `JWT_SECRET` (at least 32 characters) in `.env` or it refuses to start.
+
 ## Prices, rice and settings (public)
 
 | Method | Path | Returns |

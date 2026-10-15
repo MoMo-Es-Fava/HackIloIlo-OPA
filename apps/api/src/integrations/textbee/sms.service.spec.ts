@@ -4,6 +4,9 @@ import {
   ServiceUnavailableException,
 } from '@nestjs/common';
 import { Language, OrderStatus, OrderType } from '@irpc/types';
+  ServiceUnavailableException,
+} from '@nestjs/common';
+import { OrderStatus } from '@irpc/types';
 import { SmsService } from './sms.service';
 import { MockSmsProvider, TextBeeSmsProvider } from './sms.providers';
 
@@ -73,6 +76,7 @@ describe('SMS integration', () => {
     expect(send).toHaveBeenCalledWith(
       '+639171234567',
       'IRPC-0042: Handa na ang imo bugas nga kuhaon.',
+      'IRPC-0042: scheduled. Confirmed date: 2026-10-20.',
     );
   });
 

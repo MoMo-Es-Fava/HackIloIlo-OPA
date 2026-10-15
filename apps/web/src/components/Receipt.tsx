@@ -6,6 +6,7 @@ import { useStore } from "@/lib/store";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { orderAmount, statusLabel } from "@/lib/orders";
 import { Button } from "./ui";
+import { IconReceipt } from "./icons";
 
 export default function Receipt({ orderId, backHref }: { orderId: string; backHref: string }) {
   const { orders, orderDetails, batches, profile } = useStore();
@@ -24,20 +25,32 @@ export default function Receipt({ orderId, backHref }: { orderId: string; backHr
     ["Status", statusLabel[o.status]],
   ];
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-4 rounded-2xl border border-line bg-white p-6">
-      <h1 className="text-2xl font-bold">Sales receipt</h1>
-      <dl className="flex flex-col gap-2">
+    <div className="mx-auto flex max-w-xl flex-col gap-5 overflow-hidden rounded-2xl border border-line/80 bg-white shadow-raised">
+      <div className="flex items-center gap-3 border-b border-line bg-mist/60 p-6">
+        <span className="grid h-11 w-11 place-items-center rounded-xl bg-paddy-d text-white">
+          <IconReceipt className="h-6 w-6" />
+        </span>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Sales receipt</h1>
+          <p className="text-sm text-sub">{o.ref}</p>
+        </div>
+      </div>
+      <dl className="flex flex-col gap-2 px-6">
         {rows.map(([k, v]) => (
-          <div key={k} className="flex justify-between gap-4 border-b border-line pb-2">
-            <dt className="text-sub">{k}</dt><dd className="text-right font-bold">{v}</dd>
+          <div key={k} className="flex justify-between gap-4 border-b border-line/70 pb-2">
+            <dt className="text-sub">{k}</dt>
+            <dd className="text-right font-bold">{v}</dd>
           </div>
         ))}
-        <div className="flex justify-between gap-4 pt-1 text-xl font-bold"><dt>Total</dt><dd>{peso(orderAmount(o))}</dd></div>
+        <div className="mt-1 flex justify-between gap-4 rounded-xl bg-paddy/[0.07] px-3 py-2.5">
+          <dt className="self-center font-bold text-paddy-d">Total</dt>
+          <dd className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(orderAmount(o))}</dd>
+        </div>
       </dl>
-      <p className="text-sm text-sub">Sample receipt for the prototype. Not an official document.</p>
-      <div className="no-print flex gap-3">
-        <Button onClick={() => window.print()}>Print receipt</Button>
-        <Link href={backHref} className="inline-flex min-h-12 items-center rounded-xl border-2 border-paddy-d px-5 font-bold text-paddy-d">Back</Link>
+      <p className="px-6 text-[13px] text-sub">Sample receipt for the prototype. Not an official document.</p>
+      <div className="no-print flex gap-3 border-t border-line bg-mist/40 p-4">
+        <Button arrow onClick={() => window.print()}>Print receipt</Button>
+        <Link href={backHref} className="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-5 font-bold text-ink transition-colors hover:bg-mist">Back</Link>
       </div>
     </div>
   );
