@@ -99,6 +99,23 @@ Counts only orders in `PAID` or `COMPLETED` whose `paidAt` falls between `from` 
 
 This gross profit does not yet subtract electricity or labor; those come with batch costing (P2).
 
+## Order rules (implemented in `apps/api/src/modules/orders`)
+
+- **Create:** the date must be today or later (Asia/Manila). Milling needs dry palay; dry palay can't be booked for drying. Rice orders can't exceed the current stock. The phone is normalized like at sign-up.
+- **Accept:** prices are copied onto the order (locked). Rice orders reserve stock in the same transaction. If another order took the stock first, the API returns `409`. Rice orders get `finalAmount` immediately (kg × locked price).
+- **Cancel:** customers can cancel only while `PENDING`. Staff can cancel an `ACCEPTED` rice order, and its stock is put back.
+- **Weigh-in** (`POST /admin/orders/:id/weigh-in`), which weight to send at each step:
+  - SELL_PALAY at `RECEIVED`: `wetKg` (fresh) or `dryKg` (dry) → `WEIGHED`
+  - SERVICE at `RECEIVED`: `wetKg` (drying services) or `dryKg` (milling only) → `WEIGHED`
+  - SERVICE at `DRYING`: `dryKg` (stays `DRYING`, customer confirms again)
+  - SERVICE at `MILLING`: `riceKg` (stays `MILLING`)
+  - `finalAmount` is recalculated after every weigh-in. Unusual recovery rates add a warning note to the event.
+- **Customer confirmation:** leaving `WEIGHED` or `DRYING` requires `POST /orders/:id/confirm-weight` first (`409` otherwise). Leaving `DRYING` also needs `dryKg`; `MILLING → READY_FOR_PICKUP` needs `riceKg`.
+- **Status changes** must follow `ORDER_FLOW`. `PENDING` can only be left with accept/reject/cancel, and `WEIGHED` is only reached through weigh-in. `PAID` sets `paidAt`.
+- **Two people at once:** if an order changed since it was loaded, the API returns `409` ("This order was just updated by someone else. Reload and try again.").
+- **Privacy:** another customer's order returns `404`, the same as a missing order. Staff accounts get `403` on `/orders` (customer routes); customers get `403` on `/admin/*`.
+- **SMS:** every status change (and every weigh-in) texts the order's contact phone. A failed SMS is logged and never blocks the change.
+
 ## Amount rules
 
 The API computes and stores every estimate with `estimateOrderAmount()` from `@irpc/types`. The web app calls the same function for the checkout preview, using `GET /prices` and `GET /settings`, so both always agree. The stored `estimatedAmount` is authoritative.
