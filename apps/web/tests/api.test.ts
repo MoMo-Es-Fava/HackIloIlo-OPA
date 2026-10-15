@@ -161,6 +161,26 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
   assert.deepEqual(calls, []);
 });
 
+test("authentication routes load without depending on workspace API availability", async () => {
+  const calls: string[] = [];
+  const client = createApiClient({
+    useMock: false,
+    baseUrl: "http://api.test",
+    fetcher: async (url) => {
+      calls.push(String(url));
+      throw new Error("Authentication routes must not load workspace data");
+    },
+  });
+
+  for (const path of ["/login", "/signup", "/register"]) {
+    const data = await loadWorkspace(client, path, false);
+    assert.deepEqual(data.orders, []);
+    assert.deepEqual(data.prices, []);
+    assert.deepEqual(data.riceTypes, []);
+  }
+  assert.deepEqual(calls, []);
+});
+
 test("mock workspace survives navigation while independent clients remain isolated", async () => {
   const client = mockClient();
   const created = await client.createOrder(buy);

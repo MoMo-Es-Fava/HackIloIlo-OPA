@@ -172,6 +172,17 @@ a {
   opacity: 1;
 }
 
+.auth-spinner,
+.loading-spinner {
+  animation: auth-spin 800ms linear infinite;
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @media (max-width: 899px) {
   .portal-grid,
   .portal-grid:has(.portal-card:nth-child(1):is(:hover, :focus-visible)),
