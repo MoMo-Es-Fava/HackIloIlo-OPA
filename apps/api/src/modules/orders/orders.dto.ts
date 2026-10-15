@@ -1,4 +1,5 @@
 import {
+  AccountType,
   DeliveryMethod,
   OrderStatus,
   OrderType,
@@ -9,6 +10,7 @@ import {
 } from '@irpc/types';
 import { Transform, Type } from 'class-transformer';
 import {
+  Equals,
   IsBoolean,
   IsDateString,
   IsIn,
@@ -81,6 +83,25 @@ export class CreateOrderDto implements CreateOrderRequest {
   @ValidateIf((o: CreateOrderDto) => o.type === OrderType.SERVICE)
   @IsIn(Object.values(ServiceType), { message: 'Choose a service.' })
   serviceType?: ServiceType;
+}
+
+// Staff entering an order for a walk-in or phone customer.
+export class StaffCreateOrderDto extends CreateOrderDto {
+  @IsOptional()
+  @IsIn(Object.values(AccountType))
+  accountType?: AccountType;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(100)
+  municipality?: string;
+
+  @Equals(true, {
+    message:
+      'Ask the customer if IRPC may store their details and text them updates.',
+  })
+  consent!: true;
 }
 
 export class AcceptOrderDto {
