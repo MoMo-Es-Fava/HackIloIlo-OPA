@@ -6,21 +6,52 @@ import { useStore } from "@/lib/store";
 import { kgf } from "@/lib/format";
 import BatchTimeline from "@/components/BatchTimeline";
 import { Badge, Card, Empty, PageHeader, stageTone } from "@/components/ui";
+import { IconChevronRight, IconTrace } from "@/components/icons";
 
 export default function TraceDetail() {
   const { batchId } = useParams<{ batchId: string }>();
   const { batches } = useStore();
   const b = batches.find((x) => x.id === batchId);
-  if (!b) return <Empty>Batch not found. <Link href="/buyer/trace" className="font-bold underline">Try another ID</Link></Empty>;
+  if (!b)
+    return (
+      <Empty>
+        Batch not found.{" "}
+        <Link href="/buyer/trace" className="font-bold text-paddy-d hover:underline">
+          Try another ID
+        </Link>
+      </Empty>
+    );
   return (
     <div className="flex flex-col gap-6">
-      <Link href="/buyer/trace" className="min-h-11 py-2 font-bold text-sky-d underline">Back to trace</Link>
-      <PageHeader title={`Batch ${b.id}`} sub={`${kgf(b.kg)} ${b.type.toLowerCase()} palay`} actions={<Badge tone={stageTone(b.stage)}>{b.stage}</Badge>} />
+      <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm font-bold text-sub">
+        <Link href="/buyer/trace" className="inline-flex min-h-11 items-center hover:text-paddy-d">
+          Trace
+        </Link>
+        <IconChevronRight className="h-4 w-4 text-sub/60" />
+        <span className="tnum text-ink">{b.id}</span>
+      </nav>
+      <PageHeader
+        title={`Batch ${b.id}`}
+        sub={`${kgf(b.kg)} ${b.type.toLowerCase()} palay`}
+        icon={<IconTrace className="h-6 w-6" />}
+        actions={<Badge tone={stageTone(b.stage)}>{b.stage}</Badge>}
+      />
       <Card>
-        <p><span className="text-sub">Origin:</span> <b>{b.farmerId}</b>, validated at intake</p>
-        <p><span className="text-sub">Destination:</span> <b>{b.destination ?? "Not sold yet"}</b></p>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-sub">Origin</p>
+            <p className="font-bold">{b.farmerId}, validated at intake</p>
+          </div>
+          <div>
+            <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-sub">Destination</p>
+            <p className="font-bold">{b.destination ?? "Not sold yet"}</p>
+          </div>
+        </div>
       </Card>
-      <Card><h2 className="text-lg font-bold">Journey</h2><BatchTimeline batch={b} /></Card>
+      <Card>
+        <h2 className="text-lg font-bold tracking-tight">Journey</h2>
+        <BatchTimeline batch={b} />
+      </Card>
     </div>
   );
 }

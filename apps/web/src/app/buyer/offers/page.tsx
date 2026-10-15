@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
 import { Badge, Empty, PageHeader, SelectField, TextField } from "@/components/ui";
+import { IconBag } from "@/components/icons";
 
 export default function Offers() {
   const { offers } = useStore();
@@ -22,7 +23,11 @@ export default function Offers() {
   );
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Offers" sub="Rice posted by IRPC. Every offer shows its origin batch." />
+      <PageHeader
+        title="Offers"
+        sub="Rice posted by IRPC. Every offer shows its origin batch."
+        icon={<IconBag className="h-6 w-6" />}
+      />
       <div className="grid gap-3 md:grid-cols-3">
         <TextField label="Search" placeholder="Offer, batch or grade" value={q} onChange={(e) => setQ(e.target.value)} />
         <SelectField label="Delivery" value={delivery} onChange={(e) => setDelivery(e.target.value)}>
@@ -30,14 +35,23 @@ export default function Offers() {
         </SelectField>
         <TextField label="Max price per kg" type="number" inputMode="decimal" min={0} value={max} onChange={(e) => setMax(e.target.value)} />
       </div>
-      <p className="text-sub" aria-live="polite">{list.length} offer{list.length === 1 ? "" : "s"} found</p>
+      <p className="text-sub" aria-live="polite">
+        <span className="tnum font-bold text-ink">{list.length}</span> offer{list.length === 1 ? "" : "s"} found
+      </p>
       {list.length === 0 && <Empty>No offers match. Clear a filter to see more.</Empty>}
       <div className="grid gap-3 md:grid-cols-2">
         {list.map((o) => (
-          <Link key={o.id} href={`/buyer/offers/${o.id}`} className="flex flex-col gap-2 rounded-2xl border border-line bg-white p-4 hover:border-sky-d">
-            <div className="flex items-center justify-between"><p className="text-lg font-bold">{o.grade}</p><Badge tone="info">{o.id}</Badge></div>
-            <p className="text-2xl font-bold">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
-            <p>{kgf(o.kgAvailable)} available</p>
+          <Link
+            key={o.id}
+            href={`/buyer/offers/${o.id}`}
+            className="group flex flex-col gap-2 rounded-2xl border border-line/80 bg-white p-4 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-lg font-bold tracking-tight">{o.grade}</p>
+              <Badge tone="info">{o.id}</Badge>
+            </div>
+            <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
+            <p className="tnum">{kgf(o.kgAvailable)} available</p>
             <p className="text-sm text-sub">{o.delivery}. Origin batch {o.batchId}. Posted {o.posted}</p>
           </Link>
         ))}

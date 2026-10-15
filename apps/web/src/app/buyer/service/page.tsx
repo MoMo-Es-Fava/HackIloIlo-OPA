@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf } from "@/lib/format";
 import type { ServiceKind } from "@/lib/data";
-import { Badge, Button, Card, Empty, PageHeader, SelectField, TextField, type Tone } from "@/components/ui";
+import { Badge, Button, Card, Empty, PageHeader, SelectField, TextField, type Tone, Notice } from "@/components/ui";
+import { IconWrench, IconCheck } from "@/components/icons";
 
 const tone: Record<string, Tone> = { Pending: "warn", Approved: "ok", Declined: "bad" };
 
@@ -20,11 +21,15 @@ export default function Service() {
   const ok = Number(kg) > 0 && Boolean(date);
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Drying and milling" sub="Tell us what you need. The IRPC team will review your request and confirm availability." />
+      <PageHeader
+        title="Drying and milling"
+        sub="Tell us what you need. The IRPC team will review your request and confirm availability."
+        icon={<IconWrench className="h-6 w-6" />}
+      />
       <Card>
         <div className="flex flex-col gap-4">
           <div>
-            <h2 className="text-lg font-bold">What do you need?</h2>
+            <h2 className="text-lg font-bold tracking-tight">What do you need?</h2>
             <p className="text-sm text-sub">Choose a service. No fee is charged until IRPC confirms your request.</p>
           </div>
           <SelectField label="Service" value={service} onChange={(e) => { setService(e.target.value as ServiceKind); setSentId(null); }}>
@@ -43,32 +48,47 @@ export default function Service() {
           />
           <TextField label="Preferred date" type="date" value={date} onChange={(e) => { setDate(e.target.value); setSentId(null); }} />
           <TextField label="Notes (optional)" placeholder="Anything the staff should know?" value={notes} onChange={(e) => setNotes(e.target.value)} />
-          <div className="rounded-xl bg-mist p-4 text-sm">
+          <div className="rounded-xl border border-line/80 bg-mist/60 p-4 text-sm">
             <p className="font-bold">Request for {profile.name}</p>
             <p className="mt-1 text-sub">Your request is not booked until the IRPC team approves it.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <Button disabled={!ok} onClick={() => { const id = addServiceRequest(service, Number(kg), date, notes); setKg(""); setDate(""); setNotes(""); setSentId(id); }}>
+            <Button arrow disabled={!ok} onClick={() => { const id = addServiceRequest(service, Number(kg), date, notes); setKg(""); setDate(""); setNotes(""); setSentId(id); }}>
               Send request
             </Button>
             <p className="text-sm text-sub">You can check the request status below.</p>
           </div>
           {sentId && (
-            <div role="status" className="rounded-xl border border-paddy/30 bg-mist p-4">
+            <Notice tone="ok">
               <p className="font-bold text-paddy-d">Request {sentId} sent to IRPC</p>
               <p className="mt-1 text-sm text-sub">The team will review it and update the status here. This demo does not send SMS.</p>
-            </div>
+            </Notice>
           )}
         </div>
       </Card>
       <div>
-        <h2 className="text-xl font-bold">Your requests</h2>
+        <h2 className="text-xl font-bold tracking-tight">Your requests</h2>
         <p className="text-sm text-sub">See whether each request is waiting, approved, or declined.</p>
       </div>
       {mine.length === 0 && <Empty>No service requests yet. Your request status will appear here after you submit.</Empty>}
-      {mine.map((s) => (
-        <Card key={s.id}><div className="flex items-center justify-between"><p className="font-bold">{s.service}: {kgf(s.kg)}</p><Badge tone={tone[s.status]}>{s.status}</Badge></div><p className="text-sm text-sub">{s.id}. {s.date}{s.notes ? `. ${s.notes}` : ""}</p></Card>
-      ))}
+      <div className="flex flex-col gap-3">
+        {mine.map((s) => (
+          <Card key={s.id} className="flex-row items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-mist text-paddy-d">
+                <IconWrench className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="font-bold tracking-tight">
+                  {s.service}: <span className="tnum">{kgf(s.kg)}</span>
+                </p>
+                <p className="text-sm text-sub">{s.id}. {s.date}{s.notes ? `. ${s.notes}` : ""}</p>
+              </div>
+            </div>
+            <Badge tone={tone[s.status]}>{s.status}</Badge>
+          </Card>
+        ))}
+      </div>
     </div>
   );
 }

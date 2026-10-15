@@ -4,6 +4,7 @@ import { useState } from "react";
 import { PLANT, seedForecast } from "@/lib/data";
 import { fmt } from "@/lib/format";
 import { Badge, Bar, Card, PageHeader, TextField } from "@/components/ui";
+import { IconBox } from "@/components/icons";
 
 export default function Forecast() {
   const weekly = PLANT.millingTonsPerDay * 7;
@@ -11,7 +12,7 @@ export default function Forecast() {
   const edit = (i: number, v: string) => setRows(rows.map((r, j) => (j === i ? { ...r, tons: v } : r)));
   return (
     <>
-      <PageHeader title="Harvest forecast" sub={`Expected incoming palay by week against milling capacity (${PLANT.millingTonsPerDay} t per day, ${fmt(weekly)} t per week). Edit the numbers to plan.`} />
+      <PageHeader title="Harvest forecast" sub={`Expected incoming palay by week against milling capacity (${PLANT.millingTonsPerDay} t per day, ${fmt(weekly)} t per week). Edit the numbers to plan.`} icon={<IconBox className="h-6 w-6" />} />
       <div className="grid gap-3 md:grid-cols-2">
         {rows.map((r, i) => {
           const t = Number(r.tons) || 0;

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { kgf } from "@/lib/format";
-import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, td, th } from "@/components/ui";
+import { Badge, Bar, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, bookingTone, cn, td, th } from "@/components/ui";
 import type { Booking, GrainType } from "@/lib/data";
+import { IconClipboard } from "@/components/icons";
 
 export default function Queue() {
   const { slots, bookings, serviceRequests, addBooking, setBookingStatus, setServiceStatus } = useStore();
@@ -26,16 +27,16 @@ export default function Queue() {
 
   return (
     <>
-      <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." />
+      <PageHeader title="Booking and queue" sub="Slot capacity, today's queue and walk-in or phone bookings." icon={<IconClipboard className="h-6 w-6" />} />
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
         {slots.map((s) => {
           const pct = (s.booked / s.capacity) * 100;
           const isFull = s.booked >= s.capacity;
           return (
             <Card key={s.id}>
-              <div className="flex items-center justify-between"><p className="font-bold">{s.date}, {s.time}</p><Badge tone={isFull ? "bad" : pct >= 75 ? "warn" : "ok"}>{isFull ? "Full" : `${s.capacity - s.booked} left`}</Badge></div>
+              <div className="flex items-center justify-between"><p className="font-bold tracking-tight">{s.date}, {s.time}</p><Badge tone={isFull ? "bad" : pct >= 75 ? "warn" : "ok"}>{isFull ? "Full" : `${s.capacity - s.booked} left`}</Badge></div>
               <Bar pct={pct} tone={isFull ? "bad" : "ok"} label={`${s.booked} of ${s.capacity} booked`} />
-              <p className="text-sm text-sub">{s.booked} of {s.capacity} booked</p>
+              <p className="tnum text-sm text-sub">{s.booked} of {s.capacity} booked</p>
             </Card>
           );
         })}
