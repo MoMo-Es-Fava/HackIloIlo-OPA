@@ -41,6 +41,7 @@ export function createMockOrder(
   }
   return {
     id, ref: orderRef(id), type: request.type, status: OrderStatus.PENDING,
+    contactName: request.contactName.trim(), contactPhone: request.contactPhone,
     requestedKg: kg.toFixed(2), preferredDate: request.preferredDate, scheduledDate: null,
     riceTypeId: request.type === OrderType.BUY_RICE ? request.riceTypeId! : null,
     palayCondition: request.type !== OrderType.BUY_RICE ? request.palayCondition ?? null : null,
