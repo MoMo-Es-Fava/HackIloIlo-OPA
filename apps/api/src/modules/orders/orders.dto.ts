@@ -1,65 +1,158 @@
 import {
+  AccountType,
   DeliveryMethod,
   OrderStatus,
   OrderType,
   PalayCondition,
   ServiceType,
+  normalizePhPhone,
+  type CreateOrderRequest,
 } from '@irpc/types';
+import { Transform, Type } from 'class-transformer';
 import {
+  Equals,
+  IsBoolean,
+  IsDateString,
   IsIn,
-  IsNumberString,
+  IsInt,
   IsOptional,
   IsString,
-  IsDateString,
-  IsInt,
+  Length,
   Matches,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
-export class CreateOrderDto {
+// Positive kg/amount with at most 2 decimals and a sane upper bound (1,000,000 kg).
+const KG = /^(?!0+(\.0+)?$)\d{1,7}(\.\d{1,2})?$/;
+const KG_MESSAGE = 'Enter a weight above 0 kg, with at most 2 decimals.';
+const toPhone = ({ value }: { value: unknown }) =>
+  typeof value === 'string' ? (normalizePhPhone(value) ?? value) : value;
+const trim = ({ value }: { value: unknown }) =>
+  typeof value === 'string' ? value.trim() : value;
+const toBool = ({ value }: { value: unknown }) =>
+  value === 'true' ? true : value === 'false' ? false : value;
+
+export class CreateOrderDto implements CreateOrderRequest {
   @IsIn(Object.values(OrderType))
   type!: OrderType;
 
-  @IsNumberString()
+  @IsString()
+  @Matches(KG, { message: KG_MESSAGE })
   requestedKg!: string;
 
-  @IsDateString()
+  @IsDateString({}, { message: 'Choose a valid date.' })
   preferredDate!: string;
 
+  @Transform(trim)
   @IsString()
-  @MaxLength(100)
+  @Length(2, 100)
   contactName!: string;
 
+  @Transform(toPhone)
   @IsString()
-  @MaxLength(20)
-  @Matches(/^\+639\d{9}$/)
+  @Matches(/^\+639\d{9}$/, {
+    message: 'Enter a Philippine mobile number, e.g. 0917 123 4567.',
+  })
   contactPhone!: string;
 
-  @IsOptional()
-  @IsInt()
+  @ValidateIf((o: CreateOrderDto) => o.type === OrderType.BUY_RICE)
+  @IsInt({ message: 'Choose a rice type.' })
   @Min(1)
   riceTypeId?: number;
 
-  @IsOptional()
-  @IsIn(Object.values(PalayCondition))
+  @ValidateIf((o: CreateOrderDto) => o.type !== OrderType.BUY_RICE)
+  @IsIn(Object.values(PalayCondition), {
+    message: 'Choose fresh or dry palay.',
+  })
   palayCondition?: PalayCondition;
 
   @IsOptional()
+  @Transform(trim)
   @IsString()
-  @MaxLength(100)
+  @MaxLength(60)
   variety?: string;
 
-  @IsOptional()
-  @IsIn(Object.values(DeliveryMethod))
+  @ValidateIf((o: CreateOrderDto) => o.type === OrderType.SELL_PALAY)
+  @IsIn(Object.values(DeliveryMethod), {
+    message: 'Choose whether you will deliver or need pickup.',
+  })
   deliveryMethod?: DeliveryMethod;
 
-  @IsOptional()
-  @IsIn(Object.values(ServiceType))
+  @ValidateIf((o: CreateOrderDto) => o.type === OrderType.SERVICE)
+  @IsIn(Object.values(ServiceType), { message: 'Choose a service.' })
   serviceType?: ServiceType;
 }
 
-export class OrderFiltersDto {
+// Staff entering an order for a walk-in or phone customer.
+export class StaffCreateOrderDto extends CreateOrderDto {
+  @IsOptional()
+  @IsIn(Object.values(AccountType))
+  accountType?: AccountType;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(100)
+  municipality?: string;
+
+  @Equals(true, {
+    message:
+      'Ask the customer if IRPC may store their details and text them updates.',
+  })
+  consent!: true;
+}
+
+export class AcceptOrderDto {
+  @IsOptional()
+  @IsDateString({}, { message: 'Choose a valid date.' })
+  scheduledDate?: string;
+}
+
+export class RejectOrderDto {
+  @Transform(trim)
+  @IsString()
+  @Length(3, 300, { message: 'Give a short reason (3 to 300 characters).' })
+  reason!: string;
+}
+
+export class UpdateStatusDto {
+  @IsIn(Object.values(OrderStatus))
+  status!: OrderStatus;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(300)
+  note?: string;
+}
+
+export class WeighInDto {
+  @IsOptional()
+  @IsString()
+  @Matches(KG, { message: KG_MESSAGE })
+  wetKg?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(KG, { message: KG_MESSAGE })
+  dryKg?: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(KG, { message: KG_MESSAGE })
+  riceKg?: string;
+}
+
+export class MyOrdersQuery {
+  @IsOptional()
+  @Transform(toBool)
+  @IsBoolean()
+  active?: boolean;
+}
+
+export class AdminOrdersQuery {
   @IsOptional()
   @IsIn(Object.values(OrderStatus))
   status?: OrderStatus;
@@ -69,38 +162,9 @@ export class OrderFiltersDto {
   type?: OrderType;
 }
 
-export class AcceptOrderDto {
-  @IsOptional()
-  @IsDateString()
-  scheduledDate?: string;
-}
-
-export class RejectOrderDto {
-  @IsString()
-  @MaxLength(300)
-  reason!: string;
-}
-
-export class UpdateOrderStatusDto {
-  @IsIn(Object.values(OrderStatus))
-  status!: OrderStatus;
-
-  @IsOptional()
-  @IsString()
-  @MaxLength(300)
-  note?: string;
-}
-
-export class WeighInOrderDto {
-  @IsOptional()
-  @IsNumberString()
-  wetKg?: string;
-
-  @IsOptional()
-  @IsNumberString()
-  dryKg?: string;
-
-  @IsOptional()
-  @IsNumberString()
-  riceKg?: string;
+export class OrderIdParam {
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  id!: number;
 }

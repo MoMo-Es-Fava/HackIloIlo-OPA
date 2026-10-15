@@ -2,51 +2,152 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
-  ParseIntPipe,
   Patch,
   Post,
   Query,
 } from '@nestjs/common';
-import { OrderStatus, Role, type UserDto } from '@irpc/types';
+import { Throttle } from '@nestjs/throttler';
+import type { AdminOrderDto, OrderDto, UserDto } from '@irpc/types';
 import { CurrentUser, Roles } from '../../common/auth.decorators';
-import { AcceptOrderDto, CreateOrderDto, OrderFiltersDto, RejectOrderDto, UpdateOrderStatusDto, WeighInOrderDto } from './orders.dto';
+import {
+  AcceptOrderDto,
+  AdminOrdersQuery,
+  CreateOrderDto,
+  MyOrdersQuery,
+  OrderIdParam,
+  RejectOrderDto,
+  StaffCreateOrderDto,
+  UpdateStatusDto,
+  WeighInDto,
+} from './orders.dto';
 import { OrdersService } from './orders.service';
 
+// Farmers and buyers (one dashboard). Every route only touches the caller's own orders.
+@Roles('USER')
 @Controller('orders')
-@Roles(Role.USER)
 export class OrdersController {
   constructor(private readonly orders: OrdersService) {}
 
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   @Post()
-  create(@Body() body: CreateOrderDto, @CurrentUser() user: UserDto) {
-    return this.orders.create(body, user);
+  create(
+    @CurrentUser() user: UserDto,
+    @Body() dto: CreateOrderDto,
+  ): Promise<OrderDto> {
+    return this.orders.create(user, dto);
   }
 
   @Get('mine')
-  mine(@Query('active') active: string | undefined, @CurrentUser() user: UserDto) {
-    return this.orders.mine(user.id, active === 'true');
+  mine(
+    @CurrentUser() user: UserDto,
+    @Query() query: MyOrdersQuery,
+  ): Promise<OrderDto[]> {
+    return this.orders.listMine(user.id, query.active);
   }
 
   @Get(':id')
-  get(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: UserDto) {
-    return this.orders.mineById(id, user.id);
+  one(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+  ): Promise<OrderDto> {
+    return this.orders.getMine(user.id, id);
   }
 
   @Post(':id/confirm-weight')
-  confirmWeight(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: UserDto) {
-    return this.orders.confirmWeight(id, user);
+  @HttpCode(200)
+  confirmWeight(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+  ): Promise<OrderDto> {
+    return this.orders.confirmWeight(user, id);
   }
 
   @Post(':id/cancel')
-  cancel(@Param('id', ParseIntPipe) id: number, @CurrentUser() user: UserDto) {
-    return this.orders.cancel(id, user);
+  @HttpCode(200)
+  cancel(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+  ): Promise<OrderDto> {
+    return this.orders.cancel(user, id);
   }
 }
 
-@Controller('admin')
-@Roles(Role.ADMIN, Role.PLANT_STAFF)
+// IRPC staff: review, accept/reject, weigh, and move orders through the plant.
+@Roles('ADMIN', 'PLANT_STAFF')
+@Controller('admin/orders')
 export class AdminOrdersController {
+  constructor(private readonly orders: OrdersService) {}
+
+  @Get()
+  list(@Query() query: AdminOrdersQuery): Promise<OrderDto[]> {
+    return this.orders.adminList(query);
+  }
+
+  @Post()
+  create(
+    @CurrentUser() user: UserDto,
+    @Body() dto: StaffCreateOrderDto,
+  ): Promise<OrderDto> {
+    return this.orders.staffCreate(user, dto);
+  }
+
+  @Post(':id/confirm-weight')
+  @HttpCode(200)
+  confirmWeight(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+  ): Promise<OrderDto> {
+    return this.orders.staffConfirmWeight(user, id);
+  }
+
+  @Get(':id')
+  one(@Param() { id }: OrderIdParam): Promise<AdminOrderDto> {
+    return this.orders.adminGet(id);
+  }
+
+  @Patch(':id/accept')
+  accept(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+    @Body() dto: AcceptOrderDto,
+  ): Promise<OrderDto> {
+    return this.orders.accept(user, id, dto);
+  }
+
+  @Patch(':id/reject')
+  reject(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+    @Body() dto: RejectOrderDto,
+  ): Promise<OrderDto> {
+    return this.orders.reject(user, id, dto.reason);
+  }
+
+  @Patch(':id/status')
+  status(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+    @Body() dto: UpdateStatusDto,
+  ): Promise<OrderDto> {
+    return this.orders.setStatus(user, id, dto.status, dto.note);
+  }
+
+  @Post(':id/weigh-in')
+  @HttpCode(200)
+  weighIn(
+    @CurrentUser() user: UserDto,
+    @Param() { id }: OrderIdParam,
+    @Body() dto: WeighInDto,
+  ): Promise<OrderDto> {
+    return this.orders.weighIn(user, id, dto);
+  }
+}
+
+@Roles('ADMIN', 'PLANT_STAFF')
+@Controller('admin')
+export class AdminDashboardController {
   constructor(private readonly orders: OrdersService) {}
 
   @Get('summary')
@@ -54,43 +155,13 @@ export class AdminOrdersController {
     return this.orders.summary();
   }
 
-  @Get('orders')
-  list(@Query() filters: OrderFiltersDto) {
-    return this.orders.adminList(filters);
-  }
-
-  @Get('orders/:id')
-  get(@Param('id', ParseIntPipe) id: number) {
-    return this.orders.adminGet(id);
-  }
-
-  @Patch('orders/:id/accept')
-  accept(@Param('id', ParseIntPipe) id: number, @Body() body: AcceptOrderDto, @CurrentUser() user: UserDto) {
-    return this.orders.accept(id, body, user);
-  }
-
-  @Patch('orders/:id/reject')
-  reject(@Param('id', ParseIntPipe) id: number, @Body() body: RejectOrderDto, @CurrentUser() user: UserDto) {
-    return this.orders.reject(id, body.reason, user);
-  }
-
-  @Patch('orders/:id/status')
-  updateStatus(@Param('id', ParseIntPipe) id: number, @Body() body: UpdateOrderStatusDto, @CurrentUser() user: UserDto) {
-    return this.orders.updateStatus(id, body.status, body.note, user);
-  }
-
-  @Post('orders/:id/weigh-in')
-  weighIn(@Param('id', ParseIntPipe) id: number, @Body() body: WeighInOrderDto, @CurrentUser() user: UserDto) {
-    return this.orders.weighIn(id, body, user);
-  }
-
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @Get('money')
   money(@Query('from') from?: string, @Query('to') to?: string) {
     return this.orders.moneySummary(from, to);
   }
 
-  @Roles(Role.ADMIN)
+  @Roles('ADMIN')
   @Get('sms-logs')
   smsLogs() {
     return this.orders.smsLogs();

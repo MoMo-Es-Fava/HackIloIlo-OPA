@@ -102,6 +102,35 @@ npx prisma generate
 npx prisma db seed
 ```
 
+## Demo accounts
+
+`npx prisma db seed` (from `apps/api`) creates these accounts. They all share one demo PIN: `SEED_DEMO_PIN` in `.env`, or the default in `apps/api/prisma/seed.ts`. Log in with the phone number as `0917 000 000X`.
+
+| Phone | Role | Account type |
+|---|---|---|
+| +639170000001 | Admin | Staff |
+| +639170000002 | Plant staff | Staff |
+| +639170000003 | User | Farmer (Pototan) |
+| +639170000004 | User | Farmer (Dumangas) |
+| +639170000005 | User | Cooperative (Pototan) |
+| +639170000006 | User | Buyer (retailer) |
+| +639170000007 | User | Buyer (food services) |
+
+Re-running the seed resets these accounts' PINs and roles. Demo accounts are for local and demo use only.
+
+## Live database test
+
+`apps/api/test/live/orders-flow.mjs` runs 58 checks against a real, freshly seeded database: every order flow, stock reservation, farmer confirmation, staff entry for walk-ins, roles and privacy.
+
+```bash
+npm run docker                                   # Postgres
+cd apps/api && npx prisma migrate deploy && npx prisma db seed
+npm run build && node dist/main.js               # in another terminal, with JWT_SECRET set
+node test/live/orders-flow.mjs http://localhost:4000 <demo PIN>
+```
+
+Use a fresh database: the script expects the seeded stock and prices.
+
 ## Using shared types
 
 ```ts

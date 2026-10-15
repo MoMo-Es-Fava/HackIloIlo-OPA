@@ -16,14 +16,21 @@ config({ path: path.resolve(process.cwd(), '../../.env'), quiet: true });
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
-  throw new Error('DATABASE_URL is not set. Check the repository root .env file.');
+  throw new Error(
+    'DATABASE_URL is not set. Check the repository root .env file.',
+  );
 }
 
 const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-// Local demo users all use PIN 1234. Change this before using the seed outside development.
-const SEEDED_PIN_HASH = bcrypt.hashSync('1234', 10);
+// Demo-only PIN shared by every seeded account so the team can log in as each role.
+// Override with SEED_DEMO_PIN in .env. Never use seeded accounts in production.
+const DEMO_PIN = process.env.SEED_DEMO_PIN?.trim() || '1234';
+if (!/^\d{4,6}$/.test(DEMO_PIN)) {
+  throw new Error('SEED_DEMO_PIN must be 4 to 6 digits.');
+}
+const SEEDED_PIN_HASH = bcrypt.hashSync(DEMO_PIN, 10);
 const EFFECTIVE_AT = new Date('2026-10-01T00:00:00.000Z');
 
 const users = [
@@ -141,6 +148,7 @@ async function main() {
         create: {
           ...user,
           pinHash: SEEDED_PIN_HASH,
+          consentAt: new Date(),
           language: Language.HIL,
         },
       });
