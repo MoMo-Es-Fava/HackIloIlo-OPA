@@ -1,5 +1,4 @@
 import { Logger, ServiceUnavailableException } from '@nestjs/common';
-import { ServiceUnavailableException } from '@nestjs/common';
 import { SmsProvider } from './sms.service';
 import type { SmsResult } from './sms.service';
 
@@ -8,7 +7,6 @@ export class MockSmsProvider extends SmsProvider {
 
   send(to: string, message: string): Promise<SmsResult> {
     this.logger.log(`[MOCK SMS] To: ${to} Message: ${message}`);
-  send(): Promise<SmsResult> {
     return Promise.resolve({ status: 'mocked' });
   }
 }

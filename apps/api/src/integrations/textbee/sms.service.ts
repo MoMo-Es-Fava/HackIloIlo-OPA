@@ -2,7 +2,6 @@ import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { Language } from '@irpc/types';
 import { buildStatusMessage } from './sms.messages';
 import type { SmsOrder } from './sms.messages';
-import type { OrderDto } from '@irpc/types';
 
 export interface SmsResult {
   status: 'mocked' | 'queued';
@@ -16,10 +15,6 @@ export abstract class SmsProvider {
 
 // Use the order's contact number, which may differ from the account's phone.
 export type NotificationOrder = SmsOrder & { contactPhone: string };
-export type NotificationOrder = Pick<
-  OrderDto,
-  'ref' | 'status' | 'scheduledDate' | 'rejectReason' | 'contactPhone'
->;
 
 @Injectable()
 export class SmsService {
@@ -41,18 +36,5 @@ export class SmsService {
     language: Language = Language.EN,
   ): Promise<SmsResult> {
     return this.send(order.contactPhone, buildStatusMessage(order, language));
-  notifyStatusChange(order: NotificationOrder): Promise<SmsResult> {
-    const status = order.status.replaceAll('_', ' ').toLowerCase();
-    let message = `${order.ref}: ${status}.`;
-    if (
-      order.scheduledDate &&
-      ['ACCEPTED', 'SCHEDULED'].includes(order.status)
-    ) {
-      message += ` Confirmed date: ${order.scheduledDate}.`;
-    }
-    if (order.status === 'REJECTED' && order.rejectReason) {
-      message += ` Reason: ${order.rejectReason}.`;
-    }
-    return this.send(order.contactPhone, message);
   }
 }

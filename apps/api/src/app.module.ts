@@ -2,10 +2,6 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { HealthModule } from './modules/health/health.module';
-import { SmsModule } from './integrations/textbee/sms.module';
-
-@Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true }), HealthModule, SmsModule],
 import { AuthModule } from './modules/auth/auth.module';
 import { SmsModule } from './integrations/textbee/sms.module';
 

@@ -10,9 +10,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PriceBasis, PriceItem } from '@irpc/types';
+import { Public } from '../../common/auth.decorators';
+import { AdminGuard } from '../auth/guards';
 import type { NewPrice } from './prices.repository';
 import { PricesRepository } from './prices.repository';
-import { PricesAdminGuard } from './prices.guard';
 
 function parsePrice(body: unknown): NewPrice {
   if (!body || typeof body !== 'object' || Array.isArray(body)) {
@@ -84,17 +85,19 @@ export class PricesController {
   ) {}
 
   @Get('prices')
+  @Public()
   getPrices() {
     return this.prices.listCurrentPrices();
   }
 
   @Get('rice-types')
+  @Public()
   getRiceTypes() {
     return this.prices.listRiceTypes();
   }
 
   @Post('admin/prices')
-  @UseGuards(PricesAdminGuard)
+  @UseGuards(AdminGuard)
   async createPrice(@Body() body: unknown) {
     const price = parsePrice(body);
     if (price.riceTypeId) {
