@@ -1,4 +1,4 @@
-import type { PricePoint } from "@/lib/data";
+import type { PricePoint } from "@/lib/demo-types";
 
 export default function PriceChart({ data }: { data: PricePoint[] }) {
   const max = Math.max(...data.flatMap((d) => [d.fresh, d.dry]), 1);

@@ -1,4 +1,4 @@
-import { STAGES, type Batch } from "@/lib/data";
+import { STAGES, type Batch } from "@/lib/demo-types";
 
 export default function BatchTimeline({ batch }: { batch: Batch }) {
   return (

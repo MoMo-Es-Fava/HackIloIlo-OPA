@@ -10,7 +10,7 @@ import { Button, Card, Empty, PageHeader, TextField } from "@/components/ui";
 export default function OfferDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { offers, batches, reserveOffer } = useStore();
+  const { offers, batches, reserveOffer, orderError } = useStore();
   const offer = offers.find((o) => o.id === id);
   const [kg, setKg] = useState("");
   const [review, setReview] = useState(false);
@@ -21,8 +21,10 @@ export default function OfferDetail() {
   const error = kg === "" ? undefined : !(n > 0) ? "Enter a quantity above 0" : n > offer.kgAvailable ? `Only ${kgf(offer.kgAvailable)} available` : undefined;
   const valid = kg !== "" && !error;
 
-  const confirm = () => {
-    const orderId = reserveOffer(offer.id, n);
+  const confirm = async () => {
+    // The shared contract requires preferredDate. IRPC sets the real date when it accepts the order.
+    const requestedOn = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+    const orderId = await reserveOffer(offer.id, n, requestedOn);
     if (orderId) router.push(`/buyer/orders/${orderId}`);
   };
 
@@ -31,13 +33,13 @@ export default function OfferDetail() {
       <Link href="/buyer/offers" className="min-h-11 py-2 font-bold text-sky-d underline">Back to offers</Link>
       <PageHeader title={`${offer.grade}, ${peso(offer.pricePerKg)} per kg`} sub={`${kgf(offer.kgAvailable)} available. ${offer.delivery}.`} />
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+        {offer.batchId && <Card>
           <h2 className="text-lg font-bold">Where it comes from</h2>
           <p>Batch <Link className="font-bold underline" href={`/buyer/trace/${offer.batchId}`}>{offer.batchId}</Link></p>
           {batch && <p>Origin: {batch.farmerId}, validated at intake</p>}
           {batch && <p>Source weight: {kgf(batch.kg)} ({batch.type.toLowerCase()} palay)</p>}
           <Link href={`/buyer/trace/${offer.batchId}`} className="min-h-11 py-2 font-bold text-sky-d underline">View full trace</Link>
-        </Card>
+        </Card>}
         <Card>
           <h2 className="text-lg font-bold">{review ? "Review your reservation" : "Reserve"}</h2>
           {!review ? (
@@ -52,7 +54,7 @@ export default function OfferDetail() {
                 value={kg}
                 onChange={(e) => setKg(e.target.value)}
                 error={error}
-                hint={valid ? `About ${(n / 50).toFixed(1)} 50 kg sacks · Up to ${kgf(offer.kgAvailable)} available` : `Available stock: ${kgf(offer.kgAvailable)}. One 50 kg sack is a useful estimate.`}
+                hint={valid ? `≈ ${(n / 50).toFixed(1)} sacks of 50 kg · Up to ${kgf(offer.kgAvailable)} available` : `Available stock: ${kgf(offer.kgAvailable)}. One sack is about 50 kg.`}
               />
               {valid && (
                 <div aria-live="polite" className="rounded-xl bg-mist p-4">
@@ -67,7 +69,8 @@ export default function OfferDetail() {
             <>
               <p>{kgf(n)} of {offer.grade} at {peso(offer.pricePerKg)} per kg</p>
               <p className="text-2xl font-bold">Estimated total {peso(n * offer.pricePerKg)}</p>
-              <p className="text-sm text-sub">{offer.delivery}. You can cancel from your order until it is paid.</p>
+              <p className="text-sm text-sub">{offer.delivery}. You can cancel from your order while it is pending.</p>
+              {orderError && <p role="alert" className="text-clay">{orderError}</p>}
               <div className="flex gap-3"><Button onClick={confirm}>Confirm reservation</Button><Button variant="ghost" onClick={() => setReview(false)}>Edit</Button></div>
             </>
           )}

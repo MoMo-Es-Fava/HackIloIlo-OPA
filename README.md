@@ -4,7 +4,7 @@ Digital operating and traceability platform for the Iloilo Rice Processing Compl
 
 ## Tech stack
 
-- Frontend: Next.js 16, TypeScript, Tailwind CSS (`apps/web`)
+- Frontend: Next.js 15.5, TypeScript, Tailwind CSS 4 (`apps/web`); the planned Next.js 16 upgrade is deferred for team review.
 - Backend: NestJS REST API (`apps/api`)
 - Database: PostgreSQL 15 with Prisma ORM and migrations
 - SMS: TextBee gateway through an Android phone
@@ -68,15 +68,17 @@ npm run dev:api                          # http://localhost:4000/health
 
 Tests: `npm test -w api` and `npm run test:e2e -w api`.
 
-## Creating the web app
+## Running the web app
 
-`apps/web` only contains placeholder folders. Remove them first, then generate the app in place:
+Run these commands from the repository root after the setup above:
 
 ```bash
-rm -rf apps/web && npx create-next-app@latest apps/web --ts --tailwind --app --src-dir --eslint --use-npm
+npm run dev:web            # http://localhost:3000
+npm run lint -w web
+npm run build -w web       # production build
 ```
 
-Then set `"name": "web"` in `apps/web/package.json`, add `"@irpc/types": "*"` to its dependencies, delete `apps/web/package-lock.json`, and run `npm install` from the repo root.
+The web app uses the root `package-lock.json` and workspace install; do not install it separately. It currently uses sample data in memory. See `apps/web/README.md` for routes and frontend notes.
 
 ## Using shared types
 

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PLANT, seedForecast } from "@/lib/data";
+import { useStore } from "@/lib/store";
 import { fmt } from "@/lib/format";
 import { Badge, Bar, Card, PageHeader, TextField } from "@/components/ui";
 
 export default function Forecast() {
+  const { plant: PLANT, forecast } = useStore();
   const weekly = PLANT.millingTonsPerDay * 7;
-  const [rows, setRows] = useState(seedForecast.map((r) => ({ ...r, tons: String(r.tons) })));
+  const [rows, setRows] = useState(forecast.map((r) => ({ ...r, tons: String(r.tons) })));
   const edit = (i: number, v: string) => setRows(rows.map((r, j) => (j === i ? { ...r, tons: v } : r)));
   return (
     <>
