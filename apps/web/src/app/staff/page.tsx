@@ -7,7 +7,6 @@ import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { kgf, peso, pesoAccounting } from "@/lib/format";
 import { serviceLabel } from "@/lib/orders";
-import { LineChart } from "@/components/LineChart";
 import { Badge, Bar, Card, Empty, PageHeader, Stat } from "@/components/ui";
 import { IconArrowRight, IconChart, IconClock, IconFlame, IconLeaf, IconScale, IconBox } from "@/components/icons";
 
@@ -95,15 +94,11 @@ export default function Today() {
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const trendRequest = api.useMock ? Promise.resolve(null) : api.getOperationsTrend(14);
-    const financeRequest = api.useMock ? Promise.resolve(null) : api.getFinanceTrend(14);
-    const [o, s, m, a, t, f] = await Promise.allSettled([
+    const [o, s, m, a] = await Promise.allSettled([
       api.adminListOrders(),
       api.getAdminSummary(),
       api.getMoney(monthStart(), todayIso()),
       api.getAnswerStats(monthStart(), todayIso()),
-      trendRequest,
-      financeRequest,
     ]);
     if (a.status === "fulfilled") setAnswers(a.value);
     if (o.status === "fulfilled") setOrders(o.value);

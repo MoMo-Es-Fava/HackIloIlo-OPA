@@ -43,8 +43,8 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
     await this.prisma.$transaction(async (tx) => {
       await tx.$executeRaw`UPDATE "User" SET "phoneVerifiedAt" = ${now} WHERE "id" = ${userId}`;
       await tx.$executeRaw`
-        INSERT INTO "WeeklyPriceNotification" ("userId", "weekStart")
-        VALUES (${userId}, ${priceWeek(now).start}::date)
+        INSERT INTO "WeeklyPriceNotification" ("userId", "weekStart", "updatedAt")
+        VALUES (${userId}, ${priceWeek(now).start}::date, NOW())
         ON CONFLICT ("userId", "weekStart") DO NOTHING`;
     });
     // The durable PENDING row survives a restart. SMS failures never undo signup.
@@ -58,8 +58,9 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
       const week = priceWeek(now);
       if (week.due) await this.enqueueWeek(week.start);
       await this.sendPending(week.start);
-    } catch {
-      this.logger.error('Weekly price processing failed; pending records will be checked next minute.');
+    } catch (error) {
+      const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+      this.logger.error(`Weekly price processing failed; pending records will be checked next minute. ${detail}`);
     } finally {
       this.running = false;
     }
@@ -67,8 +68,8 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
 
   async enqueueWeek(weekStart: Date): Promise<void> {
     await this.prisma.$executeRaw`
-      INSERT INTO "WeeklyPriceNotification" ("userId", "weekStart")
-      SELECT "id", ${weekStart}::date FROM "User"
+      INSERT INTO "WeeklyPriceNotification" ("userId", "weekStart", "updatedAt")
+      SELECT "id", ${weekStart}::date, NOW() FROM "User"
       WHERE "isActive" = true AND "consentAt" IS NOT NULL AND "phoneVerifiedAt" IS NOT NULL
       ON CONFLICT ("userId", "weekStart") DO NOTHING`;
   }
@@ -99,12 +100,13 @@ export class WeeklyPricesService implements OnModuleInit, OnModuleDestroy {
           UPDATE "WeeklyPriceNotification" SET "status" = ${status}, "providerId" = ${result.batchId ?? null},
             "queuedAt" = ${result.status === 'queued' ? new Date() : null}, "updatedAt" = NOW()
           WHERE "id" = ${row.id}`;
-      } catch {
+      } catch (error) {
         // A timeout may mean TextBee accepted the SMS. Never resend automatically:
         // operators must check TextBee history before resetting FAILED/SENDING.
         await this.prisma.$executeRaw`
           UPDATE "WeeklyPriceNotification" SET "status" = 'FAILED', "updatedAt" = NOW() WHERE "id" = ${row.id}`;
-        this.logger.warn(`Weekly price notification ${row.id} needs delivery review.`);
+        const detail = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+        this.logger.warn(`Weekly price notification ${row.id} needs delivery review. ${detail}`);
       }
     }
   }

@@ -36,6 +36,7 @@ services:
       # "postgres" is the service name, so the API reaches the DB over the compose network
       DATABASE_URL: postgresql://${POSTGRES_USER:-irpc}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-irpc}?schema=public
       JWT_SECRET: ${JWT_SECRET:-4a3c51b13b8d0dbe1564a3748550df50c6a425a00d8026e42df73298cd8f2449}
+      SMS_PROVIDER: ${SMS_PROVIDER:-mock}
       WEB_ORIGIN: http://localhost:3000
     ports:
       - "4000:4000"

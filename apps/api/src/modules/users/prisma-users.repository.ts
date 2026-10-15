@@ -1,7 +1,7 @@
 import { ConflictException, Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import { NewUser, UserRecord, UsersRepository } from './users.repository';
+import { NewUser, UserRecord, UserUpdate, UsersRepository } from './users.repository';
 
 @Injectable()
 export class PrismaUsersRepository extends UsersRepository {
@@ -17,6 +17,10 @@ export class PrismaUsersRepository extends UsersRepository {
     return this.prisma.user.findUnique({ where: { phone } });
   }
 
+  findAll(): Promise<UserRecord[]> {
+    return this.prisma.user.findMany({ orderBy: [{ role: 'asc' }, { name: 'asc' }] });
+  }
+
   async create(user: NewUser): Promise<UserRecord> {
     try {
       return await this.prisma.user.create({ data: user });
@@ -27,6 +31,17 @@ export class PrismaUsersRepository extends UsersRepository {
         error.code === 'P2002'
       ) {
         throw new ConflictException('This phone number is already registered.');
+      }
+      throw error;
+    }
+  }
+
+  async update(id: number, changes: UserUpdate): Promise<UserRecord> {
+    try {
+      return await this.prisma.user.update({ where: { id }, data: changes });
+    } catch (error) {
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') throw new ConflictException('This phone number is already registered.');
       }
       throw error;
     }

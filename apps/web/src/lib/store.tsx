@@ -79,7 +79,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         return false;
       }
       if (!api.useMock && error instanceof ApiError && error.status === 403) {
-        window.location.replace(selectedPath.startsWith("/staff") ? "/buyer" : "/staff");
+        if (selectedPath.startsWith("/staff")) window.location.replace("/buyer");
+        else if (selectedPath.startsWith("/buyer")) window.location.replace("/staff");
+        else if (request === generation.current) {
+          setData(emptyWorkspace()); setLoadedPath(selectedPath); setLoadError(error.message);
+        }
         return false;
       }
       if (request === generation.current) {

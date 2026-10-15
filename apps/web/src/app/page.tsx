@@ -13,7 +13,7 @@ const portals = [
     description: "Browse alagarab rice, compare available stock and prices, and follow your order from reservation to delivery.",
     action: "Open buyer portal",
     btn: "bg-husk text-ink hover:bg-[#f5d98f]",
-    detail: "Offers · orders · prices · batch traceability",
+    detail: "Rice offers · palay sales · orders · prices · batch traceability",
   },
   {
     href: "/login?next=%2Fstaff",
@@ -146,6 +146,9 @@ export default function Landing() {
                 {hero.license}
               </a>
             </p>
+            <Link href="/login?next=%2Fadmin" className="text-xs text-white/45 underline decoration-white/20 underline-offset-4 transition-colors hover:text-white/80 hover:decoration-white/60">
+              Admin access
+            </Link>
           </footer>
         </div>
       </div>
