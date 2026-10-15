@@ -5,22 +5,21 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { cn } from "./ui";
-import { IconHome, IconBag, IconClipboard, IconLeaf, IconUser, IconSpark, IconWrench } from "./icons";
+import { IconHome, IconBag, IconClipboard, IconChart, IconUser, IconSpark } from "./icons";
 
-// The four main actions plus Home. Prices are on Home; Account is in the header.
 const nav = [
   { href: "/buyer", label: "Home", exact: true, Icon: IconHome },
   { href: "/buyer/offers", label: "Buy rice", Icon: IconBag },
-  { href: "/buyer/sell", label: "Sell palay", Icon: IconLeaf },
-  { href: "/buyer/service", label: "Drying & milling", Icon: IconWrench },
   { href: "/buyer/orders", label: "My orders", Icon: IconClipboard },
+  { href: "/buyer/prices", label: "Prices", Icon: IconChart },
+  { href: "/buyer/me", label: "Account", Icon: IconUser },
 ];
 
 export default function BuyerShell({ children }: { children: ReactNode }) {
   const { isMock } = useStore();
   const path = usePathname();
   const on = (n: (typeof nav)[number]) =>
-    n.exact ? path === n.href : path.startsWith(n.href);
+    n.exact ? path === n.href : path.startsWith(n.href) || (n.href === "/buyer/me" && path.startsWith("/buyer/service"));
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -30,7 +29,7 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
             <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]">IR</span>
             <span className="flex flex-col leading-tight">
               <span className="font-bold tracking-wide">IRPC</span>
-              <span className="text-sm text-white/75">Iloilo Rice Processing Complex</span>
+              <span className="text-xs text-white/70">Rice marketplace</span>
             </span>
           </Link>
           <nav className="hidden h-full items-center gap-1 md:flex" aria-label="Main navigation">
@@ -49,22 +48,10 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
               </Link>
             ))}
           </nav>
-          <div className="flex items-center gap-2">
-            {isMock && (
-              <span className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-sm font-bold lg:inline-flex">
-                <IconSpark className="h-3.5 w-3.5" />
-                Demo · sample data
-              </span>
-            )}
-            <Link
-              href="/buyer/me"
-              aria-current={path.startsWith("/buyer/me") ? "page" : undefined}
-              className="flex min-h-11 items-center gap-2 rounded-lg border border-white/25 px-3 text-sm font-bold hover:bg-white/10"
-            >
-              <IconUser className="h-[18px] w-[18px]" />
-              Account
-            </Link>
-          </div>
+          <span className="hidden items-center gap-1.5 rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-bold sm:inline-flex">
+            <IconSpark className="h-3.5 w-3.5" />
+            {isMock ? "DEMO · Sample data" : "IRPC"}
+          </span>
         </div>
       </header>
 
@@ -80,7 +67,7 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
             href={n.href}
             aria-current={on(n) ? "page" : undefined}
             className={cn(
-              "relative flex min-h-16 flex-col items-center justify-center gap-1 border-t-2 px-1 text-center text-[13px] leading-tight transition-colors",
+              "relative flex min-h-16 flex-col items-center justify-center gap-1 border-t-2 px-1 text-center text-[11px] leading-tight transition-colors",
               on(n) ? "border-paddy-d bg-mist font-bold text-paddy-d" : "border-transparent text-sub hover:bg-mist",
             )}
           >

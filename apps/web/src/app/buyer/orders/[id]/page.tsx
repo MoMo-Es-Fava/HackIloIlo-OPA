@@ -62,7 +62,7 @@ export default function OrderDetail() {
                   <div className="flex flex-col items-center">
                     <span
                       className={cn(
-                        "grid h-8 w-8 place-items-center rounded-full border-2 text-sm font-bold",
+                        "grid h-8 w-8 place-items-center rounded-full border-2 text-[13px] font-bold",
                         done ? "border-paddy-d bg-paddy-d text-white" : "border-line bg-white text-sub",
                       )}
                     >
@@ -74,7 +74,7 @@ export default function OrderDetail() {
                   </div>
                   <span className={cn("pb-6 font-bold", current ? "text-paddy-d" : done ? "text-ink" : "text-sub")}>
                     {statusLabel[status]}
-                    {!done && <span className="ml-1 text-sm font-normal text-sub">(next)</span>}
+                    {!done && <span className="ml-1 text-[13px] font-normal text-sub">(next)</span>}
                   </span>
                 </li>
               );
@@ -89,7 +89,7 @@ export default function OrderDetail() {
             href={`/buyer/trace/${details.batchId}`}
             className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-paddy-d px-5 font-bold text-paddy-d transition-colors hover:bg-mist"
           >
-            <IconTrace className="h-[18px] w-[18px]" /> Where your rice came from
+            <IconTrace className="h-[18px] w-[18px]" /> Trace batch {details.batchId}
           </Link>
         )}
         {hasReceipt && (

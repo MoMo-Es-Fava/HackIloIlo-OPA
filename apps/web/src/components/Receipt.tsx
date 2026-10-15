@@ -47,7 +47,7 @@ export default function Receipt({ orderId, backHref }: { orderId: string; backHr
           <dd className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(orderAmount(o))}</dd>
         </div>
       </dl>
-      <p className="px-6 text-sm text-sub">Sample receipt for the prototype. Not an official document.</p>
+      <p className="px-6 text-[13px] text-sub">Sample receipt for the prototype. Not an official document.</p>
       <div className="no-print flex gap-3 border-t border-line bg-mist/40 p-4">
         <Button arrow onClick={() => window.print()}>Print receipt</Button>
         <Link href={backHref} className="inline-flex min-h-12 items-center rounded-xl border border-line bg-white px-5 font-bold text-ink transition-colors hover:bg-mist">Back</Link>

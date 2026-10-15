@@ -115,7 +115,7 @@ export default function Dashboard() {
                     <p className="font-bold tracking-tight">{task.title}</p>
                     <p className="text-sm text-sub">{task.detail}</p>
                   </div>
-                  <Link href={task.href} className="group inline-flex min-h-11 shrink-0 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
+                  <Link href={task.href} className="group inline-flex min-h-10 shrink-0 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
                     {task.action}
                     <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
                   </Link>
@@ -138,16 +138,16 @@ export default function Dashboard() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-xl border border-line/60 bg-mist/70 p-4">
-                <p className="text-sm text-sub">Dryers running idle</p>
+                <p className="text-[13px] text-sub">Dryers running idle</p>
                 <p className="tnum mt-1 text-2xl font-bold tracking-tight">{idleDryers}<span className="text-base font-normal text-sub"> / {PLANT.dryers}</span></p>
               </div>
               <div className="rounded-xl border border-line/60 bg-mist/70 p-4">
-                <p className="text-sm text-sub">Electricity so far</p>
+                <p className="text-[13px] text-sub">Electricity so far</p>
                 <p className="tnum mt-1 text-2xl font-bold tracking-tight">{peso(kwh * kwhPrice, 0)}</p>
               </div>
             </div>
             <p className="tnum text-sm text-sub">{fmt(kwh)} kWh at {peso(kwhPrice)}/kWh.</p>
-            <Link href="/staff/financials" className="group inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
+            <Link href="/staff/financials" className="group inline-flex min-h-10 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
               View energy and costs <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </Card>
@@ -167,7 +167,7 @@ export default function Dashboard() {
               <p>Dry <span className="tnum font-bold">{peso(prices.dry, 0)}/kg</span></p>
             </div>
             <p className="text-sm text-sub">Last updated {prices.updated}.</p>
-            <Link href="/staff/pricing" className="group inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
+            <Link href="/staff/pricing" className="group inline-flex min-h-10 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5">
               Review or change prices <IconArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </Card>

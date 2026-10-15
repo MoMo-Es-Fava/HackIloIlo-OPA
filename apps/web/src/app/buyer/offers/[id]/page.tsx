@@ -41,10 +41,10 @@ export default function OfferDetail() {
     <div className="flex flex-col gap-6">
       <nav aria-label="Breadcrumb" className="flex items-center gap-1 text-sm font-bold text-sub">
         <Link href="/buyer/offers" className="inline-flex min-h-11 items-center hover:text-paddy-d">
-          Buy rice
+          Offers
         </Link>
         <IconChevronRight className="h-4 w-4 text-sub/60" />
-        <span className="text-ink">{offer.grade}</span>
+        <span className="text-ink">{offer.id}</span>
       </nav>
       <PageHeader title={`${offer.grade}, ${peso(offer.pricePerKg)} per kg`} sub={`${kgf(offer.kgAvailable)} available. ${offer.delivery}.`} />
       <div className="grid gap-4 md:grid-cols-2">
@@ -57,15 +57,20 @@ export default function OfferDetail() {
               <h2 className="text-lg font-bold tracking-tight">Where it comes from</h2>
             </div>
             <div className="flex flex-col gap-2">
-              {batch && <p>Grown by <span className="font-bold">{batch.farmer}</span>, checked by IRPC when it arrived</p>}
-              {batch && <p className="tnum">Milled from {kgf(batch.kg)} of {batch.type.toLowerCase()} palay</p>}
-              <p className="text-sm text-sub">Batch {offer.batchId}</p>
+              <p>
+                Batch{" "}
+                <Link className="font-bold text-paddy-d hover:underline" href={`/buyer/trace/${offer.batchId}`}>
+                  {offer.batchId}
+                </Link>
+              </p>
+              {batch && <p>Origin: {batch.farmerId}, validated at intake</p>}
+              {batch && <p>Source weight: {kgf(batch.kg)} ({batch.type.toLowerCase()} palay)</p>}
             </div>
             <Link
               href={`/buyer/trace/${offer.batchId}`}
               className="group mt-1 inline-flex min-h-11 items-center gap-1.5 font-bold text-paddy-d hover:gap-2.5"
             >
-              See its full journey
+              View full trace
               <IconChevronRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </Link>
           </Card>

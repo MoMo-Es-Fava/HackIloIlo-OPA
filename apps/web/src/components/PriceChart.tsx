@@ -9,7 +9,7 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
         {/* Gridlines + y-axis labels */}
         <div aria-hidden className="absolute inset-y-0 left-0 w-9">
           {ticks.map((t, i) => (
-            <span key={t} className={`absolute right-1 -translate-y-1/2 text-[13px] text-sub ${i === 0 ? "top-0" : "top-1/2"}`}>
+            <span key={t} className={`absolute right-1 -translate-y-1/2 text-[11px] text-sub ${i === 0 ? "top-0" : "top-1/2"}`}>
               ₱{t}
             </span>
           ))}
@@ -21,7 +21,7 @@ export default function PriceChart({ data }: { data: PricePoint[] }) {
                 <div className="group relative flex-1 rounded-t-md bg-husk/85 transition-all hover:bg-husk" style={{ height: `${(d.fresh / max) * 100}%`, minHeight: 4 }} title={`Fresh ₱${d.fresh}`} />
                 <div className="group relative flex-1 rounded-t-md bg-paddy-d transition-all hover:bg-paddy" style={{ height: `${(d.dry / max) * 100}%`, minHeight: 4 }} title={`Dry ₱${d.dry}`} />
               </div>
-              <p className="text-center text-[13px] text-sub">{d.week}</p>
+              <p className="text-center text-[11px] text-sub">{d.week}</p>
             </div>
           ))}
         </div>

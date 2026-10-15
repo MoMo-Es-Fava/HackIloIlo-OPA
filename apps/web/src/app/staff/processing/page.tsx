@@ -24,7 +24,7 @@ export default function Processing() {
             aria-pressed={f === s}
             onClick={() => setF(s)}
             className={cn(
-              "min-h-11 rounded-lg px-3.5 text-sm font-bold transition-colors",
+              "min-h-10 rounded-lg px-3.5 text-sm font-bold transition-colors",
               f === s ? "bg-paddy-d text-white shadow-sm" : "text-sub hover:bg-mist hover:text-ink",
             )}
           >

@@ -74,7 +74,7 @@ export function Badge({ tone = "neutral", children }: { tone?: Tone; children: R
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-bold leading-tight",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[13px] font-bold leading-tight",
         toneCls[tone],
       )}
     >
@@ -135,10 +135,10 @@ export function Stat({
             {icon}
           </span>
         )}
-        <p className="text-sm font-bold uppercase tracking-[0.08em] text-sub">{label}</p>
+        <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-sub">{label}</p>
       </div>
       <p className={cn("tnum text-[26px] font-bold leading-tight tracking-tight", loss && "text-clay")}>{value}</p>
-      {hint && <p className="text-sm leading-snug text-sub">{hint}</p>}
+      {hint && <p className="text-[13px] leading-snug text-sub">{hint}</p>}
     </div>
   );
 }
@@ -169,7 +169,7 @@ export function PageHeader({
           </span>
         )}
         <div className="flex flex-col gap-1">
-          {eyebrow && <p className="text-sm font-bold uppercase tracking-[0.16em] text-paddy-d/70">{eyebrow}</p>}
+          {eyebrow && <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-paddy-d/70">{eyebrow}</p>}
           <Heading
             className={cn(
               "font-bold tracking-tight",
@@ -200,7 +200,7 @@ export function TextField({
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-bold text-ink">
+      <label htmlFor={id} className="text-[13px] font-bold text-ink">
         {label}
       </label>
       <input
@@ -211,7 +211,7 @@ export function TextField({
         className={cn(inputCls, error && "border-clay focus:border-clay focus:ring-clay/15", className)}
       />
       {(error || hint) && (
-        <p id={`${id}-d`} className={cn("flex items-center gap-1.5 text-sm", error ? "font-bold text-clay" : "text-sub")}>
+        <p id={`${id}-d`} className={cn("flex items-center gap-1.5 text-[13px]", error ? "font-bold text-clay" : "text-sub")}>
           {error && <IconAlert className="h-4 w-4 shrink-0" />}
           {error ?? hint}
         </p>
@@ -229,7 +229,7 @@ export function SelectField({
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-bold text-ink">
+      <label htmlFor={id} className="text-[13px] font-bold text-ink">
         {label}
       </label>
       <div className="relative">
@@ -284,7 +284,7 @@ export function Notice({ tone = "info", children }: { tone?: "ok" | "info" | "wa
 
 /* ── Table ────────────────────────────────────────────────────── */
 export const th =
-  "border-b border-line bg-mist/70 px-4 py-3 text-left text-sm font-bold uppercase tracking-[0.06em] text-sub";
+  "border-b border-line bg-mist/70 px-4 py-3 text-left text-[12px] font-bold uppercase tracking-[0.06em] text-sub";
 export const td = "border-b border-line/70 px-4 py-3.5 align-middle text-[15px]";
 export function TableWrap({ children }: { children: ReactNode }) {
   return (

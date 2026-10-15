@@ -29,7 +29,7 @@ export default function Financials() {
           {rows.map((r) => (
             <div key={r.day} className="flex h-full flex-1 flex-col justify-end gap-1">
               <div className={`rounded-t ${r.profit < 0 ? "bg-clay" : "bg-paddy"}`} style={{ height: `${(Math.abs(r.profit) / max) * 100}%`, minHeight: 4 }} />
-              <p className="text-center text-sm text-sub">{r.day}</p>
+              <p className="text-center text-xs text-sub">{r.day}</p>
             </div>
           ))}
         </div>

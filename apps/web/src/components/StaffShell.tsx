@@ -52,7 +52,7 @@ function Menu({ onPick }: { onPick?: () => void }) {
     <nav className="flex flex-col gap-6" aria-label="Staff navigation">
       {groups.map((group) => (
         <div key={group.title} className="flex flex-col gap-1">
-          <p className="px-3 pb-1 text-sm font-bold uppercase tracking-[0.14em] text-white/40">{group.title}</p>
+          <p className="px-3 pb-1 text-[11px] font-bold uppercase tracking-[0.14em] text-white/40">{group.title}</p>
           {group.items.map((item) => (
             <Link
               key={item.href}
@@ -87,7 +87,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
           <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]">IR</span>
           <span className="flex flex-col leading-tight">
             <span className="font-bold">IRPC</span>
-            <span className="text-sm text-white/60">Staff workspace</span>
+            <span className="text-xs text-white/60">Staff workspace</span>
           </span>
         </Link>
         <Menu />
@@ -111,7 +111,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
               <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
             </div>
             <div className="flex items-center gap-2">
-              <Link href="/buyer" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">
+              <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">
                 Buyer portal
               </Link>
               <button
