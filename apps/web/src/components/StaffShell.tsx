@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
-import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconArrowRight, IconLeaf, IconClipboard } from "./icons";
+import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconLeaf, IconClipboard } from "./icons";
 import AuthControls from "./AuthControls";
 import BrandLogo from "./BrandLogo";
 
@@ -22,8 +22,7 @@ const groups = [
       { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
       { href: "/staff/services", label: "Drying and milling", Icon: IconFlame },
       { href: "/staff/processing", label: "Batch records", Icon: IconClipboard },
-      { href: "/staff/bad-inputs", label: "Bad-input batches", Icon: IconClipboard },
-      { href: "/staff/sales", label: "Sales and receipts", Icon: IconBox },
+      { href: "/staff/rice-sales", label: "Rice sales", Icon: IconBox },
     ],
   },
   {
@@ -75,43 +74,31 @@ export default function StaffShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen lg:flex">
       <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 overflow-y-auto border-r border-black/20 bg-ink px-4 py-6 text-white lg:flex">
-        <Link href="/staff" className="brand-logo-link flex min-h-11 items-center gap-3 px-2" aria-label="ALAGARAB staff home">
+        <Link href="/staff" className="brand-logo-link flex min-h-11 items-center gap-3 px-2" aria-label="alagarab staff home">
           <BrandLogo size={48} />
           <span className="flex flex-col leading-tight">
-            <span className="text-lg font-bold tracking-wide">ALAGARAB</span>
+            <span className="text-lg font-bold tracking-wide">alagarab</span>
             <span className="text-[13px] text-white/70">Palay, rice and milling</span>
           </span>
         </Link>
         <Menu />
-        <div className="mt-auto border-t border-white/10 pt-4">
-          <Link
-            href="/buyer"
-            className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            Open buyer portal
-            <IconArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print sticky top-0 z-20 border-b border-line bg-white/90 shadow-sm backdrop-blur-md">
           <div className="flex min-h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 2xl:px-12">
             <div className="flex items-center gap-3">
-              <Link href="/staff" className="brand-logo-link flex min-h-12 items-center gap-3 rounded-lg font-bold text-ink lg:hidden" aria-label="ALAGARAB staff home">
+              <Link href="/staff" className="brand-logo-link flex min-h-12 items-center gap-3 rounded-lg font-bold text-ink lg:hidden" aria-label="alagarab staff home">
                 <BrandLogo size={40} />
                 <span className="flex flex-col leading-tight">
-                  <span className="text-lg tracking-wide">ALAGARAB</span>
-                  <span className="text-[13px] font-normal text-sub">Staff workspace</span>
+                  <span className="text-lg tracking-wide">alagarab</span>
+                  <span className="text-[13px] font-normal text-sub max-[380px]:hidden">Staff workspace</span>
                 </span>
               </Link>
               <span className="hidden text-base font-bold text-ink lg:inline">Operations console</span>
-              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
+              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "alagarab"}</span>
             </div>
             <div className="flex items-center justify-end gap-2">
-              <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">
-                Buyer portal
-              </Link>
               <button
                 type="button"
                 aria-expanded={open}
@@ -129,9 +116,6 @@ export default function StaffShell({ children }: { children: ReactNode }) {
         {open && (
           <div id="staff-mobile-navigation" className="no-print border-b border-line bg-ink p-4 text-white lg:hidden">
             <Menu onPick={() => setOpen(false)} />
-            <Link href="/buyer" onClick={() => setOpen(false)} className="mt-5 flex min-h-11 items-center border-t border-white/15 px-3 pt-2 text-sm text-white/75">
-              Open buyer portal
-            </Link>
           </div>
         )}
 

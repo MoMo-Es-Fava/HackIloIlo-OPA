@@ -84,11 +84,11 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       <div className="mx-auto w-full max-w-md">
         <Link href="/" className="brand-logo-link inline-flex min-h-11 items-center gap-3 rounded-lg text-white focus-visible:outline-white">
           <BrandLogo size={40} />
-          <span className="font-bold tracking-wide">ALAGARAB</span>
+          <span className="font-bold tracking-wide">alagarab</span>
         </Link>
         <section aria-busy={busy} className="mt-6 rounded-3xl border border-white/20 bg-white/[0.12] p-6 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-8">
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-husk">{registering ? "New account" : "Welcome back"}</p>
-          <h1 className="mt-2 text-3xl font-bold tracking-tight">{registering ? "Create your account" : "Sign in to IRPC"}</h1>
+          <h1 className="mt-2 text-3xl font-bold tracking-tight">{registering ? "Create your account" : "Sign in to alagarab"}</h1>
           <p className="mt-2 text-white/75">{registering ? "Enter your details, then verify your mobile number with the code sent by SMS." : "Sign in with your phone number and PIN."}</p>
 
           <form className="mt-6 flex flex-col gap-4" onSubmit={submit} aria-busy={busy}>
@@ -131,7 +131,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
           </form>
 
           <p className="mt-5 text-center text-sm text-white/70">
-            {registering ? "Already registered? " : "New to IRPC? "}
+            {registering ? "Already registered? " : "New to alagarab? "}
             <Link className="font-bold text-husk underline hover:text-white" href={registering ? "/login" : "/signup"}>{registering ? "Sign in" : "Create an account"}</Link>
           </p>
           {!registering && <details className="mt-6 rounded-xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm text-white/75">
@@ -139,7 +139,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             <p className="mt-2">Seeded accounts use PIN <strong className="text-white">1234</strong>. Admin: <strong className="text-white">0917 000 0001</strong>; plant staff: <strong className="text-white">0917 000 0002</strong>. Farmers: 0003, 0004, and 0008–0015; cooperative: 0005; rice buyers: 0006, 0007, and 0016–0023.</p>
           </details>}
         </section>
-        <p className="mt-4 text-center text-xs text-white/65">Your account details are stored securely by the IRPC service.</p>
+        <p className="mt-4 text-center text-xs text-white/65">Your account details are stored securely by the alagarab service.</p>
       </div>
     </main>
   );

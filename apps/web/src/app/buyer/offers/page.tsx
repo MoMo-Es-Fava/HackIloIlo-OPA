@@ -61,7 +61,7 @@ export default function Offers() {
           >
             <div className="flex items-center justify-between">
               <p className="text-lg font-bold tracking-tight">{o.grade}</p>
-              <Badge tone="info">{o.id}</Badge>
+              <Badge tone="info">Offer {o.id}</Badge>
             </div>
             <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
             <p className="tnum">{kgf(o.kgAvailable)} available</p>

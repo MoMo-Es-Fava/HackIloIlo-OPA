@@ -8,17 +8,17 @@ const portals = [
   {
     href: "/login?next=%2Fbuyer",
     icon: IconBag,
-    eyebrow: "For rice buyers and farmers",
-    title: "Buy rice or sell palay",
-    description: "Buyers can browse IRPC rice, compare prices, and track orders. Farmers can offer palay for sale and follow its progress.",
-    action: "Open buyer / farmer portal",
+    eyebrow: "For rice buyers",
+    title: "Buy rice and track orders",
+    description: "Browse alagarab rice, compare available stock and prices, and follow your order from reservation to delivery.",
+    action: "Open buyer portal",
     btn: "bg-husk text-ink hover:bg-[#f5d98f]",
     detail: "Rice offers · palay sales · orders · prices · batch traceability",
   },
   {
     href: "/login?next=%2Fstaff",
     icon: IconWrench,
-    eyebrow: "For IRPC staff",
+    eyebrow: "For alagarab staff",
     title: "Run today's operations",
     description: "Coordinate arrivals, record weights, move batches through processing, and manage sales and prices.",
     action: "Open staff workspace",
@@ -57,12 +57,14 @@ export default function Landing() {
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
         <header className="flex items-center justify-between gap-4">
-          <Link href="/" aria-label="ALAGARAB home" className="brand-link brand-logo-link flex items-center gap-3 rounded-lg">
+          <Link href="/" aria-label="alagarab home" className="brand-link brand-logo-link group/brand flex items-center gap-3 rounded-lg">
             <BrandLogo size={44} />
             <span
-              className="font-bold leading-6 tracking-wide text-white"
+              className="brand-wordmark relative block h-6 w-[5.5rem] overflow-hidden font-bold leading-6 tracking-wide text-white transition-[width] duration-300 group-hover/brand:w-[5.5rem] group-focus-visible/brand:w-[5.5rem]"
             >
-              ALAGARAB
+              <span aria-hidden className="brand-wordmark__full absolute inset-0 whitespace-nowrap">
+                alagarab
+              </span>
             </span>
           </Link>
         </header>
@@ -78,7 +80,7 @@ export default function Landing() {
                 </span>
               </h1>
               <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/80 sm:text-xl">
-                One place to find IRPC rice, follow every batch, and keep plant operations moving.
+                One place to find alagarab rice, follow every batch, and keep plant operations moving.
                 Choose the workspace that fits what you need to do.
               </p>
             </div>

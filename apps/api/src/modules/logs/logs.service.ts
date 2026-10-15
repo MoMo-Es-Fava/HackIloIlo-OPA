@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { PriceBasis, PriceItem } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 
 export interface IrpcLogDto {
@@ -10,6 +11,20 @@ export interface IrpcLogDto {
   target: string;
   details: string | null;
 }
+
+const priceItemLabels: Record<PriceItem, string> = {
+  [PriceItem.PALAY_FRESH]: 'Fresh palay',
+  [PriceItem.PALAY_DRY]: 'Dry palay',
+  [PriceItem.RICE]: 'Rice',
+  [PriceItem.DRYING_FEE]: 'Drying fee',
+  [PriceItem.MILLING_FEE]: 'Milling fee',
+};
+const priceBasisLabels: Record<PriceBasis, string> = {
+  [PriceBasis.MARKET]: 'Market',
+  [PriceBasis.NFA]: 'NFA',
+};
+const enumLabel = (value: string) =>
+  value.toLowerCase().split('_').map((word) => word[0].toUpperCase() + word.slice(1)).join(' ');
 
 @Injectable()
 export class LogsService {
@@ -43,12 +58,12 @@ export class LogsService {
     const rows: IrpcLogDto[] = [
       ...orders.map((row) => ({
         id: `order-${row.id}`, createdAt: row.createdAt.toISOString(), actor: row.actor?.name ?? 'System', category: 'Order' as const,
-        action: row.fromStatus ? `${row.fromStatus} → ${row.toStatus}` : `Created as ${row.toStatus}`,
+        action: row.fromStatus ? `${enumLabel(row.fromStatus)} → ${enumLabel(row.toStatus)}` : `Created as ${enumLabel(row.toStatus)}`,
         target: `Order IRPC-${String(row.order.id).padStart(4, '0')}`, details: row.note,
       })),
       ...batches.map((row) => ({
         id: `batch-${row.id}`, createdAt: row.createdAt.toISOString(), actor: row.actor?.name ?? 'System', category: 'Batch' as const,
-        action: row.fromStatus ? `${row.fromStatus} → ${row.toStatus}` : `Created as ${row.toStatus}`,
+        action: row.fromStatus ? `${enumLabel(row.fromStatus)} → ${enumLabel(row.toStatus)}` : `Created as ${enumLabel(row.toStatus)}`,
         target: `Batch ${row.batch.code}`, details: row.note,
       })),
       ...damages.map((row) => ({
@@ -66,8 +81,8 @@ export class LogsService {
       })),
       ...prices.map((row) => ({
         id: `price-${row.id}`, createdAt: row.effectiveAt.toISOString(), actor: row.createdBy.name, category: 'Pricing' as const,
-        action: `Set ${row.item.toLowerCase()} price to ₱${row.pricePerKg.toFixed(2)}/kg`,
-        target: row.riceType?.name ?? row.item, details: row.basis,
+        action: `Set ${priceItemLabels[row.item].toLowerCase()} price to ₱${row.pricePerKg.toFixed(2)}/kg`,
+        target: row.riceType?.name ?? priceItemLabels[row.item], details: priceBasisLabels[row.basis],
       })),
     ];
     return rows.sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 200);

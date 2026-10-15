@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { api, ApiError, type IrpcLogDto } from "@/lib/api";
+import { api, type IrpcLogDto } from "@/lib/api";
 import { dateLabel } from "@/lib/format";
 import { Badge, Card, Empty, Notice, PageHeader, TableWrap, TextField, td, th } from "@/components/ui";
 import { IconClipboard } from "@/components/icons";
@@ -19,7 +19,7 @@ export default function IrpcLogs() {
   const [loading, setLoading] = useState(true);
   const load = useCallback(async () => {
     try { setLogs(await api.getAdminLogs()); setError(null); }
-    catch (e) { setError(e instanceof ApiError ? e.message : "Could not load IRPC logs."); }
+    catch { setError("IRPC logs are temporarily unavailable. Please try again later."); }
     finally { setLoading(false); }
   }, []);
   const loadTrend = useCallback(async () => {
@@ -28,7 +28,7 @@ export default function IrpcLogs() {
       return;
     }
     try { setTrend(await api.getLogsTrend(30)); setTrendError(null); }
-    catch (e) { setTrendError(e instanceof ApiError ? e.message : "Could not load activity trends."); }
+    catch { setTrendError("Activity trends are temporarily unavailable. Please try again later."); }
   }, []);
   useEffect(() => { void load(); void loadTrend(); }, [load, loadTrend]);
   const filtered = logs.filter((row) => `${row.actor} ${row.category} ${row.action} ${row.target} ${row.details ?? ""}`.toLowerCase().includes(query.toLowerCase()));
@@ -38,7 +38,7 @@ export default function IrpcLogs() {
     {error && <Notice tone="warn"><p role="alert">{error}</p></Notice>}
     <TextField label="Filter logs" placeholder="Actor, action, target, or detail" value={query} onChange={(e) => setQuery(e.target.value)} />
     <Card>
-      <LineChart
+      {trend ? <LineChart
         title="IRPC activity"
         description="Daily database event counts for the last 30 days. Batch includes recorded damage events."
         points={(trend?.daily ?? []).map((point) => ({
@@ -53,9 +53,7 @@ export default function IrpcLogs() {
           { key: "pricing", label: "Price changes", color: "#70528f", values: (trend?.daily ?? []).map((point) => point.pricing), dash: "9 4 2 4" },
         ]}
         formatValue={(value) => Math.round(value).toString()}
-      />
-      {trendError && <p role="alert" className="mt-3 text-sm text-clay">{trendError}</p>}
-      {!trend && !trendError && <p role="status" className="mt-3 text-sm text-sub">Loading activity trends…</p>}
+      /> : <p role={trendError ? "alert" : "status"} className="mt-3 rounded-xl bg-mist px-4 py-5 text-sm text-sub">{trendError ?? "Loading activity trends…"}</p>}
     </Card>
     {loading ? <p role="status">Loading logs…</p> : filtered.length === 0 ? <Empty>No log entries match.</Empty> : <TableWrap>
       <thead><tr><th className={th}>When</th><th className={th}>Category</th><th className={th}>Who</th><th className={th}>Action</th><th className={th}>Target</th><th className={th}>Details</th></tr></thead>
