@@ -123,8 +123,8 @@ export default function Landing() {
         <div className="flex flex-col gap-6">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {pillars.map((p) => (
-              <div key={p.label} className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 backdrop-blur-md">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-husk/15 text-husk ring-1 ring-inset ring-husk/20">
+              <div key={p.label} className="flex items-center gap-3 px-2 py-2">
+                <span className="shrink-0 text-husk">
                   <p.icon className="h-5 w-5" />
                 </span>
                 <span className="flex flex-col leading-tight">
