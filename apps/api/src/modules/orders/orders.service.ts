@@ -461,15 +461,15 @@ export class OrdersService {
   /** Texts the customer. A failed SMS never blocks or undoes the order change. */
   private async notify(order: OrderRow) {
     try {
-      await this.sms.notifyStatusChange({
-        ref: orderRef(order.id),
-        status: order.status,
-        scheduledDate: order.scheduledDate
-          ? order.scheduledDate.toISOString().slice(0, 10)
-          : null,
-        rejectReason: order.rejectReason,
-        contactPhone: order.contactPhone,
+      // Texts go out in the customer's chosen language (Hiligaynon or English).
+      const customer = await this.prisma.user.findUnique({
+        where: { id: order.customerId },
+        select: { language: true },
       });
+      await this.sms.notifyStatusChange(
+        { ...toOrderDto(order), contactPhone: order.contactPhone },
+        customer?.language,
+      );
     } catch (error) {
       this.log.warn(
         `SMS for ${orderRef(order.id)} failed: ${(error as Error).message}`,
