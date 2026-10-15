@@ -9,18 +9,23 @@ import { MOCK_MILLING_RECOVERY } from "@/lib/mock-orders";
 import { Badge, Button, Card, Empty, PageHeader, SelectField, TextField, Notice, orderTone } from "@/components/ui";
 import { IconWrench } from "@/components/icons";
 
+const SACK_KG = 50;
+const MAX_SACKS = 10_000;
+
 export default function Service() {
   const { serviceRequests, prices, isMock, orderError, profile, addServiceRequest } = useStore();
   const [service, setService] = useState<ServiceType>(ServiceType.DRYING);
-  const [kg, setKg] = useState("");
+  const [sacks, setSacks] = useState("");
   const [date, setDate] = useState("");
   const [sentId, setSentId] = useState<string | null>(null);
 
   const dryingFee = Number(currentPrice(prices, PriceItem.DRYING_FEE)?.pricePerKg ?? NaN);
   const millingFee = Number(currentPrice(prices, PriceItem.MILLING_FEE)?.pricePerKg ?? NaN);
   const feesKnown = Number.isFinite(dryingFee) && Number.isFinite(millingFee);
-  const n = Number(kg);
-  const kgErr = kg !== "" && !(n > 0) ? "Enter a quantity above 0" : undefined;
+  const count = Number(sacks);
+  const sacksOk = Number.isInteger(count) && count > 0 && count <= MAX_SACKS;
+  const n = sacksOk ? count * SACK_KG : 0;
+  const sacksErr = sacks !== "" && !sacksOk ? `Enter a whole number of sacks, up to ${MAX_SACKS.toLocaleString()}` : undefined;
   const ok = n > 0 && Boolean(date) && feesKnown;
   const estimate = n > 0 && feesKnown
     ? (service !== ServiceType.MILLING ? n * dryingFee : 0)
@@ -37,7 +42,7 @@ export default function Service() {
   async function send() {
     if (!ok) return;
     const id = await addServiceRequest(service, n, date);
-    if (id !== null) { setKg(""); setDate(""); setSentId(orderRef(id)); }
+    if (id !== null) { setSacks(""); setDate(""); setSentId(orderRef(id)); }
   }
 
   return (
@@ -59,15 +64,15 @@ export default function Service() {
             ))}
           </SelectField>
           <TextField
-            label="Estimated quantity (kg)"
+            label="Number of sacks"
             type="number"
-            inputMode="decimal"
+            inputMode="numeric"
             min={1}
-            step="any"
-            value={kg}
-            error={kgErr}
-            hint={n > 0 ? `About ${(n / 50).toFixed(1)} 50 kg sacks. This is an estimate.` : "If you know the number of 50 kg sacks, multiply by 50 to estimate the weight."}
-            onChange={(e) => { setKg(e.target.value); setSentId(null); }}
+            step={1}
+            value={sacks}
+            error={sacksErr}
+            hint={n > 0 ? `About ${kgf(n)} (50 kg per sack). IRPC weighs it on arrival.` : "Count your 50 kg sacks of palay."}
+            onChange={(e) => { setSacks(e.target.value); setSentId(null); }}
           />
           <TextField label="Preferred date" type="date" value={date} onChange={(e) => { setDate(e.target.value); setSentId(null); }} />
           <div className="rounded-xl border border-line/80 bg-mist/60 p-4 text-sm">

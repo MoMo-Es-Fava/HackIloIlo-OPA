@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
 import {
   IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconBolt, IconChart,
-  IconTrace, IconUser, IconBox, IconArrowRight,
+  IconTrace, IconUser, IconBox, IconArrowRight, IconLeaf,
 } from "./icons";
 
 const groups = [
@@ -15,6 +15,7 @@ const groups = [
   {
     title: "Operations",
     items: [
+      { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
       { href: "/staff/queue", label: "Booking and queue", Icon: IconClipboard },
       { href: "/staff/intake", label: "Weigh-in and slips", Icon: IconScale },
       { href: "/staff/processing", label: "Drying and milling", Icon: IconFlame },
