@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type CreateOrderRequest } from "@irpc/types";
+import { AccountType, Language, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type CreateOrderRequest } from "@irpc/types";
 import { ApiError, createApiClient } from "../src/lib/api";
 import { loadWorkspace } from "../src/lib/workspace";
 
@@ -125,6 +125,28 @@ test("HTTP requests time out and /health always reaches the real server", async 
   } });
   assert.equal((await client.getHealth()).status, "ok");
   assert.equal(calls, 1);
+});
+
+test("authentication always uses the PostgreSQL-backed API even when demo screens are enabled", async () => {
+  const paths: string[] = [];
+  const savedTokens: string[] = [];
+  const client = createApiClient({
+    useMock: true,
+    baseUrl: "http://api.test",
+    saveToken: (token) => { if (token) savedTokens.push(token); },
+    fetcher: async (url) => {
+      paths.push(new URL(String(url)).pathname);
+      return json({ token: `token-${paths.length}`, user: {} });
+    },
+  });
+  await client.login("+639171234567", "1234");
+  await client.register({
+    name: "Test Farmer", phone: "+639171234568", pin: "1234",
+    accountType: AccountType.FARMER, language: Language.HIL,
+    municipality: "Pototan", consent: true,
+  });
+  assert.deepEqual(paths, ["/auth/login", "/auth/register"]);
+  assert.deepEqual(savedTokens, ["token-1", "token-2"]);
 });
 
 test("workspace reads switch to HTTP without fixture ownership fields or legacy data", async () => {

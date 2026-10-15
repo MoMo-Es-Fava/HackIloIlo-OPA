@@ -17,7 +17,7 @@ export interface UserRecord {
 
 export type NewUser = Omit<UserRecord, 'id' | 'isActive' | 'createdAt'>;
 
-// Swap the in-memory implementation for Prisma once the database lands; callers don't change.
+// The production UsersModule binds this contract to PrismaUsersRepository.
 export abstract class UsersRepository {
   abstract findById(id: number): Promise<UserRecord | null>;
   abstract findByPhone(phone: string): Promise<UserRecord | null>;
