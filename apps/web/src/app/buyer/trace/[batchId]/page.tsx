@@ -39,11 +39,11 @@ export default function TraceDetail() {
       <Card>
         <div className="grid gap-3 sm:grid-cols-2">
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.08em] text-sub">Origin</p>
+            <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-sub">Origin</p>
             <p className="font-bold">{b.farmerId}, validated at intake</p>
           </div>
           <div>
-            <p className="text-sm font-bold uppercase tracking-[0.08em] text-sub">Destination</p>
+            <p className="text-[13px] font-bold uppercase tracking-[0.08em] text-sub">Destination</p>
             <p className="font-bold">{b.destination ?? "Not sold yet"}</p>
           </div>
         </div>

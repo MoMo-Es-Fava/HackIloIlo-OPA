@@ -35,7 +35,7 @@ export default function Orders() {
             aria-selected={tab === t}
             onClick={() => setTab(t)}
             className={cn(
-              "min-h-11 flex-1 rounded-lg px-4 text-sm font-bold transition-colors sm:flex-none",
+              "min-h-10 flex-1 rounded-lg px-4 text-sm font-bold transition-colors sm:flex-none",
               tab === t ? "bg-paddy-d text-white shadow-sm" : "text-sub hover:bg-mist hover:text-ink",
             )}
           >

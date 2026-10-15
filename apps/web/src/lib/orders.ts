@@ -10,7 +10,7 @@ export const statusLabel: Record<OrderStatus, string> = {
   PAID: "Paid", COMPLETED: "Completed",
 };
 export const orderTypeLabel: Record<OrderType, string> = {
-  BUY_RICE: "Buy rice", SELL_PALAY: "Sell palay", SERVICE: "Drying & milling",
+  BUY_RICE: "Buy rice", SELL_PALAY: "Sell palay", SERVICE: "Drying / milling",
 };
 export const serviceLabel: Record<ServiceType, string> = {
   DRYING: "Drying", MILLING: "Milling", DRYING_AND_MILLING: "Drying and milling",
