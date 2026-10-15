@@ -138,7 +138,7 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
     const path = new URL(String(url)).pathname; calls.push(path);
     if (path === "/prices") return json(prices);
     if (path === "/rice-types") return json(riceTypes);
-    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", accountType: "BUYER" });
+    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", role: "USER", accountType: "BUYER" });
     if (path === "/orders/mine") return json([]);
     if (path === "/orders/9001") return json(realOrder);
     return json({ message: "Not found" }, 404);
@@ -189,4 +189,19 @@ test("mock workspace survives navigation while independent clients remain isolat
   await client.demoAction("setKwhPrice", 20);
   assert.equal((await client.getDemoWorkspace())?.kwhPrice, 20);
   assert.equal((await mockClient().getMyOrders()).some((row) => row.id === created.id), false);
+});
+
+test("signed-in users only open the workspace for their role", async () => {
+  const source = mockClient();
+  const [prices, riceTypes] = await Promise.all([source.getPrices(), source.getRiceTypes()]);
+  const clientFor = (role: string) => createApiClient({ useMock: false, baseUrl: "http://api.test", getToken: () => "jwt", fetcher: async (url) => {
+    const path = new URL(String(url)).pathname;
+    if (path === "/prices") return json(prices);
+    if (path === "/rice-types") return json(riceTypes);
+    if (path === "/auth/me") return json({ id: 1, name: "Test", phone: "+639170000001", role, accountType: "BUYER" });
+    return json([]);
+  } });
+  await assert.rejects(loadWorkspace(clientFor("USER"), "/staff", true), (error: ApiError) => error.status === 403);
+  await assert.rejects(loadWorkspace(clientFor("PLANT_STAFF"), "/buyer/orders", true), (error: ApiError) => error.status === 403);
+  await loadWorkspace(clientFor("PLANT_STAFF"), "/staff", true);
 });

@@ -15,6 +15,7 @@
     "dev:api": "npm run start:dev -w api",
     "build": "npm run build --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
+    "pretest": "npm run build:types",
     "test": "npm run test --workspaces --if-present",
     "docker": "docker compose -f infra/docker/docker-compose.yml up -d --build"
   }
