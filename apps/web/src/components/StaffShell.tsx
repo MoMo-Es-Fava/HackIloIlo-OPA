@@ -19,7 +19,7 @@ const groups = [
       { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
       { href: "/staff/queue", label: "Booking and queue", Icon: IconClipboard },
       { href: "/staff/intake", label: "Weigh-in and slips", Icon: IconScale },
-      { href: "/staff/processing", label: "Drying and milling", Icon: IconFlame },
+      { href: "/staff/services", label: "Drying and milling", Icon: IconFlame },
     ],
   },
   {
