@@ -79,7 +79,8 @@ describe('Auth (e2e)', () => {
     (res.body as { message: string }).message;
 
   it('registers, normalizes the phone, and never returns the PIN', async () => {
-    const res = await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const body = res.body as AuthResponse;
     expect(body.token).toEqual(expect.any(String));
     expect(body.user).toMatchObject({
@@ -113,7 +114,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('rejects a duplicate phone', async () => {
-    await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     await http()
       .post('/auth/register/code')
       .send({ phone: '+639171234567' })
@@ -121,7 +123,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('logs in with the right PIN and rejects a wrong one with the same message as an unknown phone', async () => {
-    await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     await login('09171234567', '1234').expect(200);
     const wrongPin = await login('09171234567', '9999').expect(401);
     const unknown = await login('09990000000', '1234').expect(401);
@@ -129,7 +132,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('requires a valid token for /auth/me', async () => {
-    const res = await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const { token } = res.body as AuthResponse;
     const me = await http()
       .get('/auth/me')
@@ -144,7 +148,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('enforces roles: users get 403 on admin routes, admins get through', async () => {
-    const res = await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const userToken = (res.body as AuthResponse).token;
     await http().get('/test-admin').expect(401);
     await http()
@@ -171,7 +176,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('locks a phone after 5 wrong PINs, even if the 6th is correct', async () => {
-    await verifiedRegister().expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     for (let i = 0; i < 5; i++) await login('09171234567', '0000').expect(401);
     const locked = await login('09171234567', '1234').expect(429);
     expect(messageOf(locked)).toMatch(/Try again in 5 minutes/);

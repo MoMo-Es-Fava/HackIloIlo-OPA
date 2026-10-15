@@ -36,6 +36,10 @@ export function createPrismaServiceMock() {
         return user;
       }),
     },
+    smsLog: {
+      create: jest.fn(async () => ({ id: 1 })),
+      update: jest.fn(),
+    },
     $queryRawUnsafe: jest.fn(async (_query: string, phone: string) => {
       const row = verifications.get(phone);
       return row ? [row] : [];

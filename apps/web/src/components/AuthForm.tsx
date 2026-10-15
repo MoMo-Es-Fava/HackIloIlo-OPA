@@ -75,7 +75,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
               <label className={labelClass}>Full name<input className={fieldClass} name="name" autoComplete="name" minLength={2} maxLength={100} required /></label>
             </>}
             <label className={labelClass}>Philippine mobile number<input className={fieldClass} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" pattern="(?:\\+?63|0)9[0-9]{9}" title="Enter a Philippine mobile number, such as 0917 123 4567" required /></label>
-            <label className={labelClass}>{registering ? "Password" : "PIN"}<input className={fieldClass} name="pin" type="password" inputMode="numeric" autoComplete={registering ? "new-password" : "current-password"} minLength={4} maxLength={6} pattern="[0-9]{4,6}" title="Password must be 4 to 6 digits" required /></label>
+            <label className={labelClass}>PIN<input className={fieldClass} name="pin" type="password" inputMode="numeric" autoComplete={registering ? "new-password" : "current-password"} minLength={4} maxLength={6} pattern="[0-9]{4,6}" title="PIN must be 4 to 6 digits" required /></label>
             {registering && codeSent && <>
               <label className={labelClass}>Verification code<input className={fieldClass} name="verificationCode" inputMode="numeric" autoComplete="one-time-code" minLength={6} maxLength={6} pattern="[0-9]{6}" placeholder="6-digit code" required /></label>
               <p className="rounded-xl bg-mist px-3.5 py-3 text-sm text-sub">A six-digit code was sent to your mobile number. It expires in 10 minutes.</p>
