@@ -169,6 +169,8 @@ export interface OrderDto {
   ref: string;
   type: OrderType;
   status: OrderStatus;
+  contactName: string;
+  contactPhone: string; // +639XXXXXXXXX, receives the SMS updates
   requestedKg: string;
   preferredDate: string; // date the customer asked for
   scheduledDate: string | null; // date confirmed by IRPC on acceptance; null while PENDING or if rejected
@@ -189,4 +191,139 @@ export interface OrderDto {
   rejectReason: string | null;
   createdAt: string;
   events?: OrderEventDto[];
+}
+
+// ───────────── Users and auth ─────────────
+
+// Never includes the PIN or its hash.
+export interface UserDto {
+  id: number;
+  name: string;
+  phone: string; // +639XXXXXXXXX
+  role: Role;
+  accountType: AccountType | null; // null for staff accounts
+  language: Language;
+  municipality: string | null;
+  cooperative: string | null;
+}
+
+export interface RegisterRequest {
+  name: string;
+  phone: string; // +639XXXXXXXXX
+  pin: string; // 4–6 digits
+  accountType: AccountType;
+  language: Language;
+  municipality?: string;
+  cooperative?: string;
+  consent: true; // Data Privacy Act consent; registration is refused without it
+}
+
+export interface LoginRequest {
+  phone: string;
+  pin: string;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: UserDto;
+}
+
+// ───────────── Admin ─────────────
+
+export interface AdminOrderDto extends OrderDto {
+  customer: UserDto;
+  events: OrderEventDto[];
+}
+
+// Counts for the admin "Today" page. "Today" is the Asia/Manila calendar date.
+export interface AdminSummaryDto {
+  needsApproval: number; // PENDING orders
+  arrivingToday: number; // SELL_PALAY ACCEPTED and SERVICE SCHEDULED with scheduledDate today
+  inDrying: number; // SERVICE orders in DRYING
+  readyForPickup: number; // orders in READY_FOR_PICKUP
+  dryingKgBookedToday: string; // see docs/API.md for which orders count
+  dryingCapacityKg: string; // setting, default "56000.00"
+}
+
+export interface MoneySummaryDto {
+  from: string; // ISO date, inclusive
+  to: string; // ISO date, inclusive
+  boughtPalay: string; // SELL_PALAY finalAmount
+  soldRice: string; // BUY_RICE finalAmount
+  serviceFees: string; // SERVICE finalAmount
+  grossProfit: string; // soldRice + serviceFees - boughtPalay
+}
+
+export interface SmsLogDto {
+  id: number;
+  direction: 'OUTBOUND' | 'INBOUND';
+  phone: string;
+  message: string;
+  status: string; // QUEUED / SENT / DELIVERED / FAILED / RECEIVED
+  orderId: number | null;
+  createdAt: string;
+}
+
+// ───────────── Settings and estimates ─────────────
+
+// Returned by the public GET /settings. Ratios are decimal strings ("0.60").
+export interface PublicSettingsDto {
+  dryingRecovery: string; // dry kg ÷ wet kg, default "0.80"
+  millingRecovery: string; // rice kg ÷ dry palay kg, default "0.60"
+  sackKg: string; // default "50"
+  dryingCapacityKg: string; // default "56000"
+}
+
+export interface EstimateInput {
+  type: OrderType;
+  requestedKg: string;
+  riceTypeId?: number;
+  palayCondition?: PalayCondition;
+  serviceType?: ServiceType;
+}
+
+const toCents = (value: number) => Math.round(value * 100) / 100;
+
+// Estimated rice output for a service order, from the palay kg the customer brings.
+export function estimateServiceRiceKg(
+  input: Pick<EstimateInput, 'requestedKg' | 'serviceType'>,
+  settings: Pick<PublicSettingsDto, 'dryingRecovery' | 'millingRecovery'>,
+): number {
+  if (input.serviceType === ServiceType.DRYING) return 0;
+  const palayKg = Number(input.requestedKg);
+  const dried = input.serviceType === ServiceType.DRYING_AND_MILLING
+    ? palayKg * Number(settings.dryingRecovery)
+    : palayKg;
+  return toCents(dried * Number(settings.millingRecovery));
+}
+
+// Same formula on the web (checkout preview) and in the API (stored estimatedAmount).
+// Returns null when a needed price is missing. The API's stored value is authoritative.
+export function estimateOrderAmount(
+  input: EstimateInput,
+  prices: CurrentPrice[],
+  settings: Pick<PublicSettingsDto, 'dryingRecovery' | 'millingRecovery'>,
+): string | null {
+  const price = (item: PriceItem, riceTypeId: number | null = null) => {
+    const row = prices.find((p) => p.item === item && p.riceTypeId === riceTypeId);
+    return row ? Number(row.pricePerKg) : null;
+  };
+  const kg = Number(input.requestedKg);
+  if (!Number.isFinite(kg) || kg <= 0) return null;
+
+  let amount: number | null = null;
+  if (input.type === OrderType.BUY_RICE) {
+    const rice = input.riceTypeId ? price(PriceItem.RICE, input.riceTypeId) : null;
+    amount = rice === null ? null : kg * rice;
+  } else if (input.type === OrderType.SELL_PALAY) {
+    const palay = price(input.palayCondition === PalayCondition.DRY ? PriceItem.PALAY_DRY : PriceItem.PALAY_FRESH);
+    amount = palay === null ? null : kg * palay;
+  } else {
+    const drying = input.serviceType === ServiceType.MILLING ? 0 : price(PriceItem.DRYING_FEE);
+    const milling = input.serviceType === ServiceType.DRYING ? 0 : price(PriceItem.MILLING_FEE);
+    amount = drying === null || milling === null
+      ? null
+      : kg * drying + estimateServiceRiceKg(input, settings) * milling;
+  }
+  return amount === null ? null : toCents(amount).toFixed(2);
 }

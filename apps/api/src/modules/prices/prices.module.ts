@@ -1,5 +1,10 @@
 import { Module } from '@nestjs/common';
-import type { CanActivate, DynamicModule, ModuleMetadata, Type } from '@nestjs/common';
+import type {
+  CanActivate,
+  DynamicModule,
+  ModuleMetadata,
+  Type,
+} from '@nestjs/common';
 import { PricesController } from './prices.controller';
 import { PRICES_ADMIN_GUARD, PricesAdminGuard } from './prices.guard';
 import { PricesRepository } from './prices.repository';
