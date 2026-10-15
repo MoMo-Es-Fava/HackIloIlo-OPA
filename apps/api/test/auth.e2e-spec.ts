@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { Roles } from '../src/common/auth.decorators';
 import { PrismaService } from '../src/database/prisma.service';
+import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
 
 // Test-only route to check role enforcement.
@@ -40,6 +41,8 @@ describe('Auth (e2e)', () => {
       imports: [AppModule],
       controllers: [AdminProbeController],
     })
+      .overrideProvider(UsersRepository)
+      .useClass(InMemoryUsersRepository)
       .overrideProvider(PrismaService)
       .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
       .compile();

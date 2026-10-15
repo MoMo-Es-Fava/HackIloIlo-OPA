@@ -5,6 +5,8 @@ import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { PrismaService } from '../src/database/prisma.service';
+import { UsersRepository } from '../src/modules/users/users.repository';
+import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 
 describe('API (e2e)', () => {
   let app: INestApplication<App>;
@@ -14,6 +16,8 @@ describe('API (e2e)', () => {
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
     })
+      .overrideProvider(UsersRepository)
+      .useClass(InMemoryUsersRepository)
       .overrideProvider(PrismaService)
       .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
       .compile();
