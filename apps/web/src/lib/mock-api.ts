@@ -276,8 +276,22 @@ export function createMockApi() {
       arrivingToday: orders.filter((order) => order.scheduledDate?.slice(0, 10) === new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date())).length,
       inDrying: orders.filter((order) => order.status === OrderStatus.DRYING).length,
       readyForPickup: orders.filter((order) => order.status === OrderStatus.READY_FOR_PICKUP).length,
-      kgBookedToday: orders.filter((order) => order.createdAt.slice(0, 10) === new Date().toISOString().slice(0, 10)).reduce((total, order) => total + Number(order.requestedKg), 0),
+      // Same rule as the API: fresh palay bought, plus drying bookings, scheduled for today.
+      dryingKgBookedToday: orders.filter((order) => order.scheduledDate?.slice(0, 10) === new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date())
+        && (order.type === OrderType.SELL_PALAY ? order.palayCondition === "FRESH" : order.serviceType === "DRYING" || order.serviceType === "DRYING_AND_MILLING"))
+        .reduce((total, order) => total + Number(order.requestedKg), 0).toFixed(2),
+      dryingCapacityKg: "56000",
     };
+    if (route === "/admin/money" && method === "GET") {
+      const from = url.searchParams.get("from") ?? "0000-01-01";
+      const to = url.searchParams.get("to") ?? "9999-12-31";
+      const paid = orders.filter((order) => (order.status === OrderStatus.PAID || order.status === OrderStatus.COMPLETED)
+        && order.finalAmount !== null && order.createdAt.slice(0, 10) >= from && order.createdAt.slice(0, 10) <= to);
+      const sum = (type: OrderType) => paid.filter((order) => order.type === type).reduce((total, order) => total + Number(order.finalAmount), 0);
+      const boughtPalay = sum(OrderType.SELL_PALAY), soldRice = sum(OrderType.BUY_RICE), serviceFees = sum(OrderType.SERVICE);
+      return { from, to, boughtPalay: boughtPalay.toFixed(2), soldRice: soldRice.toFixed(2), serviceFees: serviceFees.toFixed(2),
+        grossProfit: (soldRice + serviceFees - boughtPalay).toFixed(2) };
+    }
     if (route === "/admin/sms-logs" && method === "GET") return [];
     throw new ApiError(501, "This feature is not connected yet.");
   }
