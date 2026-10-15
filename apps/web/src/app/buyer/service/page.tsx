@@ -7,6 +7,7 @@ import { kgf, dateLabel, peso } from "@/lib/format";
 import { currentPrice, serviceLabel, statusLabel } from "@/lib/orders";
 import { MOCK_MILLING_RECOVERY } from "@/lib/mock-orders";
 import { Badge, Button, Card, Empty, PageHeader, TextField, cn, orderTone } from "@/components/ui";
+import { IconWrench } from "@/components/icons";
 
 const serviceHint: Record<ServiceType, string> = {
   DRYING: "Dry your fresh palay.",
@@ -51,16 +52,20 @@ export default function Service() {
 
   return (
     <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
-      <PageHeader title="Drying and milling" sub="Tell us what you need. The IRPC team will review your request and set your service date." />
+      <PageHeader
+        title="Drying and milling"
+        sub="Tell us what you need. The IRPC team will review your request and set your service date."
+        icon={<IconWrench className="h-6 w-6" />}
+      />
       <Card>
-        <h2 className="text-lg font-bold">What do you need?</h2>
+        <h2 className="text-lg font-bold tracking-tight">What do you need?</h2>
         <p className="text-sm text-sub">No fee is charged until IRPC confirms your request.</p>
         <div className="flex flex-col gap-2" role="group" aria-label="Service">
           {Object.values(ServiceType).map((type) => (
             <button key={type} type="button" aria-pressed={service === type}
               onClick={() => { setService(type); setSentId(null); }}
-              className={cn("flex min-h-16 flex-col justify-center rounded-xl border-2 p-4 text-left",
-                service === type ? "border-paddy-d bg-mist" : "border-line bg-white")}>
+              className={cn("flex min-h-16 flex-col justify-center rounded-xl border-2 p-4 text-left transition-colors",
+                service === type ? "border-paddy-d bg-mist" : "border-line bg-white hover:border-paddy/50")}>
               <span className="font-bold">{serviceLabel[type]}</span>
               <span className="text-sm text-sub">{serviceHint[type]} {feeLabel(type)}</span>
             </button>
@@ -90,14 +95,19 @@ export default function Service() {
         )}
       </Card>
       <div>
-        <h2 className="text-xl font-bold">Your requests</h2>
+        <h2 className="text-xl font-bold tracking-tight">Your requests</h2>
         <p className="text-sm text-sub">See whether each request is pending, scheduled, or progressing through the plant.</p>
       </div>
       {serviceRequests.length === 0 && <Empty>No service requests yet. Your request status will appear here after you submit.</Empty>}
       {serviceRequests.map((s) => (
         <Card key={s.id}>
           <div className="flex items-center justify-between gap-3">
-            <p className="font-bold">{s.serviceType ? serviceLabel[s.serviceType] : "Service"}: {kgf(s.requestedKg)}</p>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-mist text-paddy-d">
+                <IconWrench className="h-5 w-5" />
+              </span>
+              <p className="font-bold tracking-tight">{s.serviceType ? serviceLabel[s.serviceType] : "Service"}: <span className="tnum">{kgf(s.requestedKg)}</span></p>
+            </div>
             <Badge tone={orderTone(s.status)}>{statusLabel[s.status]}</Badge>
           </div>
           <p className="text-sm text-sub">{s.ref}. Requested {dateLabel(s.createdAt)}{s.scheduledDate ? ` · Service date ${dateLabel(s.scheduledDate)}` : " · Date to be set by IRPC"}</p>

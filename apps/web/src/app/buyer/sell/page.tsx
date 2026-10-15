@@ -65,7 +65,7 @@ export default function SellPalay() {
       <ol className="flex gap-2" aria-label="Progress">
         {STEPS.map((s, i) => (
           <li key={s.id} aria-current={i === stepIndex ? "step" : undefined}
-            className={cn("flex-1 rounded-lg px-1 py-2 text-center text-xs font-bold",
+            className={cn("flex-1 rounded-lg px-1 py-2 text-center text-sm font-bold",
               i === stepIndex ? "bg-paddy-d text-white" : i < stepIndex ? "bg-mist text-paddy-d" : "border border-line text-sub")}>
             {i + 1}. {s.label}
           </li>
