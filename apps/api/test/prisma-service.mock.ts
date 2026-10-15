@@ -36,39 +36,27 @@ export function createPrismaServiceMock() {
         return user;
       }),
     },
-    phoneVerification: {
-      findUnique: jest.fn(async ({ where }: { where: { phone: string } }) =>
-        verifications.get(where.phone) ?? null),
-      upsert: jest.fn(async ({ where, create, update }: {
-        where: { phone: string };
-        create: { phone: string; codeHash: string; expiresAt: Date };
-        update: { codeHash: string; expiresAt: Date; attempts: number; sentAt: Date };
-      }) => {
-        const existing = verifications.get(where.phone);
-        const row = existing
-          ? { ...existing, ...update, updatedAt: new Date() }
-          : { ...create, attempts: 0, sentAt: new Date(), updatedAt: new Date() };
-        verifications.set(where.phone, row);
-        return row;
-      }),
-      update: jest.fn(async ({ where, data }: {
-        where: { phone: string }; data: { attempts: { increment: number } };
-      }) => {
-        const row = verifications.get(where.phone);
-        if (!row) throw new Error('Verification not found');
-        const updated = {
-          ...row,
-          attempts: row.attempts + data.attempts.increment,
+    $queryRawUnsafe: jest.fn(async (_query: string, phone: string) => {
+      const row = verifications.get(phone);
+      return row ? [row] : [];
+    }),
+    $executeRawUnsafe: jest.fn(async (query: string, phone: string, codeHash?: string, expiresAt?: Date) => {
+      if (query.startsWith('INSERT')) {
+        verifications.set(phone, {
+          phone,
+          codeHash: codeHash!,
+          expiresAt: expiresAt!,
+          attempts: 0,
+          sentAt: new Date(),
           updatedAt: new Date(),
-        };
-        verifications.set(where.phone, updated);
-        return updated;
-      }),
-      delete: jest.fn(async ({ where }: { where: { phone: string } }) => {
-        const row = verifications.get(where.phone);
-        verifications.delete(where.phone);
-        return row;
-      }),
-    },
+        });
+      } else if (query.startsWith('UPDATE')) {
+        const row = verifications.get(phone);
+        if (row) verifications.set(phone, { ...row, attempts: row.attempts + 1, updatedAt: new Date() });
+      } else if (query.startsWith('DELETE')) {
+        verifications.delete(phone);
+      }
+      return 1;
+    }),
   };
 }

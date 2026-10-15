@@ -33,6 +33,14 @@ export interface JwtPayload {
   role: Role;
 }
 
+interface PhoneVerificationRow {
+  phone: string;
+  codeHash: string;
+  expiresAt: Date;
+  attempts: number;
+  sentAt: Date;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -48,9 +56,7 @@ export class AuthService {
       throw new ConflictException('This phone number is already registered.');
     }
 
-    const previous = await this.prisma.phoneVerification.findUnique({
-      where: { phone },
-    });
+    const previous = await this.findVerification(phone);
     if (previous && Date.now() - previous.sentAt.getTime() < CODE_RESEND_MS) {
       throw new HttpException(
         'Wait one minute before requesting another code.',
@@ -60,20 +66,16 @@ export class AuthService {
 
     const code = String(randomInt(100000, 1000000));
     const codeHash = await bcrypt.hash(code, 8);
-    await this.prisma.phoneVerification.upsert({
-      where: { phone },
-      create: {
-        phone,
-        codeHash,
-        expiresAt: new Date(Date.now() + CODE_TTL_MS),
-      },
-      update: {
-        codeHash,
-        expiresAt: new Date(Date.now() + CODE_TTL_MS),
-        attempts: 0,
-        sentAt: new Date(),
-      },
-    });
+    await this.prisma.$executeRawUnsafe(
+      `INSERT INTO "PhoneVerification" ("phone", "codeHash", "expiresAt", "attempts", "sentAt", "updatedAt")
+       VALUES ($1, $2, $3, 0, NOW(), NOW())
+       ON CONFLICT ("phone") DO UPDATE SET
+         "codeHash" = EXCLUDED."codeHash", "expiresAt" = EXCLUDED."expiresAt",
+         "attempts" = 0, "sentAt" = NOW(), "updatedAt" = NOW()`,
+      phone,
+      codeHash,
+      new Date(Date.now() + CODE_TTL_MS),
+    );
 
     try {
       await this.sms.send(
@@ -81,16 +83,14 @@ export class AuthService {
         `Your IRPC verification code is ${code}. It expires in 10 minutes. Do not share this code.`,
       );
     } catch (error) {
-      await this.prisma.phoneVerification.delete({ where: { phone } });
+      await this.deleteVerification(phone);
       throw error;
     }
     return { message: 'Verification code sent.' };
   }
 
   async register(dto: RegisterDto): Promise<AuthResponse> {
-    const verification = await this.prisma.phoneVerification.findUnique({
-      where: { phone: dto.phone },
-    });
+    const verification = await this.findVerification(dto.phone);
     if (
       !verification ||
       verification.expiresAt.getTime() < Date.now() ||
@@ -101,10 +101,10 @@ export class AuthService {
       );
     }
     if (!(await bcrypt.compare(dto.verificationCode, verification.codeHash))) {
-      await this.prisma.phoneVerification.update({
-        where: { phone: dto.phone },
-        data: { attempts: { increment: 1 } },
-      });
+      await this.prisma.$executeRawUnsafe(
+        `UPDATE "PhoneVerification" SET "attempts" = "attempts" + 1, "updatedAt" = NOW() WHERE "phone" = $1`,
+        dto.phone,
+      );
       throw new BadRequestException('The verification code is incorrect.');
     }
 
@@ -119,8 +119,25 @@ export class AuthService {
       cooperative: dto.cooperative ?? null,
       consentAt: new Date(),
     });
-    await this.prisma.phoneVerification.delete({ where: { phone: dto.phone } });
+    await this.deleteVerification(dto.phone);
     return this.issue(user);
+  }
+
+  private async findVerification(
+    phone: string,
+  ): Promise<PhoneVerificationRow | null> {
+    const rows = await this.prisma.$queryRawUnsafe<PhoneVerificationRow[]>(
+      `SELECT "phone", "codeHash", "expiresAt", "attempts", "sentAt" FROM "PhoneVerification" WHERE "phone" = $1`,
+      phone,
+    );
+    return rows[0] ?? null;
+  }
+
+  private async deleteVerification(phone: string): Promise<void> {
+    await this.prisma.$executeRawUnsafe(
+      `DELETE FROM "PhoneVerification" WHERE "phone" = $1`,
+      phone,
+    );
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {

@@ -1,4 +1,5 @@
 import { ConflictException, Injectable } from '@nestjs/common';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
 import { NewUser, UserRecord, UsersRepository } from './users.repository';
 
@@ -20,10 +21,9 @@ export class PrismaUsersRepository extends UsersRepository {
     try {
       return await this.prisma.user.create({ data: user });
     } catch (error) {
+      // The phone column is unique, so two sign-ups racing on one number end here.
       if (
-        typeof error === 'object' &&
-        error !== null &&
-        'code' in error &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
         throw new ConflictException('This phone number is already registered.');

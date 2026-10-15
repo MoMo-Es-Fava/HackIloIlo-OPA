@@ -9,6 +9,7 @@ import { configureApp } from '../src/app.setup';
 import { Roles } from '../src/common/auth.decorators';
 import { PrismaService } from '../src/database/prisma.service';
 import { SmsProvider } from '../src/integrations/textbee/sms.service';
+import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
 import { createPrismaServiceMock } from './prisma-service.mock';
 
@@ -44,6 +45,8 @@ describe('Auth (e2e)', () => {
       imports: [AppModule],
       controllers: [AdminProbeController],
     })
+      .overrideProvider(UsersRepository)
+      .useClass(InMemoryUsersRepository)
       .overrideProvider(PrismaService)
       .useValue(createPrismaServiceMock())
       .overrideProvider(SmsProvider)
@@ -176,5 +179,24 @@ describe('Auth (e2e)', () => {
 
   it('keeps /health public', async () => {
     await http().get('/health').expect(200);
+  });
+
+  it('rate-limits verification-code requests', async () => {
+    for (let i = 0; i < 3; i++) {
+      await http()
+        .post('/auth/register/code')
+        .send({ phone: `0917555${String(i).padStart(4, '0')}` })
+        .expect(201);
+    }
+    await http()
+      .post('/auth/register/code')
+      .send({ phone: '09175559999' })
+      .expect(429);
+  });
+
+  it('sends security headers', async () => {
+    const res = await http().get('/health').expect(200);
+    expect(res.headers['x-content-type-options']).toBe('nosniff');
+    expect(res.headers['x-frame-options']).toBeDefined();
   });
 });

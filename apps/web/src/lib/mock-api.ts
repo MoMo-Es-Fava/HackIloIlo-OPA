@@ -172,6 +172,14 @@ export function createMockApi() {
         contactPhone: input.contactPhone, ...(offer ? { offerId: offer.id, batchId: offer.batchId } : {}) };
       return order;
     }
+    if (route === "/admin/orders" && method === "POST") {
+      const input = body as CreateOrderRequest & { consent?: boolean };
+      if (input.consent !== true) throw new ApiError(400, "Ask the customer if IRPC may store their details and text them updates.");
+      const order = createMockOrder(input, nextId++, prices, riceTypes);
+      orders.unshift(order);
+      workspace.orderDetails[order.id] = { ownerId: `walk-in-${input.contactPhone}`, contactName: input.contactName, contactPhone: input.contactPhone };
+      return order;
+    }
     if (route === "/admin/orders" && method === "GET") return orders.filter((order) =>
       (!url.searchParams.get("status") || order.status === url.searchParams.get("status")) &&
       (!url.searchParams.get("type") || order.type === url.searchParams.get("type"))).map(adminOrder);
@@ -205,6 +213,25 @@ export function createMockApi() {
           if (input.note && updated.events?.length) updated.events[updated.events.length - 1].note = input.note;
           return updated;
         }
+      }
+      if (match[1] && action === "confirm-weight" && method === "POST") {
+        const awaiting = (order.status === OrderStatus.WEIGHED || (order.status === OrderStatus.DRYING && order.dryKg)) && !order.weightConfirmedAt;
+        if (!awaiting) throw new ApiError(409, "There is no weight waiting for confirmation.");
+        const updated = { ...order, weightConfirmedAt: new Date().toISOString() };
+        orders = orders.map((row) => row.id === order.id ? updated : row);
+        return updated;
+      }
+      // After drying / milling the order stays in its step; only the weight is recorded.
+      if (match[1] && action === "weigh-in" && method === "POST" && (order.status === OrderStatus.DRYING || order.status === OrderStatus.MILLING)) {
+        const input = body as { dryKg?: string; riceKg?: string };
+        const kg = order.status === OrderStatus.DRYING ? input.dryKg : input.riceKg;
+        if (!kg || !(Number(kg) > 0)) throw new ApiError(400, "Enter the weight for this step.");
+        const updated = order.status === OrderStatus.DRYING
+          ? { ...order, dryKg: Number(kg).toFixed(2), weightConfirmedAt: null }
+          : { ...order, riceKg: Number(kg).toFixed(2),
+              finalAmount: ((order.wetKg ? Number(order.wetKg) * Number(order.dryingRate ?? 0) : 0) + Number(kg) * Number(order.millingRate ?? 0)).toFixed(2) };
+        orders = orders.map((row) => row.id === order.id ? updated : row);
+        return updated;
       }
       if (match[1] && action === "weigh-in" && method === "POST") {
         if (order.type === OrderType.BUY_RICE || order.status !== OrderStatus.RECEIVED) throw new ApiError(409, "This order is not awaiting weigh-in.");

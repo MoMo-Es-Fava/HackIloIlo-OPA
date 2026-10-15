@@ -5,7 +5,7 @@ import { useState } from "react";
 import { DeliveryMethod, PalayCondition, orderRef } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { kgf, peso } from "@/lib/format";
-import { Button, Card, PageHeader, SelectField, TextField, cn } from "@/components/ui";
+import { Button, Card, PageHeader, TextField, cn } from "@/components/ui";
 
 type Step = "condition" | "details" | "review" | "done";
 const STEPS: { id: Step; label: string }[] = [
@@ -20,30 +20,28 @@ const deliveryLabel: Record<DeliveryMethod, string> = {
   SELF_DELIVER: "I will deliver it to IRPC", IRPC_PICKUP: "IRPC picks it up from me",
 };
 
-const OTHER = "__other__";
+const SACK_KG = 50;
+const MAX_SACKS = 10_000;
 
 export default function SellPalay() {
-  const { palayPrices, riceTypes, profile, isMock, orderError, sellPalay } = useStore();
+  const { palayPrices, profile, isMock, orderError, sellPalay } = useStore();
   const [step, setStep] = useState<Step>("condition");
   const [condition, setCondition] = useState<PalayCondition | null>(null);
-  const [kg, setKg] = useState("");
-  const [varietyChoice, setVarietyChoice] = useState("");
-  const [otherVariety, setOtherVariety] = useState("");
+  const [sacks, setSacks] = useState("");
+  const [variety, setVariety] = useState("");
   const [delivery, setDelivery] = useState<DeliveryMethod | null>(null);
   const [ref, setRef] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
 
   const price = (c: PalayCondition) => c === PalayCondition.FRESH ? palayPrices.fresh : palayPrices.dry;
   const rate = condition ? price(condition) : null;
-  const amount = Number(kg);
-  const isOther = varietyChoice === OTHER;
-  const variety = (isOther ? otherVariety : varietyChoice).trim();
+  const count = Number(sacks);
+  const amount = count * SACK_KG;
   const errors = {
-    kg: !kg.trim() ? "Enter how many kg you want to sell" : !(amount > 0) ? "Enter a quantity above 0" : undefined,
-    variety: !varietyChoice ? "Choose the rice variety" : isOther && !variety ? "Type the rice variety" : undefined,
+    sacks: !sacks.trim() ? "Enter how many sacks you want to sell" : !(Number.isInteger(count) && count > 0) ? "Enter a whole number of sacks" : count > MAX_SACKS ? `Enter ${MAX_SACKS.toLocaleString()} sacks or fewer` : undefined,
     delivery: !delivery ? "Choose how the palay gets to IRPC" : undefined,
   };
-  const detailsOk = !errors.kg && !errors.variety && !errors.delivery;
+  const detailsOk = !errors.sacks && !errors.delivery;
   const payout = rate !== null && amount > 0 ? amount * rate : null;
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
@@ -55,7 +53,7 @@ export default function SellPalay() {
     if (id !== null) { setRef(orderRef(id)); setStep("done"); }
   }
   function reset() {
-    setStep("condition"); setCondition(null); setKg(""); setVarietyChoice(""); setOtherVariety(""); setDelivery(null);
+    setStep("condition"); setCondition(null); setSacks(""); setVariety(""); setDelivery(null);
     setRef(null); setTouched(false);
   }
 
@@ -95,20 +93,12 @@ export default function SellPalay() {
       {step === "details" && (
         <Card>
           <h2 className="text-lg font-bold">Your palay details</h2>
-          <TextField label="Quantity (kg)" type="number" inputMode="decimal" min={1} step="any" value={kg}
-            error={touched ? errors.kg : undefined}
-            hint={amount > 0 ? `About ${(amount / 50).toFixed(1)} sacks of 50 kg. The final weight is confirmed at IRPC.` : "Your best estimate. IRPC weighs it on arrival."}
-            onChange={(e) => setKg(e.target.value)} />
-          <SelectField label="Rice variety" value={varietyChoice} onChange={(e) => setVarietyChoice(e.target.value)}>
-            <option value="">Choose a variety</option>
-            {riceTypes.map((rice) => <option key={rice.id} value={rice.name}>{rice.name}</option>)}
-            <option value={OTHER}>Other (type it yourself)</option>
-          </SelectField>
-          {touched && errors.variety && !isOther && <p className="-mt-3 text-sm font-bold text-clay">{errors.variety}</p>}
-          {isOther && (
-            <TextField label="Your rice variety" value={otherVariety} placeholder="e.g. Rc222 or Dinorado"
-              error={touched ? errors.variety : undefined} onChange={(e) => setOtherVariety(e.target.value)} />
-          )}
+          <TextField label="Number of sacks" type="number" inputMode="numeric" min={1} step={1} value={sacks}
+            error={touched ? errors.sacks : undefined}
+            hint={!errors.sacks ? `About ${kgf(amount)} (50 kg per sack). IRPC weighs it on arrival.` : "Count your 50 kg sacks. IRPC weighs them on arrival."}
+            onChange={(e) => setSacks(e.target.value)} />
+          <TextField label="Rice variety (optional)" value={variety} placeholder="e.g. Rc222 or Dinorado"
+            hint="Leave blank if you are not sure." onChange={(e) => setVariety(e.target.value)} />
           <fieldset className="flex flex-col gap-2">
             <legend className="font-bold">How will it reach IRPC?</legend>
             {Object.values(DeliveryMethod).map((d) => (
@@ -132,8 +122,8 @@ export default function SellPalay() {
           <h2 className="text-lg font-bold">Check your request</h2>
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
             <dt className="text-sub">Palay</dt><dd className="text-right font-bold">{conditionLabel[condition]}</dd>
-            <dt className="text-sub">Variety</dt><dd className="text-right font-bold">{variety.trim()}</dd>
-            <dt className="text-sub">Quantity</dt><dd className="text-right font-bold">{kgf(amount)}</dd>
+            <dt className="text-sub">Variety</dt><dd className="text-right font-bold">{variety.trim() || "Not sure"}</dd>
+            <dt className="text-sub">Quantity</dt><dd className="text-right font-bold">{count} {count === 1 ? "sack" : "sacks"} (about {kgf(amount)})</dd>
             <dt className="text-sub">Price</dt><dd className="text-right font-bold">{rate === null ? "Not available" : `${peso(rate)}/kg`}</dd>
             <dt className="text-sub">Delivery</dt><dd className="text-right font-bold">{deliveryLabel[delivery]}</dd>
             <dt className="text-sub">Seller</dt><dd className="text-right font-bold">{profile.name}</dd>

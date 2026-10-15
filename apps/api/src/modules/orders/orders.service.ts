@@ -1,434 +1,319 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import {
   ACCEPT_STATUS,
   ACTIVE_STATUSES,
-  canTransition,
-  estimateOrderAmount,
+  AccountType,
+  Role,
   OrderStatus,
   OrderType,
   PalayCondition,
   PriceItem,
   ServiceType,
+  canTransition,
+  estimateOrderAmount,
   orderRef,
-  type AdminOrderDto,
   type AdminSummaryDto,
-  type CreateOrderRequest,
+  type AdminOrderDto,
+  type CurrentPrice,
   type MoneySummaryDto,
   type OrderDto,
   type SmsLogDto,
   type UserDto,
 } from '@irpc/types';
-import { Prisma, SmsDirection } from '../../generated/prisma/client';
-import { CatalogService } from '../catalog/catalog.service';
-import { SmsService } from '../../integrations/textbee/sms.service';
+import { Prisma } from '../../generated/prisma/client';
 import { PrismaService } from '../../database/prisma.service';
-import type {
+import { SmsService } from '../../integrations/textbee/sms.service';
+import { toUserDto } from '../users/users.repository';
+import * as bcrypt from 'bcryptjs';
+import { randomBytes } from 'node:crypto';
+import {
   AcceptOrderDto,
+  StaffCreateOrderDto,
+  AdminOrdersQuery,
   CreateOrderDto,
-  WeighInOrderDto,
+  WeighInDto,
 } from './orders.dto';
+import {
+  finalAmount,
+  needsDrying,
+  needsMilling,
+  planWeighIn,
+  recoveryWarning,
+  serviceProblem,
+  toOrderDto,
+  transitionProblem,
+  type OrderRow,
+} from './order-rules';
+import { PricingLookup } from './pricing.lookup';
 
-type OrderWithEvents = Prisma.OrderGetPayload<{ include: { events: true } }>;
-type OrderWithCustomer = Prisma.OrderGetPayload<{
-  include: { events: true; customer: true };
-}>;
-
-const money = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
-const decimal = (value: Prisma.Decimal | null) => value?.toString() ?? null;
-
-function orderDto(order: OrderWithEvents): OrderDto {
-  return {
-    id: order.id,
-    ref: orderRef(order.id),
-    type: order.type,
-    status: order.status,
-    contactName: order.contactName,
-    contactPhone: order.contactPhone,
-    requestedKg: order.requestedKg.toString(),
-    preferredDate: order.preferredDate.toISOString(),
-    scheduledDate: order.scheduledDate?.toISOString() ?? null,
-    riceTypeId: order.riceTypeId,
-    palayCondition: order.palayCondition,
-    variety: order.variety,
-    deliveryMethod: order.deliveryMethod,
-    serviceType: order.serviceType,
-    unitPrice: decimal(order.unitPrice),
-    dryingRate: decimal(order.dryingRate),
-    millingRate: decimal(order.millingRate),
-    wetKg: decimal(order.wetKg),
-    dryKg: decimal(order.dryKg),
-    riceKg: decimal(order.riceKg),
-    weightConfirmedAt: order.weightConfirmedAt?.toISOString() ?? null,
-    estimatedAmount: order.estimatedAmount.toString(),
-    finalAmount: decimal(order.finalAmount),
-    rejectReason: order.rejectReason,
-    createdAt: order.createdAt.toISOString(),
-    events: order.events.map((event) => ({
-      fromStatus: event.fromStatus,
-      toStatus: event.toStatus,
-      kg: decimal(event.kg),
-      note: event.note,
-      createdAt: event.createdAt.toISOString(),
-    })),
-  };
-}
-
-const toUserDto = (user: OrderWithCustomer['customer']): UserDto => ({
-  id: user.id,
-  name: user.name,
-  phone: user.phone,
-  role: user.role,
-  accountType: user.accountType,
-  language: user.language,
-  municipality: user.municipality,
-  cooperative: user.cooperative,
-});
-
-function manilaDate(date = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Manila',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(date);
-}
-
+type Tx = Prisma.TransactionClient;
+const D = (value: string | number | Prisma.Decimal) =>
+  new Prisma.Decimal(value);
+const EVENTS = { orderBy: { createdAt: 'asc' as const } };
+const formatMoney = (value: number) => (Math.round(value * 100) / 100).toFixed(2);
+const manilaDate = () => new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Manila', year: 'numeric', month: '2-digit', day: '2-digit',
+}).format(new Date());
 function manilaDayBounds(date: string) {
-  const [year, month, day] = date.split('-').map(Number);
-  if (!year || !month || !day || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     throw new BadRequestException('Dates must use YYYY-MM-DD format.');
   }
-  // Manila is UTC+8, with no daylight-saving time.
+  const [year, month, day] = date.split('-').map(Number);
+  if (new Date(Date.UTC(year, month - 1, day)).toISOString().slice(0, 10) !== date) {
+    throw new BadRequestException('Choose a valid calendar date.');
+  }
   const start = new Date(Date.UTC(year, month - 1, day) - 8 * 60 * 60 * 1000);
-  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-  return { start, end };
+  return { start, end: new Date(start.getTime() + 24 * 60 * 60 * 1000) };
 }
+// A random PIN nobody knows: staff-created customers can't log in until they set their own PIN.
+const UNUSABLE_PIN_HASH = bcrypt.hashSync(randomBytes(24).toString('hex'), 10);
+const STALE =
+  'This order was just updated by someone else. Reload and try again.';
+
+const manilaToday = () =>
+  new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Manila' });
 
 @Injectable()
 export class OrdersService {
+  private readonly log = new Logger(OrdersService.name);
+
   constructor(
     private readonly prisma: PrismaService,
-    private readonly catalog: CatalogService,
+    private readonly pricing: PricingLookup,
     private readonly sms: SmsService,
   ) {}
 
-  private async getOrder(id: number) {
-    const order = await this.prisma.order.findUnique({
-      where: { id },
-      include: { events: { orderBy: { createdAt: 'asc' } } },
-    });
-    if (!order) throw new NotFoundException('Order not found.');
-    return order;
-  }
+  // ───────────── Customer actions ─────────────
 
-  async create(input: CreateOrderDto, user: UserDto): Promise<OrderDto> {
-    const kg = Number(input.requestedKg);
-    if (!Number.isFinite(kg) || kg <= 0) {
-      throw new BadRequestException('Enter a quantity above zero.');
+  /** `actorId` is who entered it: the customer, or IRPC staff for walk-ins and calls. */
+  async create(
+    user: UserDto,
+    dto: CreateOrderDto,
+    actorId = user.id,
+    note: string | null = null,
+  ): Promise<OrderDto> {
+    if (dto.preferredDate.slice(0, 10) < manilaToday()) {
+      throw new BadRequestException('Choose today or a future date.');
     }
-    if (!input.contactName.trim() || !/^\+639\d{9}$/.test(input.contactPhone)) {
-      throw new BadRequestException('Enter a name and a Philippine mobile number (+639…).');
+    if (dto.type === OrderType.SERVICE) {
+      const problem = serviceProblem(dto.serviceType!, dto.palayCondition!);
+      if (problem) throw new BadRequestException(problem);
     }
-    const preferredDate = new Date(input.preferredDate);
-    if (!Number.isFinite(preferredDate.getTime())) {
-      throw new BadRequestException('Choose a preferred date.');
-    }
-
-    if (input.type === OrderType.BUY_RICE && !input.riceTypeId) {
-      throw new BadRequestException('Choose a rice type.');
-    }
-    if (input.type === OrderType.SELL_PALAY && (!input.palayCondition || !input.deliveryMethod)) {
-      throw new BadRequestException('Choose the palay condition and delivery method.');
-    }
-    if (input.type === OrderType.SERVICE && !input.serviceType) {
-      throw new BadRequestException('Choose a service.');
-    }
-
-    const prices = await this.catalog.getPrices();
-    const settings = await this.catalog.getSettings();
-    if (input.type === OrderType.BUY_RICE) {
-      const rice = await this.prisma.riceType.findFirst({
-        where: { id: input.riceTypeId, isActive: true },
+    if (dto.type === OrderType.BUY_RICE) {
+      const rice = await this.prisma.riceType.findUnique({
+        where: { id: dto.riceTypeId },
       });
-      if (!rice || kg > Number(rice.stockKg)) {
-        throw new BadRequestException('Not enough rice in stock.');
+      if (!rice || !rice.isActive)
+        throw new BadRequestException('This rice type is not available.');
+      if (D(dto.requestedKg).gt(rice.stockKg)) {
+        throw new BadRequestException(
+          `Only ${rice.stockKg.toFixed(2)} kg of this rice is in stock.`,
+        );
       }
     }
-    const estimate = estimateOrderAmount(
-      input as CreateOrderRequest,
-      prices,
-      settings,
-    );
+
+    const [prices, settings] = await Promise.all([
+      this.pricing.currentPrices(),
+      this.pricing.settings(),
+    ]);
+    const estimate = estimateOrderAmount(dto, prices, settings);
     if (estimate === null) {
-      throw new BadRequestException('A price needed for this order has not been set.');
+      throw new ConflictException(
+        'Prices are not set yet. Please try again later.',
+      );
     }
 
-    const order = await this.prisma.order.create({
-      data: {
-        type: input.type,
-        status: OrderStatus.PENDING,
-        customerId: user.id,
-        contactName: input.contactName.trim(),
-        contactPhone: input.contactPhone,
-        requestedKg: kg.toFixed(2),
-        preferredDate,
-        riceTypeId: input.type === OrderType.BUY_RICE ? input.riceTypeId : null,
-        palayCondition: input.type === OrderType.BUY_RICE ? null : input.palayCondition ?? null,
-        variety: input.type === OrderType.SELL_PALAY ? input.variety?.trim() || null : null,
-        deliveryMethod: input.type === OrderType.SELL_PALAY ? input.deliveryMethod ?? null : null,
-        serviceType: input.type === OrderType.SERVICE ? input.serviceType ?? null : null,
-        estimatedAmount: estimate,
-        events: {
-          create: {
-            fromStatus: null,
-            toStatus: OrderStatus.PENDING,
-            actorId: user.id,
-            note: 'Order placed',
-          },
+    const order = await this.prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: {
+          type: dto.type,
+          customerId: user.id,
+          contactName: dto.contactName,
+          contactPhone: dto.contactPhone,
+          requestedKg: dto.requestedKg,
+          preferredDate: new Date(dto.preferredDate),
+          riceTypeId: dto.type === OrderType.BUY_RICE ? dto.riceTypeId : null,
+          palayCondition:
+            dto.type === OrderType.BUY_RICE ? null : dto.palayCondition,
+          variety:
+            dto.type === OrderType.SELL_PALAY ? (dto.variety ?? null) : null,
+          deliveryMethod:
+            dto.type === OrderType.SELL_PALAY ? dto.deliveryMethod : null,
+          serviceType: dto.type === OrderType.SERVICE ? dto.serviceType : null,
+          estimatedAmount: estimate,
         },
-      },
-      include: { events: { orderBy: { createdAt: 'asc' } } },
+      });
+      await tx.orderEvent.create({
+        data: {
+          orderId: created.id,
+          fromStatus: null,
+          toStatus: OrderStatus.PENDING,
+          actorId,
+          note,
+        },
+      });
+      return created;
     });
-    return orderDto(order);
+    void this.notify(order);
+    return this.withEvents(order.id);
   }
 
-  async mine(userId: number, activeOnly: boolean): Promise<OrderDto[]> {
-    const orders = await this.prisma.order.findMany({
+  async listMine(userId: number, active?: boolean): Promise<OrderDto[]> {
+    const rows = await this.prisma.order.findMany({
       where: {
         customerId: userId,
-        ...(activeOnly ? { status: { in: ACTIVE_STATUSES } } : {}),
+        ...(active ? { status: { in: ACTIVE_STATUSES } } : {}),
       },
-      include: { events: { orderBy: { createdAt: 'asc' } } },
       orderBy: { createdAt: 'desc' },
     });
-    return orders.map(orderDto);
+    return rows.map((row) => toOrderDto(row as OrderRow));
   }
 
-  async mineById(id: number, userId: number): Promise<OrderDto> {
-    const order = await this.prisma.order.findFirst({
-      where: { id, customerId: userId },
-      include: { events: { orderBy: { createdAt: 'asc' } } },
+  async getMine(userId: number, id: number): Promise<OrderDto> {
+    await this.ownOrder(userId, id);
+    return this.withEvents(id);
+  }
+
+  async cancel(user: UserDto, id: number): Promise<OrderDto> {
+    const order = await this.ownOrder(user.id, id);
+    if (order.status !== OrderStatus.PENDING) {
+      throw new ConflictException(
+        'Only orders still waiting for IRPC can be cancelled.',
+      );
+    }
+    return this.change(order, OrderStatus.CANCELLED, user.id, {
+      note: 'Cancelled by customer',
     });
-    if (!order) throw new NotFoundException('Order not found.');
-    return orderDto(order);
   }
 
-  async cancel(id: number, user: UserDto): Promise<OrderDto> {
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findFirst({ where: { id, customerId: user.id } });
-      if (!order) throw new NotFoundException('Order not found.');
-      if (order.status !== OrderStatus.PENDING) {
-        throw new BadRequestException('Only pending orders can be cancelled.');
-      }
-      return tx.order.update({
-        where: { id },
+  async confirmWeight(user: UserDto, id: number): Promise<OrderDto> {
+    const order = await this.ownOrder(user.id, id);
+    return this.recordConfirmation(
+      order,
+      user.id,
+      'Customer confirmed the weight',
+    );
+  }
+
+  // ───────────── Staff actions ─────────────
+
+  /**
+   * Staff enter an order for a walk-in or phone customer. The customer is found by phone,
+   * or added (they can't log in until they set a PIN; their consent is confirmed by staff).
+   */
+  async staffCreate(
+    actor: UserDto,
+    dto: StaffCreateOrderDto,
+  ): Promise<OrderDto> {
+    let customer = await this.prisma.user.findUnique({
+      where: { phone: dto.contactPhone },
+    });
+    if (customer && customer.role !== Role.USER) {
+      throw new ConflictException(
+        'This phone number belongs to a staff account.',
+      );
+    }
+    if (customer && !customer.isActive) {
+      throw new ConflictException('This customer account is deactivated.');
+    }
+    customer ??= await this.prisma.user.create({
+      data: {
+        name: dto.contactName,
+        phone: dto.contactPhone,
+        pinHash: UNUSABLE_PIN_HASH,
+        role: Role.USER,
+        accountType: dto.accountType ?? AccountType.FARMER,
+        municipality: dto.municipality ?? null,
+        consentAt: new Date(),
+      },
+    });
+    return this.create(
+      toUserDto(customer),
+      dto,
+      actor.id,
+      'Entered by IRPC staff (walk-in or phone)',
+    );
+  }
+
+  /** Staff record that the customer confirmed the weight in person at the scale. */
+  async staffConfirmWeight(actor: UserDto, id: number): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    return this.recordConfirmation(
+      order,
+      actor.id,
+      'Customer confirmed the weight at the scale',
+    );
+  }
+
+  private async recordConfirmation(
+    order: OrderRow,
+    actorId: number,
+    note: string,
+  ): Promise<OrderDto> {
+    const id = order.id;
+    const awaiting =
+      (order.status === OrderStatus.WEIGHED ||
+        (order.status === OrderStatus.DRYING && order.dryKg)) &&
+      !order.weightConfirmedAt;
+    if (!awaiting)
+      throw new ConflictException(
+        'There is no weight waiting for your confirmation.',
+      );
+    await this.prisma.$transaction(async (tx) => {
+      const done = await tx.order.updateMany({
+        where: { id, status: order.status, weightConfirmedAt: null },
+        data: { weightConfirmedAt: new Date() },
+      });
+      if (done.count === 0) throw new ConflictException(STALE);
+      await tx.orderEvent.create({
         data: {
-          status: OrderStatus.CANCELLED,
-          events: { create: { fromStatus: order.status, toStatus: OrderStatus.CANCELLED, actorId: user.id } },
+          orderId: id,
+          fromStatus: order.status,
+          toStatus: order.status,
+          actorId,
+          note,
         },
-        include: { events: { orderBy: { createdAt: 'asc' } } },
       });
     });
-    await this.notifyStatusChange(updated);
-    return orderDto(updated);
+    return this.withEvents(id);
   }
 
-  async confirmWeight(id: number, user: UserDto): Promise<OrderDto> {
-    const order = await this.prisma.order.findFirst({ where: { id, customerId: user.id } });
-    if (!order) throw new NotFoundException('Order not found.');
-    if (order.type === OrderType.BUY_RICE || order.status !== OrderStatus.WEIGHED || !order.finalAmount) {
-      throw new BadRequestException('There is no weight to confirm yet.');
-    }
-    return orderDto(await this.prisma.order.update({
-      where: { id },
-      data: { weightConfirmedAt: order.weightConfirmedAt ?? new Date() },
-      include: { events: { orderBy: { createdAt: 'asc' } } },
-    }));
-  }
-
-  async adminList(filters: { status?: OrderStatus; type?: OrderType }): Promise<AdminOrderDto[]> {
-    const orders = await this.prisma.order.findMany({
-      where: { ...(filters.status ? { status: filters.status } : {}), ...(filters.type ? { type: filters.type } : {}) },
-      include: { events: { orderBy: { createdAt: 'asc' } }, customer: true },
+  async adminList(query: AdminOrdersQuery): Promise<OrderDto[]> {
+    const rows = await this.prisma.order.findMany({
+      where: { status: query.status, type: query.type },
       orderBy: { createdAt: 'desc' },
     });
-    return orders.map((order) => ({ ...orderDto(order), customer: toUserDto(order.customer), events: orderDto(order).events! }));
+    return rows.map((row) => toOrderDto(row as OrderRow));
   }
 
   async adminGet(id: number): Promise<AdminOrderDto> {
     const order = await this.prisma.order.findUnique({
       where: { id },
-      include: { events: { orderBy: { createdAt: 'asc' } }, customer: true },
+      include: { events: EVENTS, customer: true },
     });
     if (!order) throw new NotFoundException('Order not found.');
-    return { ...orderDto(order), customer: toUserDto(order.customer), events: orderDto(order).events! };
-  }
-
-  async accept(id: number, body: AcceptOrderDto, actor: UserDto): Promise<OrderDto> {
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({ where: { id } });
-      if (!order) throw new NotFoundException('Order not found.');
-      const nextStatus = ACCEPT_STATUS[order.type];
-      if (order.status !== OrderStatus.PENDING || !canTransition(order.type, order.status, nextStatus)) {
-        throw new BadRequestException('This order has already been reviewed.');
-      }
-      if (order.type === OrderType.SERVICE && !body.scheduledDate) {
-        throw new BadRequestException('A service date is required.');
-      }
-      const scheduledDate = new Date(body.scheduledDate ?? order.preferredDate.toISOString());
-      if (!Number.isFinite(scheduledDate.getTime())) throw new BadRequestException('Choose a valid service date.');
-
-      const price = async (item: PriceItem, riceTypeId: number | null = null) => {
-        const row = await tx.price.findFirst({
-          where: { item, riceTypeId, effectiveAt: { lte: new Date() } },
-          orderBy: [{ effectiveAt: 'desc' }, { id: 'desc' }],
-        });
-        if (!row) throw new BadRequestException('A price needed for this order has not been set.');
-        return row.pricePerKg.toString();
-      };
-
-      const data: Prisma.OrderUpdateInput = {
-        status: nextStatus,
-        scheduledDate,
-        events: { create: { fromStatus: order.status, toStatus: nextStatus, actorId: actor.id } },
-      };
-      if (order.type === OrderType.BUY_RICE) {
-        if (order.riceTypeId === null) throw new BadRequestException('Choose a rice type.');
-        const rice = await tx.riceType.findUnique({ where: { id: order.riceTypeId } });
-        if (!rice || !rice.isActive || Number(rice.stockKg) < Number(order.requestedKg)) {
-          throw new BadRequestException('Not enough rice in stock.');
-        }
-        const unitPrice = await price(PriceItem.RICE, order.riceTypeId);
-        data.unitPrice = unitPrice;
-        data.finalAmount = money(Number(order.requestedKg) * Number(unitPrice));
-        await tx.riceType.update({ where: { id: rice.id }, data: { stockKg: (Number(rice.stockKg) - Number(order.requestedKg)).toFixed(2) } });
-        await tx.stockAdjustment.create({
-          data: { riceTypeId: rice.id, changeKg: (-Number(order.requestedKg)).toFixed(2), reason: `Reserved for ${orderRef(order.id)}`, orderId: order.id, actorId: actor.id },
-        });
-      } else if (order.type === OrderType.SELL_PALAY) {
-        const item = order.palayCondition === PalayCondition.DRY ? PriceItem.PALAY_DRY : PriceItem.PALAY_FRESH;
-        data.unitPrice = await price(item);
-      } else {
-        data.dryingRate = order.serviceType === ServiceType.MILLING ? null : await price(PriceItem.DRYING_FEE);
-        data.millingRate = order.serviceType === ServiceType.DRYING ? null : await price(PriceItem.MILLING_FEE);
-      }
-      return tx.order.update({
-        where: { id },
-        data,
-        include: { events: { orderBy: { createdAt: 'asc' } } },
-      });
-    });
-    await this.notifyStatusChange(updated);
-    return orderDto(updated);
-  }
-
-  async reject(id: number, reason: string, actor: UserDto): Promise<OrderDto> {
-    const note = reason.trim();
-    if (!note) throw new BadRequestException('A rejection reason is required.');
-    const updated = await this.changeStatus(id, OrderStatus.REJECTED, actor, note, { rejectReason: note });
-    await this.notifyStatusChange(updated);
-    return orderDto(updated);
-  }
-
-  async updateStatus(id: number, status: OrderStatus, note: string | undefined, actor: UserDto) {
-    if (status === OrderStatus.PENDING || status === OrderStatus.REJECTED || status === OrderStatus.CANCELLED) {
-      throw new BadRequestException('Use accept, reject, or cancel for this status.');
-    }
-    const order = await this.getOrder(id);
-    if (order.status === OrderStatus.PENDING) throw new BadRequestException('Accept or reject the order first.');
-    if (order.type === OrderType.SERVICE) {
-      if (status === OrderStatus.DRYING && order.serviceType === ServiceType.MILLING) throw new BadRequestException('That step does not match the selected service.');
-      if (status === OrderStatus.MILLING && order.serviceType === ServiceType.DRYING) throw new BadRequestException('That step does not match the selected service.');
-    }
-    if (order.type === OrderType.SELL_PALAY && status === OrderStatus.PAID && !order.weightConfirmedAt) {
-      throw new BadRequestException('The farmer must confirm the weight first.');
-    }
-    const updated = await this.changeStatus(id, status, actor, note);
-    await this.notifyStatusChange(updated);
-    return orderDto(updated);
-  }
-
-  private async changeStatus(
-    id: number,
-    status: OrderStatus,
-    actor: UserDto,
-    note?: string,
-    extra: Prisma.OrderUpdateInput = {},
-  ) {
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({ where: { id } });
-      if (!order) throw new NotFoundException('Order not found.');
-      if (!canTransition(order.type, order.status, status)) throw new BadRequestException('Invalid order transition.');
-      return tx.order.update({
-        where: { id },
-        data: {
-          ...extra,
-          status,
-          ...(status === OrderStatus.PAID ? { paidAt: new Date() } : {}),
-          events: { create: { fromStatus: order.status, toStatus: status, actorId: actor.id, note: note?.trim() || null } },
-        },
-        include: { events: { orderBy: { createdAt: 'asc' } } },
-      });
-    });
-    return updated;
-  }
-
-  async weighIn(id: number, body: WeighInOrderDto, actor: UserDto): Promise<OrderDto> {
-    const wetKg = body.wetKg === undefined ? null : Number(body.wetKg);
-    const dryKg = body.dryKg === undefined ? null : Number(body.dryKg);
-    const riceKg = body.riceKg === undefined ? null : Number(body.riceKg);
-    if ([wetKg, dryKg, riceKg].some((kg) => kg !== null && (!Number.isFinite(kg) || kg <= 0))) {
-      throw new BadRequestException('Enter valid weights above zero.');
-    }
-    const updated = await this.prisma.$transaction(async (tx) => {
-      const order = await tx.order.findUnique({ where: { id } });
-      if (!order) throw new NotFoundException('Order not found.');
-      if (order.type === OrderType.BUY_RICE || order.status !== OrderStatus.RECEIVED) {
-        throw new BadRequestException('This order is not awaiting weigh-in.');
-      }
-      let finalAmount: string;
-      if (order.type === OrderType.SELL_PALAY) {
-        const actualKg = order.palayCondition === PalayCondition.FRESH ? wetKg : dryKg;
-        if (actualKg === null || !order.unitPrice) throw new BadRequestException('Enter the actual palay weight.');
-        finalAmount = money(actualKg * Number(order.unitPrice));
-      } else {
-        if (order.dryingRate !== null && wetKg === null) throw new BadRequestException('Enter the wet palay weight.');
-        if (order.millingRate !== null && riceKg === null) throw new BadRequestException('Enter the rice output weight.');
-        finalAmount = money((wetKg ?? 0) * Number(order.dryingRate ?? 0) + (riceKg ?? 0) * Number(order.millingRate ?? 0));
-      }
-      return tx.order.update({
-        where: { id },
-        data: {
-          status: OrderStatus.WEIGHED,
-          wetKg: wetKg?.toFixed(2) ?? null,
-          dryKg: dryKg?.toFixed(2) ?? null,
-          riceKg: riceKg?.toFixed(2) ?? null,
-          finalAmount,
-          weightConfirmedAt: null,
-          events: { create: { fromStatus: order.status, toStatus: OrderStatus.WEIGHED, actorId: actor.id, kg: (wetKg ?? dryKg ?? riceKg)?.toFixed(2) ?? null } },
-        },
-        include: { events: { orderBy: { createdAt: 'asc' } } },
-      });
-    });
-    await this.notifyStatusChange(updated);
-    return orderDto(updated);
+    const dto = toOrderDto(order, order.events);
+    return {
+      ...dto,
+      events: dto.events ?? [],
+      customer: toUserDto(order.customer),
+    };
   }
 
   async summary(): Promise<AdminSummaryDto> {
-    const today = manilaDate();
-    const { start, end } = manilaDayBounds(today);
+    const { start, end } = manilaDayBounds(manilaDate());
     const [needsApproval, arrivingToday, inDrying, readyForPickup, dryingOrders, settings] = await Promise.all([
       this.prisma.order.count({ where: { status: OrderStatus.PENDING } }),
-      this.prisma.order.count({
-        where: { scheduledDate: { gte: start, lt: end }, OR: [
-          { type: OrderType.SELL_PALAY, status: OrderStatus.ACCEPTED },
-          { type: OrderType.SERVICE, status: OrderStatus.SCHEDULED },
-        ] },
-      }),
+      this.prisma.order.count({ where: { scheduledDate: { gte: start, lt: end }, OR: [
+        { type: OrderType.SELL_PALAY, status: OrderStatus.ACCEPTED },
+        { type: OrderType.SERVICE, status: OrderStatus.SCHEDULED },
+      ] } }),
       this.prisma.order.count({ where: { type: OrderType.SERVICE, status: OrderStatus.DRYING } }),
       this.prisma.order.count({ where: { status: OrderStatus.READY_FOR_PICKUP } }),
       this.prisma.order.findMany({
@@ -438,23 +323,19 @@ export class OrdersService {
         ] },
         select: { requestedKg: true },
       }),
-      this.catalog.getSettings(),
+      this.pricing.settings(),
     ]);
     const dryingKgBookedToday = dryingOrders.reduce((sum, order) => sum + Number(order.requestedKg), 0);
     return {
-      needsApproval,
-      arrivingToday,
-      inDrying,
-      readyForPickup,
-      dryingKgBookedToday: money(dryingKgBookedToday),
+      needsApproval, arrivingToday, inDrying, readyForPickup,
+      dryingKgBookedToday: formatMoney(dryingKgBookedToday),
       dryingCapacityKg: settings.dryingCapacityKg,
     };
   }
 
   async moneySummary(from?: string, to?: string): Promise<MoneySummaryDto> {
     const today = manilaDate();
-    const currentMonth = `${today.slice(0, 7)}-01`;
-    const startDate = from ?? currentMonth;
+    const startDate = from ?? `${today.slice(0, 7)}-01`;
     const endDate = to ?? today;
     const { start } = manilaDayBounds(startDate);
     const { end } = manilaDayBounds(endDate);
@@ -465,65 +346,290 @@ export class OrdersService {
     });
     const totals = { boughtPalay: 0, soldRice: 0, serviceFees: 0 };
     for (const row of rows) {
-      const value = Number(row.finalAmount ?? 0);
-      if (row.type === OrderType.SELL_PALAY) totals.boughtPalay += value;
-      else if (row.type === OrderType.BUY_RICE) totals.soldRice += value;
-      else totals.serviceFees += value;
+      const amount = Number(row.finalAmount ?? 0);
+      if (row.type === OrderType.SELL_PALAY) totals.boughtPalay += amount;
+      else if (row.type === OrderType.BUY_RICE) totals.soldRice += amount;
+      else totals.serviceFees += amount;
     }
     return {
-      from: startDate,
-      to: endDate,
-      boughtPalay: money(totals.boughtPalay),
-      soldRice: money(totals.soldRice),
-      serviceFees: money(totals.serviceFees),
-      grossProfit: money(totals.soldRice + totals.serviceFees - totals.boughtPalay),
+      from: startDate, to: endDate,
+      boughtPalay: formatMoney(totals.boughtPalay),
+      soldRice: formatMoney(totals.soldRice),
+      serviceFees: formatMoney(totals.serviceFees),
+      grossProfit: formatMoney(totals.soldRice + totals.serviceFees - totals.boughtPalay),
     };
   }
 
   async smsLogs(): Promise<SmsLogDto[]> {
     const rows = await this.prisma.smsLog.findMany({ orderBy: { createdAt: 'desc' }, take: 100 });
     return rows.map((row) => ({
-      id: row.id,
-      direction: row.direction,
-      phone: row.phone,
-      message: row.message,
-      status: row.status,
-      orderId: row.orderId,
-      createdAt: row.createdAt.toISOString(),
+      id: row.id, direction: row.direction, phone: row.phone, message: row.message,
+      status: row.status, orderId: row.orderId, createdAt: row.createdAt.toISOString(),
     }));
   }
 
-  private async notifyStatusChange(order: OrderWithEvents) {
-    const dto = orderDto(order);
-    let status = 'FAILED';
-    let providerId: string | undefined;
-    let message = `${dto.ref}: ${dto.status.toLowerCase().replaceAll('_', ' ')}.`;
-    if (dto.scheduledDate && ['ACCEPTED', 'SCHEDULED'].includes(dto.status)) {
-      message += ` Confirmed date: ${dto.scheduledDate}.`;
+  async accept(
+    actor: UserDto,
+    id: number,
+    dto: AcceptOrderDto,
+  ): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    if (order.status !== OrderStatus.PENDING) {
+      throw new ConflictException(
+        'Only orders waiting for review can be accepted.',
+      );
     }
-    if (dto.status === 'REJECTED' && dto.rejectReason) {
-      message += ` Reason: ${dto.rejectReason}.`;
+    if (order.type === OrderType.SERVICE && !dto.scheduledDate) {
+      throw new BadRequestException('Choose the service date.');
     }
-    try {
-      const result = await this.sms.notifyStatusChange(dto);
-      status = result.status === 'mocked' ? 'MOCKED' : 'QUEUED';
-      providerId = result.batchId;
-    } catch (error) {
-      console.error('Status SMS could not be sent:', error);
+    const scheduledDate = dto.scheduledDate
+      ? new Date(dto.scheduledDate)
+      : order.preferredDate;
+    const locked = this.lockPrices(order, await this.pricing.currentPrices());
+    const priced: OrderRow = { ...order, ...locked };
+    const total =
+      order.type === OrderType.BUY_RICE ? finalAmount(priced) : null;
+    const note = locked.unitPrice
+      ? `Accepted. Price locked at ₱${locked.unitPrice.toFixed(2)}/kg`
+      : 'Accepted. Service fees locked';
+
+    return this.change(order, ACCEPT_STATUS[order.type], actor.id, {
+      data: {
+        ...locked,
+        scheduledDate,
+        ...(total ? { finalAmount: total } : {}),
+      },
+      note,
+      inTx: (tx) =>
+        order.type === OrderType.BUY_RICE
+          ? this.reserveRice(tx, order, actor.id)
+          : Promise.resolve(),
+    });
+  }
+
+  async reject(actor: UserDto, id: number, reason: string): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    if (order.status !== OrderStatus.PENDING) {
+      throw new ConflictException(
+        'Only orders waiting for review can be rejected.',
+      );
     }
-    try {
-      await this.prisma.smsLog.create({
+    return this.change(order, OrderStatus.REJECTED, actor.id, {
+      data: { rejectReason: reason },
+      note: reason,
+    });
+  }
+
+  async setStatus(
+    actor: UserDto,
+    id: number,
+    to: OrderStatus,
+    note?: string,
+  ): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    if (order.status === OrderStatus.PENDING) {
+      throw new BadRequestException(
+        'Use accept or reject for orders waiting for review.',
+      );
+    }
+    if (!canTransition(order.type, order.status, to)) {
+      throw new BadRequestException(
+        `An order cannot go from ${order.status} to ${to}.`,
+      );
+    }
+    const problem = transitionProblem(order, to);
+    if (problem) throw new ConflictException(problem);
+
+    const total = finalAmount(order);
+    return this.change(order, to, actor.id, {
+      data: {
+        ...(to === OrderStatus.PAID ? { paidAt: new Date() } : {}),
+        ...(total ? { finalAmount: total } : {}),
+      },
+      note,
+      inTx: (tx) =>
+        order.type === OrderType.BUY_RICE && to === OrderStatus.CANCELLED
+          ? this.releaseRice(tx, order, actor.id)
+          : Promise.resolve(),
+    });
+  }
+
+  async weighIn(
+    actor: UserDto,
+    id: number,
+    weights: WeighInDto,
+  ): Promise<OrderDto> {
+    const order = await this.findOrder(id);
+    const plan = planWeighIn(order, weights);
+    if (typeof plan === 'string') throw new BadRequestException(plan);
+    const updated: OrderRow = { ...order, ...plan.data };
+    const total = finalAmount(updated);
+    const warning = recoveryWarning(updated);
+    const note = [
+      plan.needsConfirmation
+        ? 'Waiting for customer to confirm the weight'
+        : null,
+      warning,
+    ]
+      .filter(Boolean)
+      .join('. ');
+
+    return this.change(order, plan.nextStatus, actor.id, {
+      data: {
+        ...plan.data,
+        ...(plan.needsConfirmation ? { weightConfirmedAt: null } : {}),
+        ...(total ? { finalAmount: total } : {}),
+      },
+      note: note || null,
+      kg: plan.kg,
+      notify: true,
+    });
+  }
+
+  // ───────────── Helpers ─────────────
+
+  /** Moves an order to `to` (or records a step in place) with an event, guarding against stale updates. */
+  private async change(
+    order: OrderRow,
+    to: OrderStatus,
+    actorId: number,
+    opts: {
+      data?: Prisma.OrderUpdateManyMutationInput;
+      note?: string | null;
+      kg?: Prisma.Decimal;
+      inTx?: (tx: Tx) => Promise<unknown>;
+      notify?: boolean;
+    } = {},
+  ): Promise<OrderDto> {
+    await this.prisma.$transaction(async (tx) => {
+      const done = await tx.order.updateMany({
+        where: { id: order.id, status: order.status },
+        data: { ...opts.data, status: to },
+      });
+      if (done.count === 0) throw new ConflictException(STALE);
+      await opts.inTx?.(tx);
+      await tx.orderEvent.create({
         data: {
-          direction: SmsDirection.OUTBOUND,
-          phone: order.contactPhone,
-          message,
-          status,
-          providerId,
           orderId: order.id,
+          fromStatus: order.status,
+          toStatus: to,
+          actorId,
+          note: opts.note ?? null,
+          kg: opts.kg ?? null,
         },
       });
+    });
+    const dto = await this.withEvents(order.id);
+    if (to !== order.status || opts.notify)
+      void this.notify(await this.findOrder(order.id));
+    return dto;
+  }
+
+  /** Copies the current prices onto the order so later price changes don't affect it. */
+  private lockPrices(order: OrderRow, prices: CurrentPrice[]) {
+    const price = (item: PriceItem, riceTypeId: number | null = null) => {
+      const row = prices.find(
+        (p) => p.item === item && p.riceTypeId === riceTypeId,
+      );
+      if (!row)
+        throw new ConflictException(
+          'Set the current prices before accepting orders.',
+        );
+      return D(row.pricePerKg);
+    };
+    if (order.type === OrderType.BUY_RICE)
+      return { unitPrice: price(PriceItem.RICE, order.riceTypeId) };
+    if (order.type === OrderType.SELL_PALAY) {
+      return {
+        unitPrice: price(
+          order.palayCondition === PalayCondition.DRY
+            ? PriceItem.PALAY_DRY
+            : PriceItem.PALAY_FRESH,
+        ),
+      };
+    }
+    return {
+      dryingRate: needsDrying(order) ? price(PriceItem.DRYING_FEE) : null,
+      millingRate: needsMilling(order) ? price(PriceItem.MILLING_FEE) : null,
+    };
+  }
+
+  /** Takes the ordered rice out of stock. Fails if another order took it first. */
+  private async reserveRice(tx: Tx, order: OrderRow, actorId: number) {
+    const taken = await tx.riceType.updateMany({
+      where: { id: order.riceTypeId!, stockKg: { gte: order.requestedKg } },
+      data: { stockKg: { decrement: order.requestedKg } },
+    });
+    if (taken.count === 0)
+      throw new ConflictException(
+        'Not enough rice in stock to accept this order.',
+      );
+    await tx.stockAdjustment.create({
+      data: {
+        riceTypeId: order.riceTypeId!,
+        changeKg: order.requestedKg.neg(),
+        reason: `Reserved for ${orderRef(order.id)}`,
+        orderId: order.id,
+        actorId,
+      },
+    });
+  }
+
+  /** Puts reserved rice back when an accepted order is cancelled. */
+  private async releaseRice(tx: Tx, order: OrderRow, actorId: number) {
+    await tx.riceType.update({
+      where: { id: order.riceTypeId! },
+      data: { stockKg: { increment: order.requestedKg } },
+    });
+    await tx.stockAdjustment.create({
+      data: {
+        riceTypeId: order.riceTypeId!,
+        changeKg: order.requestedKg,
+        reason: `Released from cancelled ${orderRef(order.id)}`,
+        orderId: order.id,
+        actorId,
+      },
+    });
+  }
+
+  private async findOrder(id: number): Promise<OrderRow> {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException('Order not found.');
+    return order;
+  }
+
+  private async ownOrder(userId: number, id: number): Promise<OrderRow> {
+    const order = await this.findOrder(id);
+    // Same message as "not found", so other people's order numbers can't be probed.
+    if (order.customerId !== userId)
+      throw new NotFoundException('Order not found.');
+    return order;
+  }
+
+  private async withEvents(id: number): Promise<OrderDto> {
+    const order = await this.prisma.order.findUniqueOrThrow({
+      where: { id },
+      include: { events: EVENTS },
+    });
+    return toOrderDto(order, order.events);
+  }
+
+  /** Texts the customer. A failed SMS never blocks or undoes the order change. */
+  private async notify(order: OrderRow) {
+    try {
+      // Texts go out in the customer's chosen language (Hiligaynon or English).
+      const customer = await this.prisma.user.findUnique({
+        where: { id: order.customerId },
+        select: { language: true },
+      });
+      await this.sms.notifyStatusChange(
+        { ...toOrderDto(order), contactPhone: order.contactPhone },
+        customer?.language,
+      );
     } catch (error) {
-      console.error('Status SMS log could not be saved:', error);
+      this.log.warn(
+        `SMS for ${orderRef(order.id)} failed: ${(error as Error).message}`,
+      );
     }
   }
 }

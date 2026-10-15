@@ -1,34 +1,69 @@
 import {
   BadRequestException,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { OrderStatus } from '@irpc/types';
+import { Language, OrderStatus, OrderType } from '@irpc/types';
 import { SmsService } from './sms.service';
 import { MockSmsProvider, TextBeeSmsProvider } from './sms.providers';
 
 describe('SMS integration', () => {
+  const logs = () => ({
+    createOutbound: jest.fn().mockResolvedValue(12),
+    updateStatus: jest.fn().mockResolvedValue(undefined),
+  });
+
   afterEach(() => jest.restoreAllMocks());
 
   it('mock mode never contacts TextBee', async () => {
+    const logSpy = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
     const fetchSpy = jest.spyOn(globalThis, 'fetch');
+    const repository = logs();
     await expect(
-      new SmsService(new MockSmsProvider()).send('+639171234567', 'Test'),
+      new SmsService(new MockSmsProvider(), repository).send(
+        '+639171234567',
+        'Test',
+      ),
     ).resolves.toEqual({ status: 'mocked' });
     expect(fetchSpy).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(
+      '[MOCK SMS] To: +639171234567 Message: Test',
+    );
+    expect(repository.createOutbound).toHaveBeenCalledWith({
+      phone: '+639171234567',
+      message: 'Test',
+      orderId: null,
+    });
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      12,
+      'MOCKED',
+      undefined,
+    );
   });
 
   it('rejects invalid numbers before sending', () => {
     const send = jest.fn();
-    expect(() => new SmsService({ send }).send('09171234567', 'Test')).toThrow(
-      BadRequestException,
-    );
+    const repository = logs();
+    expect(() =>
+      new SmsService({ send }, repository).send('09171234567', 'Test'),
+    ).toThrow(BadRequestException);
     expect(send).not.toHaveBeenCalled();
+    expect(repository.createOutbound).not.toHaveBeenCalled();
   });
 
   it('formats status notifications with the confirmed schedule', async () => {
     const send = jest.fn().mockResolvedValue({ status: 'mocked' });
-    await new SmsService({ send }).notifyStatusChange({
+    const repository = logs();
+    await new SmsService({ send }, repository).notifyStatusChange({
+      id: 42,
       ref: 'IRPC-0042',
+      type: OrderType.SERVICE,
+      unitPrice: null,
+      dryingRate: null,
+      millingRate: null,
+      serviceType: null,
       status: OrderStatus.SCHEDULED,
       scheduledDate: '2026-10-20',
       rejectReason: null,
@@ -36,7 +71,34 @@ describe('SMS integration', () => {
     });
     expect(send).toHaveBeenCalledWith(
       '+639171234567',
-      'IRPC-0042: scheduled. Confirmed date: 2026-10-20.',
+      'IRPC-0042: Your service has been scheduled. Confirmed date: Oct 20.',
+    );
+    expect(repository.createOutbound).toHaveBeenCalledWith(
+      expect.objectContaining({ orderId: 42 }),
+    );
+  });
+
+  it('passes the language to the message builder', async () => {
+    const send = jest.fn().mockResolvedValue({ status: 'mocked' });
+    await new SmsService({ send }, logs()).notifyStatusChange(
+      {
+        id: 42,
+        ref: 'IRPC-0042',
+        type: OrderType.BUY_RICE,
+        status: OrderStatus.READY_FOR_PICKUP,
+        scheduledDate: null,
+        rejectReason: null,
+        unitPrice: null,
+        dryingRate: null,
+        millingRate: null,
+        serviceType: null,
+        contactPhone: '+639171234567',
+      },
+      Language.HIL,
+    );
+    expect(send).toHaveBeenCalledWith(
+      '+639171234567',
+      'IRPC-0042: Handa na ang imo bugas nga kuhaon.',
     );
   });
 
@@ -59,6 +121,7 @@ describe('SMS integration', () => {
         'test-key',
         'test-device',
       ),
+      logs(),
     );
     await expect(service.send('+639171234567', 'Hello')).resolves.toEqual({
       status: 'queued',
@@ -83,9 +146,15 @@ describe('SMS integration', () => {
       'test-key',
       'test-device',
     );
-    await expect(provider.send('+639171234567', 'Hello')).rejects.toThrow(
-      ServiceUnavailableException,
-    );
+    const repository = logs();
+    await expect(
+      new SmsService(provider, repository).send('+639171234567', 'Hello'),
+    ).rejects.toThrow(ServiceUnavailableException);
     expect(fetchSpy).toHaveBeenCalledTimes(1);
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      12,
+      'FAILED',
+      undefined,
+    );
   });
 });
