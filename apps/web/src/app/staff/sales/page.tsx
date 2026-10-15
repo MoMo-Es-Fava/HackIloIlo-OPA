@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
@@ -8,7 +7,6 @@ import type { Delivery } from "@/lib/demo-types";
 import { OrderStatus, OrderType } from "@irpc/types";
 import { nextOrderStatus, orderAmount, statusLabel } from "@/lib/orders";
 import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, orderTone, cn, td, th } from "@/components/ui";
-import { IconReceipt } from "@/components/icons";
 
 export default function Sales() {
   const { isMock, orders, orderDetails, orderError, offers, batches, createOffer, updateOrderStatus } = useStore();
@@ -29,7 +27,7 @@ export default function Sales() {
 
   return (
     <>
-      <PageHeader title="Sales and receipts" sub="Post offers from stored batches and move orders through payment to delivery." />
+      <PageHeader title="Sales" sub="Post offers from stored batches and move orders through payment to delivery." />
       {isMock && <Card>
         <h2 className="text-lg font-bold tracking-tight">Post a sale offer</h2>
         <div className="grid gap-3 md:grid-cols-4">
@@ -58,7 +56,7 @@ export default function Sales() {
             const nextS = nextOrderStatus(o);
             return (
               <tr key={o.id} className="transition-colors hover:bg-mist/50">
-                <td className={td}><Link className="font-bold text-paddy-d hover:underline" href={`/staff/sales/${o.id}`}>{o.ref}</Link></td><td className={td}>{orderDetails[o.id]?.contactName ?? "Customer"}</td><td className={cn(td, "tnum")}>{kgf(o.requestedKg)}</td><td className={cn(td, "tnum")}>{peso(orderAmount(o))}</td>
+                <td className={cn(td, "font-bold text-paddy-d")}>{o.ref}</td><td className={td}>{orderDetails[o.id]?.contactName ?? "Customer"}</td><td className={cn(td, "tnum")}>{kgf(o.requestedKg)}</td><td className={cn(td, "tnum")}>{peso(orderAmount(o))}</td>
                 <td className={td}><Badge tone={orderTone(o.status)}>{statusLabel[o.status]}</Badge></td>
                 <td className={td}>{nextS ? <Button className="min-h-11" onClick={() => updateOrderStatus(o.id, nextS)}>{nextS === OrderStatus.ACCEPTED ? "Accept" : `Mark ${statusLabel[nextS].toLowerCase()}`}</Button> : <span className="text-sub">{o.status === OrderStatus.COMPLETED ? "Complete" : "Closed"}</span>}</td>
               </tr>

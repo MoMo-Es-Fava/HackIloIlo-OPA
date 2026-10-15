@@ -2,12 +2,12 @@
 
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { OrderStatus, OrderType } from "@irpc/types";
+import { OrderStatus } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { orderAmount, orderSteps, orderTypeLabel, serviceLabel, statusLabel } from "@/lib/orders";
 import { Badge, Button, Card, Empty, PageHeader, cn, orderTone } from "@/components/ui";
-import { IconCheck, IconChevronRight, IconReceipt, IconTrace } from "@/components/icons";
+import { IconCheck, IconChevronRight, IconTrace } from "@/components/icons";
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>();
@@ -25,7 +25,6 @@ export default function OrderDetail() {
   const details = orderDetails[o.id];
   const steps = orderSteps(o);
   const idx = steps.indexOf(o.status);
-  const hasReceipt = o.type === OrderType.BUY_RICE && (o.status === OrderStatus.PAID || o.status === OrderStatus.COMPLETED);
   const closed = o.status === OrderStatus.CANCELLED || o.status === OrderStatus.REJECTED;
   return (
     <div className="flex flex-col gap-6">
@@ -90,14 +89,6 @@ export default function OrderDetail() {
             className="inline-flex min-h-12 items-center gap-2 rounded-xl border-2 border-paddy-d px-5 font-bold text-paddy-d transition-colors hover:bg-mist"
           >
             <IconTrace className="h-[18px] w-[18px]" /> Trace batch {details.batchId}
-          </Link>
-        )}
-        {hasReceipt && (
-          <Link
-            href={`/buyer/orders/${o.id}/receipt`}
-            className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-paddy-d px-5 font-bold text-white shadow-[0_6px_16px_-8px_rgba(32,76,54,0.7)] transition-colors hover:bg-paddy"
-          >
-            <IconReceipt className="h-[18px] w-[18px]" /> View receipt
           </Link>
         )}
         {o.status === OrderStatus.PENDING && (

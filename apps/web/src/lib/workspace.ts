@@ -15,7 +15,7 @@ export function emptyWorkspace(): Workspace {
 }
 
 export const demoOnlyRoute = (path: string) => [
-  "/buyer/trace", "/staff/intake", "/staff/processing", "/staff/costing", "/staff/financials",
+  "/buyer/trace", "/staff/intake", "/staff/processing", "/staff/financials",
   "/staff/forecast", "/staff/users", "/staff/audit", "/staff/traceability",
 ].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 

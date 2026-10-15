@@ -5,22 +5,32 @@ import { imageCredits } from "@/lib/credits";
 
 const portals = [
   {
-    href: "/buyer",
+    href: "/login?account=farmer",
+    icon: IconLeaf,
+    eyebrow: "For farmers",
+    title: "Sell palay and request services",
+    description: "Follow palay sales, drying and milling requests, and receive clear status updates.",
+    action: "Farmer sign in",
+    btn: "bg-husk text-ink hover:bg-[#f5d98f]",
+    detail: "Palay · drying · milling · updates",
+  },
+  {
+    href: "/login?account=buyer",
     icon: IconBag,
     eyebrow: "For rice buyers",
     title: "Buy rice and track orders",
     description: "Browse IRPC rice, compare available stock and prices, and follow your order from reservation to delivery.",
-    action: "Open buyer portal",
+    action: "Buyer sign in",
     btn: "bg-husk text-ink hover:bg-[#f5d98f]",
     detail: "Offers · orders · prices · batch traceability",
   },
   {
-    href: "/staff",
+    href: "/login?account=staff",
     icon: IconWrench,
     eyebrow: "For IRPC staff",
     title: "Run today's operations",
     description: "Coordinate arrivals, record weights, move batches through processing, and manage sales and prices.",
-    action: "Open staff workspace",
+    action: "Staff sign in",
     btn: "bg-white text-paddy-d hover:bg-mist",
     detail: "Queue · intake · processing · sales",
   },
@@ -87,7 +97,7 @@ export default function Landing() {
               Choose the workspace that fits what you need to do.
             </p>
 
-            <section className="mt-9 grid gap-4 sm:grid-cols-2" aria-label="Choose a workspace">
+            <section className="mt-9 grid gap-4 lg:grid-cols-3" aria-label="Choose a workspace">
               {portals.map((portal) => (
                 <Link
                   key={portal.href}
@@ -138,7 +148,7 @@ export default function Landing() {
               <span aria-hidden className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-white/10 text-[11px] font-bold text-white/80">
                 i
               </span>
-              Demo workspace: sample records are shared between portals and reset when you reload. No sign-in or real transactions.
+              Sign in with your phone number and PIN. Farmer and buyer accounts can be created online; IRPC staff accounts are assigned by an administrator.
             </p>
             <p className="shrink-0">
               Hero photo: {hero.title} — {hero.author},{" "}

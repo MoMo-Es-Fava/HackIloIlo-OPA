@@ -16,7 +16,7 @@ export default function TraceSearch() {
 
   const go = () => {
     const id = q.trim().toUpperCase();
-    if (!batches.some((b) => b.id === id)) return setError("No batch with that ID. Check the ID on your receipt.");
+    if (!batches.some((b) => b.id === id)) return setError("No batch with that ID. Check the ID provided by IRPC.");
     router.push(`/buyer/trace/${id}`);
   };
   return (

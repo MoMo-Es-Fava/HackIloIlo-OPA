@@ -50,7 +50,7 @@ export default function BatchThread() {
           {related.length > 0 && (
             <div className="mt-1 flex flex-col gap-1">
               <h3 className="font-bold">Orders</h3>
-              {related.map((o) => <p key={o.id}><Link className="font-bold text-paddy-d hover:underline" href={`/staff/sales/${o.id}`}>{o.ref}</Link> <span className="tnum">{kgf(o.requestedKg)}</span> to {orderDetails[o.id]?.contactName ?? "Customer"} ({statusLabel[o.status]})</p>)}
+              {related.map((o) => <p key={o.id}><span className="font-bold text-paddy-d">{o.ref}</span> <span className="tnum">{kgf(o.requestedKg)}</span> to {orderDetails[o.id]?.contactName ?? "Customer"} ({statusLabel[o.status]})</p>)}
             </div>
           )}
         </Card>

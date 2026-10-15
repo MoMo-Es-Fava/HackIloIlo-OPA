@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
 import {
-  IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconBolt, IconChart,
+  IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconChart,
   IconTrace, IconUser, IconBox, IconArrowRight, IconLeaf,
 } from "./icons";
 
@@ -24,8 +24,7 @@ const groups = [
   {
     title: "Sales and costs",
     items: [
-      { href: "/staff/sales", label: "Sales and receipts", Icon: IconReceipt },
-      { href: "/staff/costing", label: "Real-time costing", Icon: IconBolt },
+      { href: "/staff/sales", label: "Sales", Icon: IconReceipt },
       { href: "/staff/financials", label: "Financials and energy", Icon: IconChart },
     ],
   },
