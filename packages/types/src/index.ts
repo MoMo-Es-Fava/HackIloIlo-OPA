@@ -120,6 +120,16 @@ export const ACTIVE_STATUSES: OrderStatus[] = [
   S.WEIGHED, S.DRYING, S.MILLING, S.READY_FOR_PICKUP, S.PAID,
 ];
 
+// Accepts how people type PH mobile numbers ("0917 123 4567", "+63 917-123-4567", "639171234567")
+// and returns "+639171234567", or null if it is not a PH mobile number.
+export function normalizePhPhone(input: string): string | null {
+  const digits = input.replace(/[\s\-()]/g, '');
+  const match = /^(?:\+?63|0)(9\d{9})$/.exec(digits);
+  return match ? `+63${match[1]}` : null;
+}
+
+export const PIN_PATTERN = /^\d{4,6}$/;
+
 // "IRPC-0042" style reference shown to users and used in SMS.
 export function orderRef(id: number): string {
   return `IRPC-${String(id).padStart(4, '0')}`;
