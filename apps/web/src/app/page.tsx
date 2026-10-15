@@ -8,12 +8,12 @@ const portals = [
   {
     href: "/login?next=%2Fbuyer",
     icon: IconBag,
-    eyebrow: "For rice buyers",
-    title: "Buy rice and track orders",
-    description: "Browse IRPC rice, compare available stock and prices, and follow your order from reservation to delivery.",
-    action: "Open buyer portal",
+    eyebrow: "For rice buyers and farmers",
+    title: "Buy rice or sell palay",
+    description: "Buyers can browse IRPC rice, compare prices, and track orders. Farmers can offer palay for sale and follow its progress.",
+    action: "Open buyer / farmer portal",
     btn: "bg-husk text-ink hover:bg-[#f5d98f]",
-    detail: "Offers · orders · prices · batch traceability",
+    detail: "Rice offers · palay sales · orders · prices · batch traceability",
   },
   {
     href: "/login?next=%2Fstaff",
@@ -57,17 +57,12 @@ export default function Landing() {
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
         <header className="flex items-center justify-between gap-4">
-          <Link href="/" aria-label="Iloilo Rice Processing Complex home" className="brand-link brand-logo-link group/brand flex items-center gap-3 rounded-lg">
+          <Link href="/" aria-label="ALAGARAB home" className="brand-link brand-logo-link flex items-center gap-3 rounded-lg">
             <BrandLogo size={44} />
             <span
-              className="brand-wordmark relative block h-6 w-[16rem] overflow-hidden font-bold leading-6 tracking-wide text-white transition-[width] duration-300 group-hover/brand:w-[3.25rem] group-focus-visible/brand:w-[3.25rem]"
+              className="font-bold leading-6 tracking-wide text-white"
             >
-              <span aria-hidden className="brand-wordmark__full absolute inset-0 whitespace-nowrap transition-[opacity,transform] duration-300 group-hover/brand:-translate-y-1 group-hover/brand:opacity-0 group-focus-visible/brand:-translate-y-1 group-focus-visible/brand:opacity-0">
-                Iloilo Rice Processing Complex
-              </span>
-              <span aria-hidden className="brand-wordmark__short absolute inset-0 translate-y-1 whitespace-nowrap opacity-0 transition-[opacity,transform] duration-300 group-hover/brand:translate-y-0 group-hover/brand:opacity-100 group-focus-visible/brand:translate-y-0 group-focus-visible/brand:opacity-100">
-                IRPC
-              </span>
+              ALAGARAB
             </span>
           </Link>
         </header>

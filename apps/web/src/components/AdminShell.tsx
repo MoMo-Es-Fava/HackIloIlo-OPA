@@ -40,7 +40,7 @@ export default function AdminShell({ children }: { children: ReactNode }) {
       <header className="border-b border-line bg-white">
         <div className="mx-auto flex min-h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
           <div>
-            <Link href="/" className="text-sm font-bold tracking-wide text-paddy-d">IRPC</Link>
+            <Link href="/" className="text-sm font-bold tracking-wide text-paddy-d">ALAGARAB</Link>
             <span className="mx-2 text-sub/50">/</span>
             <span className="text-sm font-semibold text-ink">Administration</span>
           </div>

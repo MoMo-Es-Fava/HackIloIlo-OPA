@@ -4,7 +4,8 @@ import { StoreProvider } from "@/lib/store";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IRPC Digital Platform",
+  title: "ALAGARAB",
+  applicationName: "ALAGARAB",
   description: "Booking, costing, pricing and traceability for the Iloilo rice processing complex",
 };
 

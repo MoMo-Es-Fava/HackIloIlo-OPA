@@ -75,10 +75,10 @@ export default function StaffShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen lg:flex">
       <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 overflow-y-auto border-r border-black/20 bg-ink px-4 py-6 text-white lg:flex">
-        <Link href="/staff" className="brand-logo-link flex min-h-11 items-center gap-3 px-2" aria-label="IRPC staff home">
+        <Link href="/staff" className="brand-logo-link flex min-h-11 items-center gap-3 px-2" aria-label="ALAGARAB staff home">
           <BrandLogo size={48} />
           <span className="flex flex-col leading-tight">
-            <span className="text-lg font-bold tracking-wide">IRPC</span>
+            <span className="text-lg font-bold tracking-wide">ALAGARAB</span>
             <span className="text-[13px] text-white/70">Palay, rice and milling</span>
           </span>
         </Link>
@@ -98,10 +98,10 @@ export default function StaffShell({ children }: { children: ReactNode }) {
         <header className="no-print sticky top-0 z-20 border-b border-line bg-white/90 shadow-sm backdrop-blur-md">
           <div className="flex min-h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 2xl:px-12">
             <div className="flex items-center gap-3">
-              <Link href="/staff" className="brand-logo-link flex min-h-12 items-center gap-3 rounded-lg font-bold text-ink lg:hidden" aria-label="IRPC staff home">
+              <Link href="/staff" className="brand-logo-link flex min-h-12 items-center gap-3 rounded-lg font-bold text-ink lg:hidden" aria-label="ALAGARAB staff home">
                 <BrandLogo size={40} />
                 <span className="flex flex-col leading-tight">
-                  <span className="text-lg tracking-wide">IRPC</span>
+                  <span className="text-lg tracking-wide">ALAGARAB</span>
                   <span className="text-[13px] font-normal text-sub">Staff workspace</span>
                 </span>
               </Link>

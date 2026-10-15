@@ -28,10 +28,10 @@ export default function BuyerShell({ children }: { children: ReactNode }) {
     <div className="buyer-workspace flex min-h-screen flex-col">
       <header className="no-print sticky top-0 z-20 border-b border-black/10 bg-paddy-d/95 text-white shadow-[0_1px_0_rgba(255,255,255,0.06)_inset,0_8px_24px_-16px_rgba(23,38,31,0.5)] backdrop-blur-md">
         <div className="mx-auto grid min-h-[84px] w-full max-w-[1600px] grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 sm:px-6 lg:px-8 2xl:px-12">
-          <Link href="/buyer" className="brand-logo-link flex min-h-12 items-center gap-3 justify-self-start rounded-lg" aria-label="IRPC home">
+          <Link href="/buyer" className="brand-logo-link flex min-h-12 items-center gap-3 justify-self-start rounded-lg" aria-label="ALAGARAB home">
             <BrandLogo size={48} />
             <span className="flex flex-col leading-tight">
-              <span className="text-lg font-bold tracking-wide">IRPC</span>
+              <span className="text-lg font-bold tracking-wide">ALAGARAB</span>
               <span className="text-[13px] text-white/70">Palay, rice and milling</span>
             </span>
           </Link>

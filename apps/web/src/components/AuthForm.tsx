@@ -84,7 +84,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       <div className="mx-auto w-full max-w-md">
         <Link href="/" className="brand-logo-link inline-flex min-h-11 items-center gap-3 rounded-lg text-white focus-visible:outline-white">
           <BrandLogo size={40} />
-          <span className="font-bold tracking-wide">IRPC</span>
+          <span className="font-bold tracking-wide">ALAGARAB</span>
         </Link>
         <section aria-busy={busy} className="mt-6 rounded-3xl border border-white/20 bg-white/[0.12] p-6 text-white shadow-[0_24px_80px_-24px_rgba(0,0,0,0.75)] backdrop-blur-xl sm:p-8">
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-husk">{registering ? "New account" : "Welcome back"}</p>
