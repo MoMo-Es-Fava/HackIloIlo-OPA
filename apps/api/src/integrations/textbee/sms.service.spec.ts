@@ -1,8 +1,9 @@
 import {
   BadRequestException,
+  Logger,
   ServiceUnavailableException,
 } from '@nestjs/common';
-import { OrderStatus } from '@irpc/types';
+import { Language, OrderStatus, OrderType } from '@irpc/types';
 import { SmsService } from './sms.service';
 import { MockSmsProvider, TextBeeSmsProvider } from './sms.providers';
 
@@ -10,11 +11,17 @@ describe('SMS integration', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('mock mode never contacts TextBee', async () => {
+    const logSpy = jest
+      .spyOn(Logger.prototype, 'log')
+      .mockImplementation(() => undefined);
     const fetchSpy = jest.spyOn(globalThis, 'fetch');
     await expect(
       new SmsService(new MockSmsProvider()).send('+639171234567', 'Test'),
     ).resolves.toEqual({ status: 'mocked' });
     expect(fetchSpy).not.toHaveBeenCalled();
+    expect(logSpy).toHaveBeenCalledWith(
+      '[MOCK SMS] To: +639171234567 Message: Test',
+    );
   });
 
   it('rejects invalid numbers before sending', () => {
@@ -29,6 +36,11 @@ describe('SMS integration', () => {
     const send = jest.fn().mockResolvedValue({ status: 'mocked' });
     await new SmsService({ send }).notifyStatusChange({
       ref: 'IRPC-0042',
+      type: OrderType.SERVICE,
+      unitPrice: null,
+      dryingRate: null,
+      millingRate: null,
+      serviceType: null,
       status: OrderStatus.SCHEDULED,
       scheduledDate: '2026-10-20',
       rejectReason: null,
@@ -36,7 +48,30 @@ describe('SMS integration', () => {
     });
     expect(send).toHaveBeenCalledWith(
       '+639171234567',
-      'IRPC-0042: scheduled. Confirmed date: 2026-10-20.',
+      'IRPC-0042: Your service has been scheduled. Confirmed date: Oct 20.',
+    );
+  });
+
+  it('passes the language to the message builder', async () => {
+    const send = jest.fn().mockResolvedValue({ status: 'mocked' });
+    await new SmsService({ send }).notifyStatusChange(
+      {
+        ref: 'IRPC-0042',
+        type: OrderType.BUY_RICE,
+        status: OrderStatus.READY_FOR_PICKUP,
+        scheduledDate: null,
+        rejectReason: null,
+        unitPrice: null,
+        dryingRate: null,
+        millingRate: null,
+        serviceType: null,
+        contactPhone: '+639171234567',
+      },
+      Language.HIL,
+    );
+    expect(send).toHaveBeenCalledWith(
+      '+639171234567',
+      'IRPC-0042: Handa na ang imo bugas nga kuhaon.',
     );
   });
 
