@@ -11,11 +11,11 @@ export abstract class SmsProvider {
   abstract send(to: string, message: string): Promise<SmsResult>;
 }
 
-// OrderDto does not contain customer contact data; the caller supplies it.
+// Use the order's contact number, which may differ from the account's phone.
 export type NotificationOrder = Pick<
   OrderDto,
-  'ref' | 'status' | 'scheduledDate' | 'rejectReason'
-> & { contactPhone: string };
+  'ref' | 'status' | 'scheduledDate' | 'rejectReason' | 'contactPhone'
+>;
 
 @Injectable()
 export class SmsService {

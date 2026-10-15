@@ -48,14 +48,12 @@ npm.cmd run build -w api
 import `SmsModule`, inject `SmsService`, and call:
 
 ```typescript
-await smsService.notifyStatusChange({
-  ...order,
-  contactPhone: verifiedOrderContactPhone,
-});
+await smsService.notifyStatusChange(order);
 ```
 
-The service uses the shared order status, reference, confirmed schedule, and
-rejection reason. Contact data must be supplied by the calling order service.
+The service uses the shared order status, reference, confirmed schedule,
+rejection reason, and `contactPhone` from `OrderDto`. Send updates to the order's
+contact number rather than substituting the customer's account phone.
 Only call after a committed status change. SMS failures must not roll back an
 order: connect a durable notification queue/outbox when the schema is ready.
 
