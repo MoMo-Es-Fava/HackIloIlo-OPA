@@ -3,7 +3,7 @@ import {
   AccountType, DeliveryMethod, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem,
   Role, ServiceType, type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
 } from "@irpc/types";
-import { createMockOrder, transitionMockOrder } from "./mock-orders";
+import { MOCK_MILLING_RECOVERY, createMockOrder, transitionMockOrder } from "./mock-orders";
 import { orderSteps } from "./orders";
 import type { Stage, BatchEvent, Batch, AuditEntry, Offer, DemoOrderDetails, Slot, Booking, PricePoint, User, BuyerProfile } from "./demo-types";
 
@@ -45,15 +45,15 @@ export const seedBatches: Batch[] = [
 ];
 
 export const seedOffers: Offer[] = [
-  { id: "OF-201", riceTypeId: 1, batchId: "IR-1012-019", grade: "Well-milled", kgAvailable: 1200, pricePerKg: 38, delivery: "Pickup at IRPC", posted: "13 Oct" },
-  { id: "OF-202", riceTypeId: 2, batchId: "IR-1010-008", grade: "Regular milled", kgAvailable: 800, pricePerKg: 40, delivery: "Municipal drop point", posted: "13 Oct" },
-  { id: "OF-203", riceTypeId: 3, batchId: "IR-1009-006", grade: "Well-milled", kgAvailable: 2000, pricePerKg: 37, delivery: "Pickup at IRPC", posted: "12 Oct" },
+  { id: "OF-201", riceTypeId: 1, batchId: "IR-1012-019", grade: "Well-milled", kgAvailable: 1200, pricePerKg: 50.7, delivery: "Pickup at IRPC", posted: "13 Oct" },
+  { id: "OF-202", riceTypeId: 2, batchId: "IR-1010-008", grade: "Regular milled", kgAvailable: 800, pricePerKg: 50.7, delivery: "Municipal drop point", posted: "13 Oct" },
+  { id: "OF-203", riceTypeId: 3, batchId: "IR-1009-006", grade: "Well-milled", kgAvailable: 2000, pricePerKg: 50.7, delivery: "Pickup at IRPC", posted: "12 Oct" },
 ];
 
 export const seedRiceTypes: RiceTypeDto[] = [
-  { id: 1, name: "Well-milled rice", description: "Rice from batch IR-1012-019", stockKg: "1200.00", pricePerKg: "38.00" },
-  { id: 2, name: "Regular milled rice", description: "Rice from batch IR-1010-008", stockKg: "800.00", pricePerKg: "40.00" },
-  { id: 3, name: "Well-milled rice (Coop 2)", description: "Rice from batch IR-1009-006", stockKg: "2000.00", pricePerKg: "37.00" },
+  { id: 1, name: "Well-milled rice", description: "Rice from batch IR-1012-019", stockKg: "1200.00", pricePerKg: "50.70" },
+  { id: 2, name: "Regular milled rice", description: "Rice from batch IR-1010-008", stockKg: "800.00", pricePerKg: "50.70" },
+  { id: 3, name: "Well-milled rice (Coop 2)", description: "Rice from batch IR-1009-006", stockKg: "2000.00", pricePerKg: "50.70" },
 ];
 
 const effectiveAt = "2026-10-01T00:00:00.000Z";
@@ -80,7 +80,7 @@ function sampleOrder(id: number, request: CreateOrderRequest, status: OrderStatu
       const kg = Number(order.requestedKg);
       order.wetKg = order.palayCondition === PalayCondition.FRESH ? order.requestedKg : null;
       order.dryKg = order.palayCondition === PalayCondition.DRY ? order.requestedKg : (kg * 0.84).toFixed(2);
-      order.riceKg = order.type === OrderType.SERVICE && order.serviceType !== ServiceType.DRYING ? (kg * 0.65).toFixed(2) : null;
+      order.riceKg = order.type === OrderType.SERVICE && order.serviceType !== ServiceType.DRYING ? (kg * MOCK_MILLING_RECOVERY).toFixed(2) : null;
       order.finalAmount = order.type === OrderType.SELL_PALAY
         ? (kg * Number(order.unitPrice)).toFixed(2)
         : (Number(order.wetKg) * Number(order.dryingRate) + Number(order.riceKg) * Number(order.millingRate)).toFixed(2);

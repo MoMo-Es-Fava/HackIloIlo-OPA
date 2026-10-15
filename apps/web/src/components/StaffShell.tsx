@@ -27,7 +27,6 @@ const groups = [
   {
     title: "Planning",
     items: [
-      { href: "/staff/forecast", label: "Harvest forecast" },
       { href: "/staff/pricing", label: "Pricing and rates" },
     ],
   },

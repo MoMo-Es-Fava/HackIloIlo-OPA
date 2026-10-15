@@ -6,7 +6,7 @@ import {
 import { currentPrice, nextOrderStatus } from "./orders";
 
 // Demo assumption until the API exposes the plant's milling recovery setting.
-export const MOCK_MILLING_RECOVERY = 0.65;
+export const MOCK_MILLING_RECOVERY = 0.60;
 
 function rate(prices: CurrentPrice[], item: PriceItem, riceTypeId: number | null = null) {
   const price = currentPrice(prices, item, riceTypeId)?.pricePerKg;

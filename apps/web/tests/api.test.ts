@@ -20,7 +20,7 @@ test("mock order lifecycle persists across reads and reserves stock only on acce
   assert.ok((await client.getMyOrders(true)).some((row) => row.id === order.id));
   const accepted = await client.acceptOrder(order.id);
   assert.equal(accepted.status, OrderStatus.ACCEPTED);
-  assert.equal(accepted.unitPrice, "38.00");
+  assert.equal(accepted.unitPrice, "50.70");
   assert.equal((await client.getRiceTypes())[0].stockKg, (Number(stock) - 100).toFixed(2));
   assert.equal((await client.getOrder(order.id)).status, OrderStatus.ACCEPTED);
   assert.equal((await client.adminListOrders({ status: OrderStatus.ACCEPTED, type: OrderType.BUY_RICE })).some((row) => row.id === order.id), true);
