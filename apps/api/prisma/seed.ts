@@ -1,6 +1,7 @@
 import path from 'node:path';
 import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
+import * as bcrypt from 'bcryptjs';
 import {
   AccountType,
   Language,
@@ -15,15 +16,21 @@ config({ path: path.resolve(process.cwd(), '../../.env'), quiet: true });
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
-  throw new Error('DATABASE_URL is not set. Check the repository root .env file.');
+  throw new Error(
+    'DATABASE_URL is not set. Check the repository root .env file.',
+  );
 }
 
 const adapter = new PrismaPg({ connectionString: databaseUrl });
 const prisma = new PrismaClient({ adapter });
 
-// Development-only credential placeholder. Replace with a real password/PIN hash
-// if authentication is added to the seed workflow.
-const SEEDED_PIN_HASH = 'seeded-demo-pin';
+// Demo-only PIN shared by every seeded account so the team can log in as each role.
+// Override with SEED_DEMO_PIN in .env. Never use seeded accounts in production.
+const DEMO_PIN = process.env.SEED_DEMO_PIN?.trim() || '2026';
+if (!/^\d{4,6}$/.test(DEMO_PIN)) {
+  throw new Error('SEED_DEMO_PIN must be 4 to 6 digits.');
+}
+const SEEDED_PIN_HASH = bcrypt.hashSync(DEMO_PIN, 10);
 const EFFECTIVE_AT = new Date('2026-10-01T00:00:00.000Z');
 
 const users = [
@@ -135,11 +142,13 @@ async function main() {
           language: Language.HIL,
           municipality: 'municipality' in user ? user.municipality : null,
           cooperative: 'cooperative' in user ? user.cooperative : null,
+          pinHash: SEEDED_PIN_HASH,
           isActive: true,
         },
         create: {
           ...user,
           pinHash: SEEDED_PIN_HASH,
+          consentAt: new Date(),
           language: Language.HIL,
         },
       });
