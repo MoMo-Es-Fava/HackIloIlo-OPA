@@ -6,6 +6,13 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reports: ReportsService) {}
 
+  // Answer speed is not money, so plant staff can see it too (Today page).
+  @Roles('ADMIN', 'PLANT_STAFF')
+  @Get('answers')
+  answers(@Query('from') from?: string, @Query('to') to?: string) {
+    return this.reports.answers(from, to);
+  }
+
   // Money is admin-only, same as GET /admin/money.
   @Roles('ADMIN')
   @Get()

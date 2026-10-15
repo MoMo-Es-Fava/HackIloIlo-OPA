@@ -1,6 +1,7 @@
 import { BadRequestException } from '@nestjs/common';
 import { OrderType, PalayCondition, ServiceType } from '@irpc/types';
 import {
+  buildAnswerStats,
   buildReport,
   manilaDayStart,
   monthsBetween,
@@ -107,6 +108,52 @@ describe('report rules', () => {
     expect(report.towns[0]).toMatchObject({
       town: 'Pototan',
       palayBought: '25500.00',
+    });
+  });
+});
+
+describe('answer speed', () => {
+  const at = (iso: string) => new Date(iso);
+  it('counts same-day answers in Manila time and keeps waiting offers', () => {
+    const stats = buildAnswerStats(
+      [
+        // 9 AM offer answered 1 PM the same day.
+        {
+          createdAt: at('2026-10-15T01:00:00Z'),
+          answeredAt: at('2026-10-15T05:00:00Z'),
+          pending: false,
+        },
+        // 10 PM offer answered 9 AM next day: not same day.
+        {
+          createdAt: at('2026-10-15T14:00:00Z'),
+          answeredAt: at('2026-10-16T01:00:00Z'),
+          pending: false,
+        },
+        {
+          createdAt: at('2026-10-15T03:00:00Z'),
+          answeredAt: null,
+          pending: true,
+        },
+      ],
+      '2026-10-01',
+      '2026-10-16',
+    );
+    expect(stats).toMatchObject({
+      offers: 3,
+      answered: 2,
+      answeredSameDay: 1,
+      sameDayPct: 33,
+      averageHours: '7.5',
+      waiting: 1,
+      oldestWaitingSince: '2026-10-15T03:00:00.000Z',
+    });
+  });
+
+  it('returns empty numbers when there were no offers', () => {
+    expect(buildAnswerStats([], '2026-10-01', '2026-10-15')).toMatchObject({
+      offers: 0,
+      sameDayPct: null,
+      averageHours: null,
     });
   });
 });

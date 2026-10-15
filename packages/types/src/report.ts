@@ -167,3 +167,43 @@ export function buildReport(rows: ReportRow[], from: string, to: string): Report
       .sort((a, b) => Number(b.palayBought) - Number(a.palayBought)),
   };
 }
+
+// ── How fast IRPC answers palay offers (the bottleneck) ─────────
+export interface AnswerStatsDto {
+  from: string;
+  to: string;
+  offers: number; // palay offers that came in, excluding ones the farmer cancelled before an answer
+  answered: number; // accepted or rejected
+  answeredSameDay: number; // answered on the same Manila day the offer came in
+  sameDayPct: number | null; // answeredSameDay ÷ offers × 100, null when there were no offers
+  averageHours: string | null; // mean time from offer to answer, null when nothing was answered
+  waiting: number; // still pending
+  oldestWaitingSince: string | null; // ISO time of the oldest offer still pending
+}
+
+/** One palay offer: when it came in, and when IRPC first accepted or rejected it. */
+export interface OfferTiming {
+  createdAt: Date;
+  answeredAt: Date | null;
+  pending: boolean;
+}
+
+const manilaDay = (at: Date) => new Date(at.getTime() + MANILA_OFFSET_MS).toISOString().slice(0, 10);
+
+export function buildAnswerStats(offers: OfferTiming[], from: string, to: string): AnswerStatsDto {
+  const answered = offers.filter((o) => o.answeredAt);
+  const sameDay = answered.filter((o) => manilaDay(o.createdAt) === manilaDay(o.answeredAt!));
+  const waiting = offers.filter((o) => o.pending).sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
+  const hours = answered.reduce((sum, o) => sum + (o.answeredAt!.getTime() - o.createdAt.getTime()) / 3_600_000, 0);
+  return {
+    from,
+    to,
+    offers: offers.length,
+    answered: answered.length,
+    answeredSameDay: sameDay.length,
+    sameDayPct: offers.length ? Math.round((sameDay.length / offers.length) * 100) : null,
+    averageHours: answered.length ? (hours / answered.length).toFixed(1) : null,
+    waiting: waiting.length,
+    oldestWaitingSince: waiting[0]?.createdAt.toISOString() ?? null,
+  };
+}

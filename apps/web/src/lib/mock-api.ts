@@ -1,5 +1,5 @@
 import {
-  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role, buildReport,
+  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role, buildAnswerStats, buildReport,
   type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
 } from "@irpc/types";
 import { ApiError, type PriceRequest, type RegisterRequest } from "./api";
@@ -291,6 +291,18 @@ export function createMockApi() {
       const boughtPalay = sum(OrderType.SELL_PALAY), soldRice = sum(OrderType.BUY_RICE), serviceFees = sum(OrderType.SERVICE);
       return { from, to, boughtPalay: boughtPalay.toFixed(2), soldRice: soldRice.toFixed(2), serviceFees: serviceFees.toFixed(2),
         grossProfit: (soldRice + serviceFees - boughtPalay).toFixed(2) };
+    }
+    if (route === "/admin/report/answers" && method === "GET") {
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
+      const from = url.searchParams.get("from") || `${today.slice(0, 7)}-01`;
+      const to = url.searchParams.get("to") || today;
+      const offers = orders.filter((order) => order.type === OrderType.SELL_PALAY && order.createdAt.slice(0, 10) >= from && order.createdAt.slice(0, 10) <= to)
+        .map((order) => {
+          const answer = order.events?.find((e) => e.fromStatus === OrderStatus.PENDING && (e.toStatus === OrderStatus.ACCEPTED || e.toStatus === OrderStatus.REJECTED));
+          return { createdAt: new Date(order.createdAt), answeredAt: answer ? new Date(answer.createdAt) : null, pending: order.status === OrderStatus.PENDING, cancelled: order.status === OrderStatus.CANCELLED };
+        })
+        .filter((offer) => !offer.cancelled || offer.answeredAt);
+      return buildAnswerStats(offers, from, to);
     }
     if (route === "/admin/report" && method === "GET") {
       const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());

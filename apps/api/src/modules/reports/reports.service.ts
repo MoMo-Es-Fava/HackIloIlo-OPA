@@ -1,7 +1,13 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { OrderStatus, type ReportDto } from '@irpc/types';
+import {
+  OrderStatus,
+  OrderType,
+  type AnswerStatsDto,
+  type ReportDto,
+} from '@irpc/types';
 import { PrismaService } from '../../database/prisma.service';
 import {
+  buildAnswerStats,
   buildReport,
   manilaDayStart,
   manilaToday,
@@ -16,11 +22,10 @@ const num = (v: { toString(): string } | null) =>
 export class ReportsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  /** Defaults to January 1 of this year through today (Manila). */
-  async report(from?: string, to?: string): Promise<ReportDto> {
-    const today = manilaToday();
-    const startDate = from || `${today.slice(0, 4)}-01-01`;
-    const endDate = to || today;
+  /** Validates the period and returns its Manila day bounds. */
+  private period(defaultFrom: string, from?: string, to?: string) {
+    const startDate = from || defaultFrom;
+    const endDate = to || manilaToday();
     const start = manilaDayStart(startDate);
     const end = new Date(manilaDayStart(endDate).getTime() + DAY_MS);
     if (start >= end) {
@@ -31,6 +36,56 @@ export class ReportsService {
     if (end.getTime() - start.getTime() > 3 * 366 * DAY_MS) {
       throw new BadRequestException('Choose a period of 3 years or less.');
     }
+    return { startDate, endDate, start, end };
+  }
+
+  /**
+   * How fast IRPC answers palay offers, for offers that came in during the period
+   * (defaults to this month). An answer is the first accept or reject.
+   */
+  async answers(from?: string, to?: string): Promise<AnswerStatsDto> {
+    const { startDate, endDate, start, end } = this.period(
+      `${manilaToday().slice(0, 7)}-01`,
+      from,
+      to,
+    );
+    const offers = await this.prisma.order.findMany({
+      where: {
+        type: OrderType.SELL_PALAY,
+        createdAt: { gte: start, lt: end },
+      },
+      select: {
+        status: true,
+        createdAt: true,
+        events: {
+          where: {
+            fromStatus: OrderStatus.PENDING,
+            toStatus: { in: [OrderStatus.ACCEPTED, OrderStatus.REJECTED] },
+          },
+          orderBy: { createdAt: 'asc' },
+          take: 1,
+          select: { createdAt: true },
+        },
+      },
+    });
+    const timings = offers
+      // Cancelled by the farmer before IRPC answered: not IRPC's delay to count.
+      .filter((o) => o.status !== OrderStatus.CANCELLED || o.events.length)
+      .map((o) => ({
+        createdAt: o.createdAt,
+        answeredAt: o.events[0]?.createdAt ?? null,
+        pending: o.status === OrderStatus.PENDING,
+      }));
+    return buildAnswerStats(timings, startDate, endDate);
+  }
+
+  /** Defaults to January 1 of this year through today (Manila). */
+  async report(from?: string, to?: string): Promise<ReportDto> {
+    const { startDate, endDate, start, end } = this.period(
+      `${manilaToday().slice(0, 4)}-01-01`,
+      from,
+      to,
+    );
 
     const orders = await this.prisma.order.findMany({
       where: {

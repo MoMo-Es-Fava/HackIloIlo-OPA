@@ -2,6 +2,7 @@ import { BadRequestException } from '@nestjs/common';
 
 // The statement itself is computed by buildReport in @irpc/types, shared with the web demo data.
 export {
+  buildAnswerStats,
   buildReport,
   monthsBetween,
   splitServiceFee,

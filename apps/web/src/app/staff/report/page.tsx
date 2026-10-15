@@ -1,16 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { ReportDto, ReportPartyDto, ReportTownDto, StatementLinesDto } from "@irpc/types";
+import type { AnswerStatsDto, ReportDto, ReportPartyDto, ReportTownDto, StatementLinesDto } from "@irpc/types";
 import { api, ApiError } from "@/lib/api";
 import { fmt, peso, pesoAccounting } from "@/lib/format";
 import { Badge, Button, Card, Empty, Notice, PageHeader, Stat, TableWrap, TextField, cn, td, th } from "@/components/ui";
-import { IconChart, IconLeaf, IconBox } from "@/components/icons";
+import { IconChart, IconLeaf, IconBox, IconClock } from "@/components/icons";
 
 const MANILA = "Asia/Manila";
 const todayIso = () => new Date().toLocaleDateString("en-CA", { timeZone: MANILA });
 const monthLabel = (ym: string) =>
   new Date(`${ym}-01T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", year: "numeric" });
+/** "45 min", "3.5 h" or "2 days" — whichever reads naturally. */
+const durationLabel = (hours: number) =>
+  hours < 1 ? `${Math.round(hours * 60)} min` : hours < 48 ? `${hours.toFixed(1)} h` : `${(hours / 24).toFixed(1)} days`;
+const dateTimeLabel = (iso: string) =>
+  new Date(iso).toLocaleString("en-PH", { timeZone: MANILA, month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 const dayLabel = (iso: string) =>
   new Date(`${iso}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric", year: "numeric" });
 
@@ -52,6 +57,7 @@ export default function Report() {
   const [to, setTo] = useState(today);
   const [view, setView] = useState<View>("farmers");
   const [report, setReport] = useState<ReportDto | null>(null);
+  const [answers, setAnswers] = useState<AnswerStatsDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [forbidden, setForbidden] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -70,6 +76,8 @@ export default function Report() {
         else setError(e instanceof ApiError ? e.message : "Could not load the report. Please try again.");
       })
       .finally(() => { if (current) setLoading(false); });
+    // Answer speed is a separate, optional call: the report still shows if it fails.
+    api.getAnswerStats(from, to).then((a) => { if (current) setAnswers(a); }).catch(() => { if (current) setAnswers(null); });
     return () => { current = false; };
   }, [from, to, rangeError]);
 
@@ -153,6 +161,22 @@ export default function Report() {
         <Stat label="Gross profit" value={total ? pesoAccounting(total.grossProfit) : "–"}
           hint={profit < 0 ? "In parentheses: a loss. More spent on palay than earned" : "Total income less raw materials"} loss={profit < 0} icon={<IconChart className="h-4 w-4" />} />
       </div>
+
+      {answers && (
+        <section className="flex flex-col gap-3">
+          <PageHeader level={2} title="How fast IRPC answers farmers"
+            sub="Palay offers that came in during this period. Farmers sell to traders when IRPC answers late, so aim for the same day." />
+          {answers.offers === 0 ? <Empty>No palay offers came in during this period.</Empty> : (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <Stat label="Answered same day" value={`${answers.sameDayPct}%`} hint={`${answers.answeredSameDay} of ${answers.offers} palay offers`} icon={<IconClock className="h-4 w-4" />} />
+              <Stat label="Average time to answer" value={answers.averageHours === null ? "–" : durationLabel(Number(answers.averageHours))}
+                hint={`${answers.answered} answered (accepted or rejected)`} icon={<IconClock className="h-4 w-4" />} />
+              <Stat label="Still waiting" value={String(answers.waiting)} loss={answers.waiting > 0}
+                hint={answers.oldestWaitingSince ? `Oldest since ${dateTimeLabel(answers.oldestWaitingSince)}` : "Every offer has an answer"} icon={<IconLeaf className="h-4 w-4" />} />
+            </div>
+          )}
+        </section>
+      )}
 
       {report && !hasData && <Empty>No paid or completed orders in this period. Try &quot;This year&quot; or a wider date range.</Empty>}
 

@@ -1,5 +1,5 @@
 import type {
-  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto,
+  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto, AnswerStatsDto,
   OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
 } from "@irpc/types";
 import type { DemoActions, DemoWorkspace } from "./demo-types";
@@ -131,6 +131,7 @@ export function createApiClient(options: ApiClientOptions) {
     updateStock: (id: number, changeKg: string, reason: string) => request<RiceTypeDto>(`/admin/rice-types/${idPath(id)}/stock`, "POST", { changeKg, reason }),
     getMoney: (from?: string, to?: string) => request<MoneySummaryDto>(`/admin/money${query({ from, to })}`),
     getReport: (from?: string, to?: string) => request<ReportDto>(`/admin/report${query({ from, to })}`),
+    getAnswerStats: (from?: string, to?: string) => request<AnswerStatsDto>(`/admin/report/answers${query({ from, to })}`),
     getSmsLogs: () => request<SmsLogDto[]>("/admin/sms-logs"),
     // Ancillary prototype screens have no API routes. They are explicitly mock-only.
     getDemoWorkspace: async (): Promise<DemoWorkspace | null> => options.useMock ? (await getMock()).getWorkspace() : null,
@@ -149,5 +150,5 @@ export const {
   getHealth, getMe, register, login, getPrices, getRiceTypes, getSettings, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
   updateOrderStatus, weighInOrder, staffCreateOrder, staffConfirmWeight, getAdminSummary, createPrice, getPriceHistory, updateStock,
-  getMoney, getReport, getSmsLogs,
+  getMoney, getReport, getAnswerStats, getSmsLogs,
 } = api;
