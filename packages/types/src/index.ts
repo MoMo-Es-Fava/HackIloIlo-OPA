@@ -225,6 +225,7 @@ export interface RegisterRequest {
   language: Language;
   municipality?: string;
   cooperative?: string;
+  verificationCode: string;
   consent: true; // Data Privacy Act consent; registration is refused without it
 }
 

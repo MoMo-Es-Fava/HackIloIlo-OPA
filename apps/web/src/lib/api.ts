@@ -14,7 +14,7 @@ export interface PriceRequest {
 }
 export interface RegisterRequest {
   name: string; phone: string; pin: string; accountType: AccountType; language: Language;
-  municipality?: string; consent: true;
+  municipality?: string; verificationCode: string; consent: true;
 }
 // These response shapes are not yet specified in the shared package.
 export type ApiUser = UserDto;
@@ -101,6 +101,7 @@ export function createApiClient(options: ApiClientOptions) {
     useMock: options.useMock,
     // Health always probes the real server, including while the UI uses mocks.
     getHealth: () => request<HealthResponse>("/health", "GET", undefined, false, true),
+    requestRegistrationCode: (phone: string) => request<{ message: string }>("/auth/register/code", "POST", { phone }, false, true),
     register: (body: RegisterRequest) => authenticate("/auth/register", body),
     login: (phone: string, pin: string) => authenticate("/auth/login", { phone, pin }),
     getMe: () => request<ApiUser>("/auth/me"),

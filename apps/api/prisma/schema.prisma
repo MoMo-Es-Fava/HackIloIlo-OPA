@@ -107,6 +107,16 @@ model User {
   stockChanges StockAdjustment[]
 }
 
+// Short-lived SMS challenge. The plaintext code is never stored.
+model PhoneVerification {
+  phone     String   @id
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  sentAt    DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model RiceType {
   id          Int      @id @default(autoincrement())
   name        String   @unique

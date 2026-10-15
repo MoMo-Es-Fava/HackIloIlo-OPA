@@ -14,6 +14,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [codeSent, setCodeSent] = useState(false);
   const registering = mode === "register";
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -24,6 +25,11 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
     const phone = String(values.get("phone") ?? "").trim();
     const pin = String(values.get("pin") ?? "");
     try {
+      if (registering && !codeSent) {
+        await api.requestRegistrationCode(phone);
+        setCodeSent(true);
+        return;
+      }
       const result = registering
         ? await api.register({
             name: String(values.get("name") ?? "").trim(),
@@ -31,6 +37,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             pin,
             accountType: AccountType.BUYER,
             language: Language.HIL,
+            verificationCode: String(values.get("verificationCode") ?? ""),
             consent: true,
           })
         : await api.login(phone, pin);
@@ -61,7 +68,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
         <section className="mt-6 rounded-3xl border border-line bg-white p-6 shadow-raised sm:p-8">
           <p className="text-sm font-bold uppercase tracking-[0.12em] text-paddy-d">{registering ? "New account" : "Welcome back"}</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight">{registering ? "Create your account" : "Sign in to IRPC"}</h1>
-          <p className="mt-2 text-sub">{registering ? "Enter your name, mobile number, and password to get started." : "Sign in with your phone number and PIN. SMS verification will be added later."}</p>
+          <p className="mt-2 text-sub">{registering ? "Enter your details, then verify your mobile number with the code sent by SMS." : "Sign in with your phone number and PIN."}</p>
 
           <form className="mt-6 flex flex-col gap-4" onSubmit={submit}>
             {registering && <>
@@ -69,9 +76,13 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             </>}
             <label className={labelClass}>Philippine mobile number<input className={fieldClass} name="phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="0917 123 4567" pattern="(?:\\+?63|0)9[0-9]{9}" title="Enter a Philippine mobile number, such as 0917 123 4567" required /></label>
             <label className={labelClass}>{registering ? "Password" : "PIN"}<input className={fieldClass} name="pin" type="password" inputMode="numeric" autoComplete={registering ? "new-password" : "current-password"} minLength={4} maxLength={6} pattern="[0-9]{4,6}" title="Password must be 4 to 6 digits" required /></label>
+            {registering && codeSent && <>
+              <label className={labelClass}>Verification code<input className={fieldClass} name="verificationCode" inputMode="numeric" autoComplete="one-time-code" minLength={6} maxLength={6} pattern="[0-9]{6}" placeholder="6-digit code" required /></label>
+              <p className="rounded-xl bg-mist px-3.5 py-3 text-sm text-sub">A six-digit code was sent to your mobile number. It expires in 10 minutes.</p>
+            </>}
             {error && <p role="alert" className="rounded-xl bg-clay-l px-3.5 py-3 text-sm font-bold text-clay">{error}</p>}
             <button className="mt-1 min-h-12 rounded-xl bg-paddy-d px-5 font-bold text-white transition-colors hover:bg-paddy disabled:cursor-wait disabled:opacity-60" type="submit" disabled={busy}>
-              {busy ? "Please wait…" : registering ? "Create account" : "Sign in"}
+              {busy ? "Please wait…" : registering ? (codeSent ? "Verify and create account" : "Send verification code") : "Sign in"}
             </button>
           </form>
 
