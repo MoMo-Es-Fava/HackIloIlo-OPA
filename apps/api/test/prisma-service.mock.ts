@@ -6,6 +6,7 @@ export function createPrismaServiceMock() {
     phone: string; codeHash: string; expiresAt: Date;
     attempts: number; sentAt: Date; updatedAt: Date;
   }>();
+  const now = () => new Date();
 
   return {
     $connect: jest.fn().mockResolvedValue(undefined),
@@ -40,27 +41,42 @@ export function createPrismaServiceMock() {
       create: jest.fn(async () => ({ id: 1 })),
       update: jest.fn(),
     },
-    $queryRawUnsafe: jest.fn(async (_query: string, phone: string) => {
-      const row = verifications.get(phone);
-      return row ? [row] : [];
-    }),
-    $executeRawUnsafe: jest.fn(async (query: string, phone: string, codeHash?: string, expiresAt?: Date) => {
-      if (query.startsWith('INSERT')) {
-        verifications.set(phone, {
-          phone,
-          codeHash: codeHash!,
-          expiresAt: expiresAt!,
-          attempts: 0,
-          sentAt: new Date(),
-          updatedAt: new Date(),
-        });
-      } else if (query.startsWith('UPDATE')) {
-        const row = verifications.get(phone);
-        if (row) verifications.set(phone, { ...row, attempts: row.attempts + 1, updatedAt: new Date() });
-      } else if (query.startsWith('DELETE')) {
-        verifications.delete(phone);
-      }
-      return 1;
-    }),
+    phoneVerification: {
+      findUnique: jest.fn(async ({ where }: { where: { phone: string } }) =>
+        verifications.get(where.phone) ?? null,
+      ),
+      upsert: jest.fn(async ({
+        where,
+        create,
+        update,
+      }: {
+        where: { phone: string };
+        create: { phone: string; codeHash: string; expiresAt: Date; attempts?: number };
+        update: { codeHash: string; expiresAt: Date; attempts: number; sentAt: Date };
+      }) => {
+        const old = verifications.get(where.phone);
+        const row = old
+          ? { ...old, ...update, updatedAt: now() }
+          : { ...create, attempts: create.attempts ?? 0, sentAt: now(), updatedAt: now() };
+        verifications.set(where.phone, row);
+        return row;
+      }),
+      update: jest.fn(async ({
+        where,
+        data,
+      }: {
+        where: { phone: string };
+        data: { attempts: { increment: number } };
+      }) => {
+        const old = verifications.get(where.phone);
+        if (!old) throw new Error('Phone verification not found');
+        const row = { ...old, attempts: old.attempts + data.attempts.increment, updatedAt: now() };
+        verifications.set(where.phone, row);
+        return row;
+      }),
+      deleteMany: jest.fn(async ({ where }: { where: { phone: string } }) => ({
+        count: Number(verifications.delete(where.phone)),
+      })),
+    },
   };
 }
