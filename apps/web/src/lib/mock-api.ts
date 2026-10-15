@@ -1,5 +1,5 @@
 import {
-  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role,
+  ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role, buildReport,
   type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
 } from "@irpc/types";
 import { ApiError, type PriceRequest, type RegisterRequest } from "./api";
@@ -291,6 +291,23 @@ export function createMockApi() {
       const boughtPalay = sum(OrderType.SELL_PALAY), soldRice = sum(OrderType.BUY_RICE), serviceFees = sum(OrderType.SERVICE);
       return { from, to, boughtPalay: boughtPalay.toFixed(2), soldRice: soldRice.toFixed(2), serviceFees: serviceFees.toFixed(2),
         grossProfit: (soldRice + serviceFees - boughtPalay).toFixed(2) };
+    }
+    if (route === "/admin/report" && method === "GET") {
+      const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date());
+      const from = url.searchParams.get("from") || `${today.slice(0, 4)}-01-01`;
+      const to = url.searchParams.get("to") || today;
+      // Demo orders have no paidAt, so the order date stands in for it.
+      const owners = new Map<string, number>();
+      const rows = orders.filter((order) => (order.status === OrderStatus.PAID || order.status === OrderStatus.COMPLETED) && order.finalAmount !== null
+        && order.createdAt.slice(0, 10) >= from && order.createdAt.slice(0, 10) <= to).map((order) => {
+        const owner = workspace.orderDetails[order.id]?.ownerId ?? order.contactName;
+        if (!owners.has(owner)) owners.set(owner, owners.size + 1);
+        const n = (v: string | null) => v === null ? null : Number(v);
+        return { type: order.type, serviceType: order.serviceType, palayCondition: order.palayCondition, finalAmount: Number(order.finalAmount),
+          wetKg: n(order.wetKg), dryKg: n(order.dryKg), riceKg: n(order.riceKg), requestedKg: Number(order.requestedKg), dryingRate: n(order.dryingRate),
+          paidAt: new Date(order.createdAt), customerId: owners.get(owner)!, customerName: workspace.orderDetails[order.id]?.contactName ?? order.contactName, town: "Pototan" };
+      });
+      return buildReport(rows, from, to);
     }
     if (route === "/admin/sms-logs" && method === "GET") return [];
     throw new ApiError(501, "This feature is not connected yet.");

@@ -33,6 +33,7 @@ const groups = [
   {
     title: "Planning",
     items: [
+      { href: "/staff/report", label: "Report", Icon: IconChart },
       { href: "/staff/pricing", label: "Pricing and rates", Icon: IconChart },
     ],
   },
