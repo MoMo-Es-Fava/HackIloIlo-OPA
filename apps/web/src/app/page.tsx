@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import BrandLogo from "@/components/BrandLogo";
 import { IconBag, IconWrench, IconArrowRight, IconTrace, IconLeaf, IconBolt } from "@/components/icons";
 import { imageCredits } from "@/lib/credits";
 
@@ -56,8 +57,8 @@ export default function Landing() {
       {/* ── Content ───────────────────────────────────────────────── */}
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
         <header className="flex items-center justify-between gap-4">
-          <Link href="/" aria-label="Iloilo Rice Processing Complex home" className="brand-link group/brand flex items-center gap-3 rounded-lg">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-husk font-bold text-ink shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]">IR</span>
+          <Link href="/" aria-label="Iloilo Rice Processing Complex home" className="brand-link brand-logo-link group/brand flex items-center gap-3 rounded-lg">
+            <BrandLogo size={44} />
             <span
               className="brand-wordmark relative block h-6 w-[16rem] overflow-hidden font-bold leading-6 tracking-wide text-white transition-[width] duration-300 group-hover/brand:w-[3.25rem] group-focus-visible/brand:w-[3.25rem]"
             >

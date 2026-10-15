@@ -58,7 +58,7 @@ export default function SellPalay() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
       <PageHeader title="Sell palay" sub="Tell us what you are bringing. IRPC confirms your date and the final price after weighing." />
       <ol className="flex gap-2" aria-label="Progress">
         {STEPS.map((s, i) => (

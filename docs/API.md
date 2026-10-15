@@ -70,6 +70,12 @@ Agree on changes in the group chat before editing this file.
 | POST | `/admin/rice-types/:id/stock` | `{ changeKg, reason }` | `RiceTypeDto` |
 | GET | `/admin/money?from=&to=` | | `MoneySummaryDto` (see below). Defaults: `from` = first day of the current month, `to` = today. |
 | GET | `/admin/sms-logs` | | `SmsLogDto[]`, newest first |
+| GET | `/admin/analytics/operations?days=` | | `OperationsTrendDto`. Admin and plant staff; defaults to 14 days. |
+| GET | `/admin/analytics/finance?days=` | | `FinanceTrendDto`. Admin only; defaults to 14 days. |
+| GET | `/admin/analytics/catalog?days=` | | `CatalogAnalyticsDto` with daily prices and reconstructed stock. Admin only; defaults to 30 days. |
+| GET | `/admin/analytics/logs?days=` | | `LogTrendDto` with daily event counts by category. Admin and plant staff; defaults to 30 days. |
+
+Analytics `days` must be an integer from 7 to 90. Dates and day boundaries use Asia/Manila. Finance includes PAID and COMPLETED orders by `paidAt`. Catalog prices are the latest effective price for each day; stock balances are reconstructed from the current stock and all recorded adjustments in the requested period.
 
 ## SMS
 

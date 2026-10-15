@@ -27,7 +27,7 @@ export default function Orders() {
           </Link>
         }
       />
-      <div className="flex flex-wrap gap-1.5 rounded-xl border border-line/80 bg-white p-1.5 shadow-card sm:w-fit" role="tablist">
+      <div className="flex flex-wrap gap-1.5 rounded-xl border border-line/80 bg-white p-1.5 shadow-card sm:w-fit" role="tablist" aria-label="Filter orders by status">
         {tabs.map((t) => (
           <button
             key={t}
@@ -43,13 +43,19 @@ export default function Orders() {
           </button>
         ))}
       </div>
-      {list.length === 0 && <Empty>No orders here yet.</Empty>}
-      <div className="flex flex-col gap-3">
+      {list.length === 0 && (
+        <Empty>
+          {tab === "All" ? "No orders yet. Start by browsing available rice or submitting a palay request." : (
+            <>No {tab.toLowerCase()} orders. <button type="button" onClick={() => setTab("All")} className="font-bold text-paddy-d underline underline-offset-2">View all orders</button></>
+          )}
+        </Empty>
+      )}
+      <div className="grid gap-4 lg:grid-cols-2">
         {list.map((o) => (
           <Link
             key={o.id}
             href={`/buyer/orders/${o.id}`}
-            className="group flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-line/80 bg-white p-4 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised"
+            className="group flex min-h-28 flex-wrap items-center justify-between gap-3 rounded-2xl border border-line/80 bg-white p-5 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised focus-visible:outline-offset-4"
           >
             <div>
               <p className="font-bold tracking-tight">

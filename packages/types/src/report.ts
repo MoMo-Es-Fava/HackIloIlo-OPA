@@ -39,9 +39,74 @@ export interface ReportDto {
   towns: ReportTownDto[];
 }
 
+export interface OperationsTrendPoint {
+  date: string;
+  palayOffers: number;
+  riceOrders: number;
+  serviceRequests: number;
+  answered: number;
+  weightsToConfirm: number;
+  inDrying: number;
+  readyForPickup: number;
+}
+
+export interface OperationsTrendDto {
+  from: string;
+  to: string;
+  daily: OperationsTrendPoint[];
+}
+
+export interface FinanceTrendPoint {
+  date: string;
+  boughtPalay: string;
+  soldRice: string;
+  serviceFees: string;
+  grossProfit: string;
+}
+
+export interface FinanceTrendDto {
+  from: string;
+  to: string;
+  daily: FinanceTrendPoint[];
+}
+
+export interface CatalogPriceTrend {
+  key: string;
+  label: string;
+  item: PriceItem;
+  values: (string | null)[];
+}
+
+export interface CatalogStockTrend {
+  key: string;
+  label: string;
+  values: string[];
+}
+
+export interface CatalogAnalyticsDto {
+  dates: string[];
+  prices: CatalogPriceTrend[];
+  stock: CatalogStockTrend[];
+}
+
+export interface LogTrendPoint {
+  date: string;
+  order: number;
+  batch: number;
+  inventory: number;
+  sms: number;
+  pricing: number;
+}
+
+export interface LogTrendDto {
+  from: string;
+  to: string;
+  daily: LogTrendPoint[];
+}
+
 // Shared by the API (GET /admin/report) and the web demo data, so both compute the same numbers.
 // Type-only imports: index.ts re-exports this file, so a value import would be circular.
-import type { OrderType, PalayCondition, ServiceType } from './index';
+import type { OrderType, PalayCondition, PriceItem, ServiceType } from './index';
 
 /** One paid order, with only the fields the report needs. */
 export interface ReportRow {

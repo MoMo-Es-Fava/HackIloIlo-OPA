@@ -1,53 +1,34 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { PageHeader, Card } from "@/components/ui";
+import { IconUser } from "@/components/icons";
 import { useStore } from "@/lib/store";
-import { AccountType } from "@irpc/types";
-import type { BuyerProfile } from "@/lib/demo-types";
-import { Badge, Button, Card, PageHeader, SelectField, TextField } from "@/components/ui";
-import { IconUser, IconWrench, IconChevronRight } from "@/components/icons";
 
 export default function Me() {
-  const { profile, isMock, orderError, updateProfile } = useStore();
-  const [f, setF] = useState<BuyerProfile>(profile);
-  const [saved, setSaved] = useState(false);
-  const set = <K extends keyof BuyerProfile>(k: K, v: BuyerProfile[K]) => { setF({ ...f, [k]: v }); setSaved(false); };
-  const nameErr = f.name.trim() ? undefined : "Name is required";
+  const { profile } = useStore();
+  const accountType = profile.type
+    .toLowerCase()
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader title="Buyer profile" sub={`Account ${profile.id}`} icon={<IconUser className="h-6 w-6" />} />
+      <PageHeader title="My account" sub="Your details at IRPC." icon={<IconUser className="h-6 w-6" />} />
       <Card>
-        <TextField label="Business name" value={f.name} error={nameErr} onChange={(e) => set("name", e.target.value)} />
-        <SelectField label="Type" value={f.type} onChange={(e) => set("type", e.target.value as BuyerProfile["type"])}>
-          {Object.values(AccountType).map((type) => <option key={type} value={type}>{type.replaceAll("_", " ")}</option>)}
-        </SelectField>
-        <TextField label="Contact number" inputMode="tel" value={f.contact} onChange={(e) => set("contact", e.target.value)} />
-        <TextField label="Address" value={f.address} onChange={(e) => set("address", e.target.value)} />
-        <div className="flex items-center gap-3">
-          <Button
-            disabled={!!nameErr || !isMock}
-            onClick={async () => { const result = await updateProfile(f); if (result !== null) setSaved(true); }}
-          >
-            Save profile
-          </Button>
-          {saved && <Badge tone="ok">Saved</Badge>}
-        </div>
-        {!isMock && <p>Profile editing is not available yet.</p>}
-        {orderError && <p role="alert">{orderError}</p>}
+        <dl className="grid gap-x-4 gap-y-5 sm:grid-cols-[minmax(10rem,auto)_1fr]">
+          <dt className="text-sub">Name</dt>
+          <dd className="font-bold">{profile.name || "Not set"}</dd>
+          <dt className="text-sub">Mobile number</dt>
+          <dd className="font-bold">{profile.contact || "Not set"}</dd>
+          <dt className="text-sub">Town</dt>
+          <dd className="font-bold">{profile.address || "Not set"}</dd>
+          <dt className="text-sub">Account type</dt>
+          <dd className="font-bold">{accountType}</dd>
+        </dl>
+        <p className="border-t border-line pt-4 text-sm text-sub">
+          To change these details, ask the IRPC staff.
+        </p>
       </Card>
-      <Link
-        href="/buyer/service"
-        className="group flex min-h-14 items-center justify-between rounded-2xl border border-line/80 bg-white p-4 font-bold shadow-card transition-all hover:border-paddy/50 hover:shadow-raised"
-      >
-        <span className="flex items-center gap-3">
-          <span className="grid h-9 w-9 place-items-center rounded-lg bg-mist text-paddy-d">
-            <IconWrench className="h-5 w-5" />
-          </span>
-          Service booking
-        </span>
-        <IconChevronRight className="h-5 w-5 text-sub/60 transition-transform group-hover:translate-x-0.5 group-hover:text-paddy-d" />
-      </Link>
     </div>
   );
 }
