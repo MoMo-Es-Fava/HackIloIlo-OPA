@@ -1,6 +1,7 @@
 "use client";
 
 import { useStore } from "@/lib/store";
+import { LanguageToggle } from "@/lib/language";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -111,6 +112,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
               <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
             </div>
             <div className="flex items-center gap-2">
+              <LanguageToggle />
               <Link href="/buyer" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">
                 Buyer portal
               </Link>

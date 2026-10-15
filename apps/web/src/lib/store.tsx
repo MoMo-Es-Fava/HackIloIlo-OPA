@@ -161,7 +161,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   } else if (loadedPath !== path) {
     content = <main className="mx-auto max-w-xl p-6" role="status">Loading…</main>;
   } else if (loadError) {
-    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">Unable to load this page</h1><p role="alert" className="my-4">{orderError ?? loadError}</p><button className="min-h-12 rounded-xl bg-paddy-d px-5 font-bold text-white" onClick={() => { setLoadedPath(null); void reload(); }}>Try again</button><Link className="ml-4 font-bold underline" href="/">Home</Link></main>;
+    content = <main className="mx-auto max-w-xl p-6"><h1 className="text-2xl font-bold">Unable to load this page</h1><p role="alert" className="my-4">{orderError ?? loadError}</p><button className="min-h-12 rounded-xl bg-paddy-d px-5 font-bold text-white" onClick={() => { setLoadedPath(null); void reload(); }}>Try again</button><Link className="ml-4 font-bold underline" href="/login">Log in</Link><Link className="ml-4 font-bold underline" href="/">Home</Link></main>;
   }
   return <Ctx.Provider value={value}><div aria-busy={busy}>{content}</div></Ctx.Provider>;
 }

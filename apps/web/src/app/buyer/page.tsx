@@ -4,6 +4,7 @@ import { ACTIVE_STATUSES, OrderStatus, OrderType, PriceItem, type OrderDto } fro
 import { currentPrice, orderAmount, orderTypeLabel, statusLabel } from "@/lib/orders";
 import Link from "next/link";
 import { useStore } from "@/lib/store";
+import { useLanguage } from "@/lib/language";
 import { peso, kgf, dateLabel } from "@/lib/format";
 import { Badge, Card, PageHeader, cn, orderTone } from "@/components/ui";
 import { IconAlert, IconArrowRight, IconBag, IconChart, IconClipboard, IconLeaf, IconWrench } from "@/components/icons";
@@ -31,6 +32,13 @@ const actions = [
 
 export default function BuyerHome() {
   const { profile, orders, prices } = useStore();
+  const { t } = useLanguage();
+  const actionText: Record<string, [string, string]> = {
+    "/buyer/offers": ["Magbakal bugas", "Mag-order sang bugas kada kilo."],
+    "/buyer/sell": ["Magbaligya palay", "Bag-o ukon mala nga palay, sa presyo subong."],
+    "/buyer/service": ["Pagpamala kag paggaling", "Serbisyo sa pagpamala ukon paggaling sang imo palay."],
+    "/buyer/orders": ["Akon mga order", "Tan-awon ang tanan nga pangabay."],
+  };
   // Orders that need the user to do something come first.
   const active = orders
     .filter((order) => ACTIVE_STATUSES.includes(order.status))
@@ -40,7 +48,7 @@ export default function BuyerHome() {
 
   return (
     <div className="flex flex-col gap-8">
-      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Welcome{profile.name ? `, ${profile.name}` : ""}</h1>
+      <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{t("Welcome", "Maayong pag-abot")}{profile.name ? `, ${profile.name}` : ""}</h1>
 
       {active.length > 0 && (
         <section className="flex flex-col gap-4">
@@ -93,7 +101,7 @@ export default function BuyerHome() {
       )}
 
       <section className="flex flex-col gap-4" aria-labelledby="actions-title">
-        <h2 id="actions-title" className="text-xl font-bold tracking-tight">What would you like to do?</h2>
+        <h2 id="actions-title" className="text-xl font-bold tracking-tight">{t("What would you like to do?", "Ano ang gusto mo himuon?")}</h2>
         <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2">
           {actions.map((a) => (
             <Link
@@ -102,8 +110,8 @@ export default function BuyerHome() {
               className={cn("flex min-h-32 flex-col justify-center gap-2 rounded-2xl border-2 p-5 shadow-card transition-colors", a.tone)}
             >
               <a.Icon className="h-7 w-7" />
-              <span className="text-xl font-bold">{a.title}</span>
-              <span className={cn("text-sm", a.subTone)}>{a.sub}</span>
+              <span className="text-xl font-bold">{t(a.title, actionText[a.href][0])}</span>
+              <span className={cn("text-sm", a.subTone)}>{t(a.sub, actionText[a.href][1])}</span>
             </Link>
           ))}
         </div>

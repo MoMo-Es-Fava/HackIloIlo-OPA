@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { DeliveryMethod, PalayCondition, orderRef } from "@irpc/types";
+import { DeliveryMethod, PalayCondition, OrderType, estimateOrderAmount, orderRef } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { kgf, peso } from "@/lib/format";
 import { Button, Card, PageHeader, SelectField, TextField, cn } from "@/components/ui";
@@ -23,7 +23,7 @@ const deliveryLabel: Record<DeliveryMethod, string> = {
 const OTHER = "__other__";
 
 export default function SellPalay() {
-  const { palayPrices, riceTypes, profile, isMock, orderError, sellPalay } = useStore();
+  const { palayPrices, prices, settings, riceTypes, profile, isMock, orderError, sellPalay } = useStore();
   const [step, setStep] = useState<Step>("condition");
   const [condition, setCondition] = useState<PalayCondition | null>(null);
   const [kg, setKg] = useState("");
@@ -44,7 +44,7 @@ export default function SellPalay() {
     delivery: !delivery ? "Choose how the palay gets to IRPC" : undefined,
   };
   const detailsOk = !errors.kg && !errors.variety && !errors.delivery;
-  const payout = rate !== null && amount > 0 ? amount * rate : null;
+  const payout = condition && settings ? estimateOrderAmount({ type: OrderType.SELL_PALAY, requestedKg: kg, palayCondition: condition }, prices, settings) : null;
   const stepIndex = STEPS.findIndex((s) => s.id === step);
 
   async function submit() {

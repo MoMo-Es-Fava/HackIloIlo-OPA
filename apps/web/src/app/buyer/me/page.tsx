@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { setAuthToken } from "@/lib/api";
+import { useLanguage, LanguageToggle } from "@/lib/language";
 import { useStore } from "@/lib/store";
 import { AccountType } from "@irpc/types";
 import type { BuyerProfile } from "@/lib/demo-types";
@@ -9,11 +12,30 @@ import { Badge, Button, Card, PageHeader, SelectField, TextField } from "@/compo
 import { IconUser, IconWrench, IconChevronRight } from "@/components/icons";
 
 export default function Me() {
-  const { profile, isMock, orderError, updateProfile } = useStore();
+  const { profile, user, isMock, orderError, updateProfile } = useStore();
+  const router = useRouter();
+  const { t } = useLanguage();
   const [f, setF] = useState<BuyerProfile>(profile);
   const [saved, setSaved] = useState(false);
   const set = <K extends keyof BuyerProfile>(k: K, v: BuyerProfile[K]) => { setF({ ...f, [k]: v }); setSaved(false); };
   const nameErr = f.name.trim() ? undefined : "Name is required";
+  if (!isMock && user) return <div className="flex flex-col gap-6">
+    <PageHeader title={t("My account", "Akon account")} sub={`Account ${user.id}`} icon={<IconUser className="h-6 w-6" />} />
+    <Card>
+      <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 break-words">
+        <dt>{t("Name", "Ngalan")}</dt><dd>{user.name}</dd>
+        <dt>{t("Phone", "Cellphone")}</dt><dd>{user.phone}</dd>
+        <dt>{t("Account type", "Klase sang account")}</dt><dd>{user.accountType?.replaceAll("_", " ") ?? user.role.replaceAll("_", " ")}</dd>
+        <dt>{t("Municipality", "Banwa")}</dt><dd>{user.municipality || "—"}</dd>
+        <dt>{t("Cooperative", "Kooperatiba")}</dt><dd>{user.cooperative || "—"}</dd>
+        <dt>{t("SMS language", "Lengguwahe sang SMS")}</dt><dd>{user.language === "HIL" ? "Hiligaynon" : "English"}</dd>
+      </dl>
+      <LanguageToggle />
+      <p className="text-sm text-sub">{t("This language switch changes this device's display. Your SMS language is the preference saved at registration.", "Ini nga pili para sa lengguwahe sang sini nga device. Ang lengguwahe sang SMS amo ang ginpili sa pagrehistro.")}</p>
+      <Link className="min-h-11 py-3 font-bold text-paddy-d underline" href="/buyer/prices">{t("View current prices", "Tan-awon ang mga presyo")}</Link>
+      <Button onClick={() => { setAuthToken(null); router.replace("/login"); }}>{t("Log out", "Mag-log out")}</Button>
+    </Card>
+  </div>;
   return (
     <div className="flex flex-col gap-6">
       <PageHeader title="Buyer profile" sub={`Account ${profile.id}`} icon={<IconUser className="h-6 w-6" />} />

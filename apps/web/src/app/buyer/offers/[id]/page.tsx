@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { estimateOrderAmount, OrderType } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { peso, kgf } from "@/lib/format";
 import { Button, Card, Empty, PageHeader, TextField } from "@/components/ui";
@@ -11,7 +12,7 @@ import { IconChevronRight, IconTrace } from "@/components/icons";
 export default function OfferDetail() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { offers, batches, reserveOffer, orderError } = useStore();
+  const { offers, batches, prices, settings, reserveOffer, orderError } = useStore();
   const offer = offers.find((o) => o.id === id);
   const [kg, setKg] = useState("");
   const [review, setReview] = useState(false);
@@ -28,7 +29,8 @@ export default function OfferDetail() {
   const batch = batches.find((b) => b.id === offer.batchId);
   const n = Number(kg);
   const error = kg === "" ? undefined : !(n > 0) ? "Enter a quantity above 0" : n > offer.kgAvailable ? `Only ${kgf(offer.kgAvailable)} available` : undefined;
-  const valid = kg !== "" && !error;
+  const total = settings ? estimateOrderAmount({ type: OrderType.BUY_RICE, requestedKg: kg, riceTypeId: offer.riceTypeId }, prices, settings) : null;
+  const valid = kg !== "" && !error && total !== null;
 
   const confirm = async () => {
     // The shared contract requires preferredDate. IRPC sets the real date when it accepts the order.
@@ -89,7 +91,7 @@ export default function OfferDetail() {
               {valid && (
                 <div aria-live="polite" className="rounded-xl border border-paddy/25 bg-paddy/[0.06] p-4">
                   <p className="text-sm text-sub">Estimated order total</p>
-                  <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(n * offer.pricePerKg)}</p>
+                  <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(total!)}</p>
                   <p className="tnum text-sm text-sub">{kgf(n)} × {peso(offer.pricePerKg)} per kg</p>
                 </div>
               )}
@@ -100,7 +102,7 @@ export default function OfferDetail() {
           ) : (
             <>
               <p>{kgf(n)} of {offer.grade} at {peso(offer.pricePerKg)} per kg</p>
-              <p className="tnum text-2xl font-bold tracking-tight">Estimated total {peso(n * offer.pricePerKg)}</p>
+              <p className="tnum text-2xl font-bold tracking-tight">Estimated total {total === null ? "—" : peso(total)}</p>
               <p className="text-sm text-sub">{offer.delivery}. You can cancel from your order while it is pending.</p>
               {orderError && <p role="alert" className="font-bold text-clay">{orderError}</p>}
               <div className="flex gap-3">

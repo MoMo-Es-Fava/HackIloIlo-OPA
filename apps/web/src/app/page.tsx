@@ -2,6 +2,7 @@
 
 import { useStore } from "@/lib/store";
 import Link from "next/link";
+import { LanguageToggle, useLanguage } from "@/lib/language";
 import { IconArrowRight, IconBolt, IconLeaf, IconTrace, IconUser, IconWrench } from "@/components/icons";
 
 const portals = [
@@ -33,18 +34,20 @@ const pillars = [
 
 export default function Landing() {
   const { isMock } = useStore();
+  const { t } = useLanguage();
   return (
     <main className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-paddy-d via-[#1b4230] to-ink">
       <div aria-hidden className="pointer-events-none absolute -right-24 -top-32 h-96 w-96 rounded-full border border-white/10" />
       <div aria-hidden className="pointer-events-none absolute -left-20 bottom-10 h-72 w-72 rounded-full bg-husk/10 blur-3xl" />
 
       <div className="relative mx-auto flex min-h-screen w-full max-w-6xl flex-col px-4 pb-10 pt-6 sm:px-6 sm:pt-8">
-        <header className="flex items-center gap-3">
+        <header className="flex flex-wrap items-center gap-3">
           <span className="grid h-11 w-11 place-items-center rounded-2xl bg-husk font-bold text-ink shadow-[0_8px_24px_-8px_rgba(0,0,0,0.6)]">IR</span>
           <span className="flex flex-col leading-tight text-white">
             <span className="font-bold tracking-wide">IRPC</span>
             <span className="text-sm text-white/75">Iloilo Rice Processing Complex</span>
           </span>
+          <div className="ml-auto flex flex-wrap items-center gap-3"><LanguageToggle /><Link href="/login" className="min-h-11 py-3 font-bold text-white">{t("Log in", "Mag-log in")}</Link><Link href="/signup" className="min-h-11 py-3 font-bold text-husk">{t("Sign up", "Magrehistro")}</Link></div>
         </header>
 
         <div className="flex flex-1 flex-col justify-center py-12 sm:py-20">

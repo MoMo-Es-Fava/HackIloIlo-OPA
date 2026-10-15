@@ -1,12 +1,11 @@
 import {
   ACCEPT_STATUS, canTransition, OrderStatus, OrderType, PalayCondition, PriceItem,
   ServiceType, orderRef, type CreateOrderRequest, type CurrentPrice, type OrderDto,
-  type RiceTypeDto,
+  type RiceTypeDto, estimateOrderAmount, type PublicSettingsDto,
 } from "@irpc/types";
 import { currentPrice, nextOrderStatus } from "./orders";
 
-// Demo assumption until the API exposes the plant's milling recovery setting.
-export const MOCK_MILLING_RECOVERY = 0.60;
+import { mockSettings } from "./mock-settings";
 
 function rate(prices: CurrentPrice[], item: PriceItem, riceTypeId: number | null = null) {
   const price = currentPrice(prices, item, riceTypeId)?.pricePerKg;
@@ -17,6 +16,7 @@ function rate(prices: CurrentPrice[], item: PriceItem, riceTypeId: number | null
 export function createMockOrder(
   request: CreateOrderRequest, id: number, prices: CurrentPrice[], riceTypes: RiceTypeDto[],
   now = new Date().toISOString(),
+  settings: PublicSettingsDto = mockSettings,
 ): OrderDto {
   const kg = Number(request.requestedKg);
   if (!Number.isFinite(kg) || kg <= 0) throw new Error("Enter a quantity above zero.");
@@ -26,19 +26,16 @@ export function createMockOrder(
   if (!request.preferredDate || !Number.isFinite(Date.parse(request.preferredDate))) {
     throw new Error("Choose a preferred date.");
   }
-  let estimate: number;
   if (request.type === OrderType.BUY_RICE) {
     const rice = riceTypes.find((row) => row.id === request.riceTypeId);
     if (!rice || kg > Number(rice.stockKg)) throw new Error("Not enough rice in stock.");
-    estimate = kg * Number(rate(prices, PriceItem.RICE, rice.id));
   } else if (request.type === OrderType.SELL_PALAY) {
     if (!request.palayCondition) throw new Error("Choose fresh or dry palay.");
-    estimate = kg * Number(rate(prices, request.palayCondition === PalayCondition.FRESH ? PriceItem.PALAY_FRESH : PriceItem.PALAY_DRY));
   } else {
     if (!request.serviceType || !Object.values(ServiceType).includes(request.serviceType)) throw new Error("Choose a service.");
-    estimate = (request.serviceType !== ServiceType.MILLING ? kg * Number(rate(prices, PriceItem.DRYING_FEE)) : 0)
-      + (request.serviceType !== ServiceType.DRYING ? kg * MOCK_MILLING_RECOVERY * Number(rate(prices, PriceItem.MILLING_FEE)) : 0);
   }
+  const estimate = estimateOrderAmount(request, prices, settings);
+  if (estimate === null) throw new Error("The required price is not available.");
   return {
     id, ref: orderRef(id), type: request.type, status: OrderStatus.PENDING,
     contactName: request.contactName.trim(), contactPhone: request.contactPhone,
@@ -49,7 +46,7 @@ export function createMockOrder(
     deliveryMethod: request.type === OrderType.SELL_PALAY ? request.deliveryMethod ?? null : null,
     serviceType: request.type === OrderType.SERVICE ? request.serviceType! : null,
     unitPrice: null, dryingRate: null, millingRate: null, wetKg: null, dryKg: null, riceKg: null,
-    weightConfirmedAt: null, estimatedAmount: estimate.toFixed(2), finalAmount: null,
+    weightConfirmedAt: null, estimatedAmount: estimate, finalAmount: null,
     rejectReason: null, createdAt: now,
     events: [{ fromStatus: null, toStatus: OrderStatus.PENDING, kg: null, note: null, createdAt: now }],
   };

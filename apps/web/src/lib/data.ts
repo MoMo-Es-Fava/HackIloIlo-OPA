@@ -3,7 +3,9 @@ import {
   AccountType, DeliveryMethod, OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem,
   Role, ServiceType, type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
 } from "@irpc/types";
-import { MOCK_MILLING_RECOVERY, createMockOrder, transitionMockOrder } from "./mock-orders";
+import { createMockOrder, transitionMockOrder } from "./mock-orders";
+import { mockSettings } from "./mock-settings";
+import { estimateServiceRiceKg } from "@irpc/types";
 import { orderSteps } from "./orders";
 import type { Stage, BatchEvent, Batch, AuditEntry, Offer, DemoOrderDetails, Slot, Booking, PricePoint, User, BuyerProfile } from "./demo-types";
 
@@ -79,8 +81,9 @@ function sampleOrder(id: number, request: CreateOrderRequest, status: OrderStatu
     if (step === OrderStatus.WEIGHED) {
       const kg = Number(order.requestedKg);
       order.wetKg = order.palayCondition === PalayCondition.FRESH ? order.requestedKg : null;
-      order.dryKg = order.palayCondition === PalayCondition.DRY ? order.requestedKg : (kg * 0.84).toFixed(2);
-      order.riceKg = order.type === OrderType.SERVICE && order.serviceType !== ServiceType.DRYING ? (kg * MOCK_MILLING_RECOVERY).toFixed(2) : null;
+      order.dryKg = order.palayCondition === PalayCondition.DRY ? order.requestedKg : (kg * Number(mockSettings.dryingRecovery)).toFixed(2);
+      order.riceKg = order.type === OrderType.SERVICE && order.serviceType !== ServiceType.DRYING
+        ? estimateServiceRiceKg({ requestedKg: order.requestedKg, serviceType: order.serviceType ?? undefined }, mockSettings).toFixed(2) : null;
       order.finalAmount = order.type === OrderType.SELL_PALAY
         ? (kg * Number(order.unitPrice)).toFixed(2)
         : (Number(order.wetKg) * Number(order.dryingRate) + Number(order.riceKg) * Number(order.millingRate)).toFixed(2);

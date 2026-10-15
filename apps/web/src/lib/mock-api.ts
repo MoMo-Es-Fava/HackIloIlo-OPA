@@ -1,5 +1,6 @@
 import {
   ACCEPT_STATUS, ACTIVE_STATUSES, AccountType, OrderStatus, OrderType, PriceBasis, PriceItem, Role,
+  Language, PIN_PATTERN, normalizePhPhone, type UserDto, type AdminOrderDto,
   type CreateOrderRequest, type CurrentPrice, type OrderDto, type RiceTypeDto,
 } from "@irpc/types";
 import { ApiError, type PriceRequest, type RegisterRequest } from "./api";
@@ -11,6 +12,7 @@ import {
   energy, financeDays, seedForecast, PLANT,
 } from "./data";
 import { createMockOrder, transitionMockOrder } from "./mock-orders";
+import { mockSettings } from "./mock-settings";
 
 const copy = <T,>(value: T): T => structuredClone(value);
 const stamp = () => new Date().toLocaleString("en-PH", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Manila" });
@@ -23,6 +25,9 @@ export function createMockApi() {
   let priceHistory = copy(seedPrices);
   let nextId = Math.max(...orders.map((order) => order.id)) + 1;
   let pin = "1234";
+  let language: Language = Language.EN;
+  let cooperative: string | null = null;
+  let userId = 7;
   const workspace: DemoWorkspace = copy({
     batches: seedBatches, offers: seedOffers, slots: seedSlots, bookings: seedBookings,
     history: seedHistory, users: seedUsers, audit: seedAudit, profile: seedProfile, kwhPrice: seedKwhPrice,
@@ -120,17 +125,18 @@ export function createMockApi() {
     };
   }
 
-  const user = () => ({ id: workspace.profile.id, name: workspace.profile.name, phone: workspace.profile.contact,
-    accountType: workspace.profile.type, role: Role.USER, language: "EN", municipality: workspace.profile.address });
+  const user = (): UserDto => ({ id: userId, name: workspace.profile.name, phone: workspace.profile.contact,
+    accountType: workspace.profile.type, role: Role.USER, language, municipality: workspace.profile.address || null, cooperative });
   const findOrder = (id: number, own = false) => {
     const order = orders.find((row) => row.id === id);
     if (!order || (own && workspace.orderDetails[id]?.ownerId !== workspace.profile.id)) throw new ApiError(404, "Order not found.");
     return order;
   };
-  const adminOrder = (order: OrderDto) => ({ ...order, customer: {
-    id: workspace.orderDetails[order.id]?.ownerId,
-    name: workspace.orderDetails[order.id]?.contactName,
-    phone: workspace.orderDetails[order.id]?.contactPhone,
+  const adminOrder = (order: OrderDto): AdminOrderDto => ({ ...order, events: order.events ?? [], customer: {
+    ...user(),
+    id: workspace.orderDetails[order.id]?.ownerId === workspace.profile.id ? userId : 8,
+    name: workspace.orderDetails[order.id]?.contactName ?? order.contactName,
+    phone: workspace.orderDetails[order.id]?.contactPhone ?? order.contactPhone,
   } });
   function transition(order: OrderDto, status: OrderStatus, options: { scheduledDate?: string; reason?: string } = {}) {
     const result = transitionMockOrder(order, status, prices, riceTypes, options);
@@ -151,12 +157,16 @@ export function createMockApi() {
     }
     if (route === "/auth/register" && method === "POST") {
       const input = body as RegisterRequest;
-      if (!input.name?.trim() || !/^\+639\d{9}$/.test(input.phone) || !input.pin || input.consent !== true) throw new ApiError(400, "Complete the registration details.");
+      if (!input.name?.trim() || !normalizePhPhone(input.phone) || !PIN_PATTERN.test(input.pin) || input.consent !== true) throw new ApiError(400, "Complete the registration details.");
       workspace.profile = { id: `demo-${Date.now()}`, name: input.name, contact: input.phone, type: input.accountType ?? AccountType.BUYER, address: input.municipality ?? "" };
       pin = input.pin;
+      language = input.language;
+      cooperative = input.cooperative ?? null;
+      userId++;
       return { token: "mock-session", user: user() };
     }
     if (route === "/prices" && method === "GET") return prices;
+    if (route === "/settings" && method === "GET") return mockSettings;
     if (route === "/rice-types" && method === "GET") return riceTypes;
     if (route === "/orders/mine" && method === "GET") return orders.filter((order) =>
       workspace.orderDetails[order.id]?.ownerId === workspace.profile.id && (url.searchParams.get("active") !== "true" || ACTIVE_STATUSES.includes(order.status)));
@@ -246,7 +256,10 @@ export function createMockApi() {
       arrivingToday: orders.filter((order) => order.scheduledDate?.slice(0, 10) === new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date())).length,
       inDrying: orders.filter((order) => order.status === OrderStatus.DRYING).length,
       readyForPickup: orders.filter((order) => order.status === OrderStatus.READY_FOR_PICKUP).length,
-      kgBookedToday: orders.filter((order) => order.createdAt.slice(0, 10) === new Date().toISOString().slice(0, 10)).reduce((total, order) => total + Number(order.requestedKg), 0),
+      dryingKgBookedToday: orders.filter((order) => order.type === OrderType.SERVICE && order.serviceType !== "MILLING"
+        && order.status === OrderStatus.SCHEDULED && order.scheduledDate?.slice(0, 10) === new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Manila" }).format(new Date()))
+        .reduce((total, order) => total + Number(order.requestedKg), 0).toFixed(2),
+      dryingCapacityKg: mockSettings.dryingCapacityKg,
     };
     if (route === "/admin/sms-logs" && method === "GET") return [];
     throw new ApiError(501, "This feature is not connected yet.");

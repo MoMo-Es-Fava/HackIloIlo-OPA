@@ -1,11 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PriceItem, ServiceType, orderRef } from "@irpc/types";
+import { PriceItem, ServiceType, OrderType, estimateOrderAmount, estimateServiceRiceKg, orderRef } from "@irpc/types";
 import { useStore } from "@/lib/store";
 import { kgf, dateLabel, peso } from "@/lib/format";
 import { currentPrice, serviceLabel, statusLabel } from "@/lib/orders";
-import { MOCK_MILLING_RECOVERY } from "@/lib/mock-orders";
 import { Badge, Button, Card, Empty, PageHeader, TextField, cn, orderTone } from "@/components/ui";
 import { IconWrench } from "@/components/icons";
 
@@ -16,7 +15,7 @@ const serviceHint: Record<ServiceType, string> = {
 };
 
 export default function Service() {
-  const { serviceRequests, prices, isMock, orderError, profile, addServiceRequest } = useStore();
+  const { serviceRequests, prices, settings, isMock, orderError, profile, addServiceRequest } = useStore();
   const [service, setService] = useState<ServiceType | null>(null);
   const [kg, setKg] = useState("");
   const [touched, setTouched] = useState(false);
@@ -28,10 +27,7 @@ export default function Service() {
   const n = Number(kg);
   const kgErr = !kg.trim() ? "Enter how many kg you have" : !(n > 0) ? "Enter a quantity above 0" : undefined;
   const serviceErr = service ? undefined : "Choose a service";
-  const estimate = service && n > 0 && feesKnown
-    ? (service !== ServiceType.MILLING ? n * dryingFee : 0)
-      + (service !== ServiceType.DRYING ? n * MOCK_MILLING_RECOVERY * millingFee : 0)
-    : null;
+  const estimate = service && settings ? estimateOrderAmount({ type: OrderType.SERVICE, requestedKg: kg, serviceType: service }, prices, settings) : null;
   const feeLabel = (type: ServiceType) => {
     if (!feesKnown) return "Fee not available";
     const parts = [
@@ -43,7 +39,7 @@ export default function Service() {
 
   async function send() {
     setTouched(true);
-    if (!service || kgErr || !feesKnown) return;
+    if (!service || kgErr || estimate === null) return;
     // The shared contract requires preferredDate. IRPC sets the real service date when it accepts the request.
     const requestedOn = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
     const id = await addServiceRequest(service, n, requestedOn);
@@ -81,11 +77,11 @@ export default function Service() {
           <p className="text-3xl font-bold text-paddy-d">{estimate === null ? "—" : peso(estimate)}</p>
           <p className="mt-1 text-sm text-sub">
             This is an estimate only. The final fee is based on the weight IRPC records
-            {service && service !== ServiceType.DRYING ? `, and milling is estimated at about ${Math.round(MOCK_MILLING_RECOVERY * 100)}% of your palay weight` : ""}.
+            {service && service !== ServiceType.DRYING && settings && n > 0 ? `, with about ${estimateServiceRiceKg({ requestedKg: kg, serviceType: service }, settings)} kg of rice after processing` : ""}.
           </p>
         </div>
         <p className="text-sm text-sub">Request for {profile.name}. It is not booked until IRPC approves it.</p>
-        <Button disabled={!feesKnown} onClick={send}>Send request</Button>
+        <Button disabled={estimate === null} onClick={send}>Send request</Button>
         {orderError && <p role="alert" className="font-bold text-clay">{orderError}</p>}
         {sentId && (
           <div role="status" className="rounded-xl border border-paddy/30 bg-mist p-4">

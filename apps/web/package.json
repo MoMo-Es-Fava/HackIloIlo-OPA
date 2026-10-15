@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "test": "tsc -p tsconfig.test.json && node --test .test-dist/tests/*.test.js",
     "check:api": "tsc -p tsconfig.test.json && node --env-file=.env.local .test-dist/tests/live-health.check.js",
+    "check:auth": "tsc -p tsconfig.test.json && node --env-file=.env.local .test-dist/tests/live-auth.check.js",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
