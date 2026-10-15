@@ -45,6 +45,11 @@ export { Prisma }
  */
 export type User = Prisma.UserModel
 /**
+ * Model PhoneVerification
+ * 
+ */
+export type PhoneVerification = Prisma.PhoneVerificationModel
+/**
  * Model RiceType
  * 
  */

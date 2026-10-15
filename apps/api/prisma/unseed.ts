@@ -1,80 +1,183 @@
 import path from 'node:path';
 import { config } from 'dotenv';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../src/generated/prisma/client';
+import { Prisma, PrismaClient } from '../src/generated/prisma/client';
 
 config({ path: path.resolve(process.cwd(), '../../.env'), quiet: true });
 
-const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! });
-const prisma = new PrismaClient({ adapter });
-
-const SEED_PHONE = '+639171234567'; // same phone used in seed.ts
-const WIPE_ALL = process.argv.includes('--all');
-
-async function deleteSeedData() {
-  const user = await prisma.user.findUnique({ where: { phone: SEED_PHONE } });
-
-  if (!user) {
-    console.log('ℹ️  Seed user not found, nothing to delete.');
-    return;
-  }
-
-  const orders = await prisma.order.findMany({
-    where: { customerId: user.id },
-    select: { id: true },
-  });
-  const orderIds = orders.map((o) => o.id);
-
-  // Children first, because the relations have no onDelete cascade
-  const smsLogs = await prisma.smsLog.deleteMany({
-    where: { orderId: { in: orderIds } },
-  });
-  const events = await prisma.orderEvent.deleteMany({
-    where: { OR: [{ orderId: { in: orderIds } }, { actorId: user.id }] },
-  });
-  const stock = await prisma.stockAdjustment.deleteMany({
-    where: { actorId: user.id },
-  });
-  const prices = await prisma.price.deleteMany({
-    where: { createdById: user.id },
-  });
-  const deletedOrders = await prisma.order.deleteMany({
-    where: { customerId: user.id },
-  });
-  await prisma.user.delete({ where: { id: user.id } });
-
-  console.log(
-    `🗑️  Deleted seed user ${user.id}, ${deletedOrders.count} order(s), ` +
-      `${events.count} event(s), ${smsLogs.count} SMS log(s), ` +
-      `${stock.count} stock adjustment(s), ${prices.count} price(s).`,
-  );
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) {
+  throw new Error('DATABASE_URL is not set. Check the repository root .env file.');
 }
 
-async function deleteAllData() {
-  // FK-safe order: children before parents
-  await prisma.smsLog.deleteMany();
-  await prisma.orderEvent.deleteMany();
-  await prisma.stockAdjustment.deleteMany();
-  await prisma.price.deleteMany();
-  await prisma.order.deleteMany();
-  await prisma.riceType.deleteMany();
-  await prisma.setting.deleteMany();
-  await prisma.user.deleteMany();
-  console.log('🗑️  Wiped ALL tables.');
+const adapter = new PrismaPg({ connectionString: databaseUrl });
+const prisma = new PrismaClient({ adapter });
+const SEEDED_PHONES = [
+  '+639170000001', // admin
+  '+639170000002', // plant staff
+  '+639170000003', // farmer
+  '+639170000004', // farmer
+  '+639170000005', // cooperative
+  '+639170000006', // buyer
+  '+639170000007', // buyer
+] as const;
+const SEEDED_RICE_TYPES = [
+  'Well-milled rice',
+  'Regular milled rice',
+  'Well-milled rice (Coop 2)',
+] as const;
+const SEEDED_SETTINGS = [
+  'millingRecovery',
+  'dryingRecovery',
+  'sackKg',
+  'dryingCapacityKg',
+] as const;
+const WIPE_ALL = process.argv.includes('--all');
+
+async function clearPhoneVerifications(
+  tx: Prisma.TransactionClient,
+  phones?: readonly string[],
+) {
+  const result = phones?.length
+    ? await tx.phoneVerification.deleteMany({
+        where: { phone: { in: [...phones] } },
+      })
+    : await tx.phoneVerification.deleteMany();
+  return result.count;
+}
+
+async function wipeAll() {
+  const counts = await prisma.$transaction(async (tx) => {
+    const phoneVerifications = await clearPhoneVerifications(tx);
+    const smsLogs = await tx.smsLog.deleteMany();
+    const events = await tx.orderEvent.deleteMany();
+    const stockAdjustments = await tx.stockAdjustment.deleteMany();
+    const prices = await tx.price.deleteMany();
+    const orders = await tx.order.deleteMany();
+    const riceTypes = await tx.riceType.deleteMany();
+    const settings = await tx.setting.deleteMany();
+    const users = await tx.user.deleteMany();
+    return {
+      smsLogs: smsLogs.count,
+      events: events.count,
+      stockAdjustments: stockAdjustments.count,
+      prices: prices.count,
+      orders: orders.count,
+      riceTypes: riceTypes.count,
+      settings: settings.count,
+      users: users.count,
+      phoneVerifications,
+    };
+  });
+  console.log('Wiped every application table:', counts);
+}
+
+async function removeSeededData() {
+  const counts = await prisma.$transaction(async (tx) => {
+    const phoneVerifications = await clearPhoneVerifications(tx, SEEDED_PHONES);
+    const users = await tx.user.findMany({
+      where: { phone: { in: [...SEEDED_PHONES] } },
+      select: { id: true },
+    });
+    const userIds = users.map((user) => user.id);
+    const riceTypes = await tx.riceType.findMany({
+      where: { name: { in: [...SEEDED_RICE_TYPES] } },
+      select: { id: true, name: true },
+    });
+    const riceTypeIds = riceTypes.map((rice) => rice.id);
+    const seededOrders = userIds.length
+      ? await tx.order.findMany({
+          where: { customerId: { in: userIds } },
+          select: { id: true },
+        })
+      : [];
+    const orderIds = seededOrders.map((order) => order.id);
+
+    const smsLogs = await tx.smsLog.deleteMany({
+      where: {
+        OR: [
+          { orderId: { in: orderIds } },
+          { phone: { in: [...SEEDED_PHONES] } },
+        ],
+      },
+    });
+    const events = await tx.orderEvent.deleteMany({
+      where: {
+        OR: [{ orderId: { in: orderIds } }, { actorId: { in: userIds } }],
+      },
+    });
+    const stockAdjustments = await tx.stockAdjustment.deleteMany({
+      where: {
+        OR: [{ orderId: { in: orderIds } }, { actorId: { in: userIds } }],
+      },
+    });
+    const prices = await tx.price.deleteMany({
+      where: {
+        OR: [
+          { createdById: { in: userIds } },
+          { riceTypeId: { in: riceTypeIds } },
+        ],
+      },
+    });
+    const orders = userIds.length
+      ? await tx.order.deleteMany({ where: { customerId: { in: userIds } } })
+      : { count: 0 };
+    const deletedUsers = userIds.length
+      ? await tx.user.deleteMany({ where: { id: { in: userIds } } })
+      : { count: 0 };
+
+    let deletedRiceTypes = 0;
+    const retainedRiceTypes: string[] = [];
+    for (const riceType of riceTypes) {
+      const orderCount = await tx.order.count({
+        where: { riceTypeId: riceType.id },
+      });
+      if (orderCount > 0) {
+        retainedRiceTypes.push(riceType.name);
+        continue;
+      }
+      await tx.stockAdjustment.deleteMany({
+        where: { riceTypeId: riceType.id },
+      });
+      const deleted = await tx.riceType.delete({
+        where: { id: riceType.id },
+      });
+      if (deleted) deletedRiceTypes++;
+    }
+    const settings = await tx.setting.deleteMany({
+      where: { key: { in: [...SEEDED_SETTINGS] } },
+    });
+
+    return {
+      users: deletedUsers.count,
+      orders: orders.count,
+      events: events.count,
+      smsLogs: smsLogs.count,
+      stockAdjustments: stockAdjustments.count,
+      prices: prices.count,
+      riceTypes: deletedRiceTypes,
+      settings: settings.count,
+      retainedRiceTypes,
+      phoneVerifications,
+    };
+  });
+  console.log('Removed seeded demo data:', counts);
 }
 
 async function main() {
-  console.log(
-    WIPE_ALL ? '⚠️  Wiping all data...\n' : '🧹 Removing seed data...\n',
-  );
-  if (WIPE_ALL) await deleteAllData();
-  else await deleteSeedData();
+  if (WIPE_ALL) {
+    console.log('Removing all application data...');
+    await wipeAll();
+    return;
+  }
+  console.log('Removing records associated with the seven seeded demo accounts...');
+  await removeSeededData();
 }
 
 main()
   .catch((error) => {
-    console.error('❌ Delete failed:', error);
-    process.exit(1);
+    console.error('Database cleanup failed:', error);
+    process.exitCode = 1;
   })
   .finally(async () => {
     await prisma.$disconnect();

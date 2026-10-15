@@ -398,6 +398,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   User: 'User',
+  PhoneVerification: 'PhoneVerification',
   RiceType: 'RiceType',
   Price: 'Price',
   Order: 'Order',
@@ -420,7 +421,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "riceType" | "price" | "order" | "orderEvent" | "stockAdjustment" | "smsLog" | "setting"
+    modelProps: "user" | "phoneVerification" | "riceType" | "price" | "order" | "orderEvent" | "stockAdjustment" | "smsLog" | "setting"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -495,6 +496,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.UserCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.UserCountAggregateOutputType> | number
+        }
+      }
+    }
+    PhoneVerification: {
+      payload: Prisma.$PhoneVerificationPayload<ExtArgs>
+      fields: Prisma.PhoneVerificationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.PhoneVerificationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.PhoneVerificationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        findFirst: {
+          args: Prisma.PhoneVerificationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.PhoneVerificationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        findMany: {
+          args: Prisma.PhoneVerificationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>[]
+        }
+        create: {
+          args: Prisma.PhoneVerificationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        createMany: {
+          args: Prisma.PhoneVerificationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.PhoneVerificationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>[]
+        }
+        delete: {
+          args: Prisma.PhoneVerificationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        update: {
+          args: Prisma.PhoneVerificationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        deleteMany: {
+          args: Prisma.PhoneVerificationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.PhoneVerificationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.PhoneVerificationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>[]
+        }
+        upsert: {
+          args: Prisma.PhoneVerificationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$PhoneVerificationPayload>
+        }
+        aggregate: {
+          args: Prisma.PhoneVerificationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregatePhoneVerification>
+        }
+        groupBy: {
+          args: Prisma.PhoneVerificationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PhoneVerificationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.PhoneVerificationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.PhoneVerificationCountAggregateOutputType> | number
         }
       }
     }
@@ -1073,6 +1148,18 @@ export const UserScalarFieldEnum = {
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+export const PhoneVerificationScalarFieldEnum = {
+  phone: 'phone',
+  codeHash: 'codeHash',
+  expiresAt: 'expiresAt',
+  attempts: 'attempts',
+  sentAt: 'sentAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type PhoneVerificationScalarFieldEnum = (typeof PhoneVerificationScalarFieldEnum)[keyof typeof PhoneVerificationScalarFieldEnum]
+
+
 export const RiceTypeScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1624,6 +1711,7 @@ export interface PrismaClientOptionsWithAdapter extends PrismaClientBaseOptions 
 export type PrismaClientOptions = PrismaClientOptionsWithAccelerateUrl | PrismaClientOptionsWithAdapter
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
+  phoneVerification?: Prisma.PhoneVerificationOmit
   riceType?: Prisma.RiceTypeOmit
   price?: Prisma.PriceOmit
   order?: Prisma.OrderOmit

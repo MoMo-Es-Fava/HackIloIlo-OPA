@@ -1,7 +1,17 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Role, type AuthResponse } from '@irpc/types';
 import * as bcrypt from 'bcryptjs';
+import { randomInt } from 'node:crypto';
+import { PrismaService } from '../../database/prisma.service';
+import { SmsService } from '../../integrations/textbee/sms.service';
 import {
   toUserDto,
   UserRecord,
@@ -14,10 +24,21 @@ const BCRYPT_ROUNDS = 10;
 // Compared against when the phone is unknown, so response time doesn't reveal which numbers exist.
 const DUMMY_HASH = bcrypt.hashSync('not-a-real-pin', BCRYPT_ROUNDS);
 const WRONG_LOGIN = 'Wrong phone number or PIN.';
+const CODE_TTL_MS = 10 * 60 * 1000;
+const CODE_RESEND_MS = 60 * 1000;
+const MAX_CODE_ATTEMPTS = 5;
 
 export interface JwtPayload {
   sub: number;
   role: Role;
+}
+
+interface PhoneVerificationRow {
+  phone: string;
+  codeHash: string;
+  expiresAt: Date;
+  attempts: number;
+  sentAt: Date;
 }
 
 @Injectable()
@@ -26,9 +47,67 @@ export class AuthService {
     private readonly users: UsersRepository,
     private readonly jwt: JwtService,
     private readonly attempts: LoginAttempts,
+    private readonly prisma: PrismaService,
+    private readonly sms: SmsService,
   ) {}
 
+  async requestRegistrationCode(phone: string): Promise<{ message: string }> {
+    if (await this.users.findByPhone(phone)) {
+      throw new ConflictException('This phone number is already registered.');
+    }
+
+    const previous = await this.findVerification(phone);
+    if (previous && Date.now() - previous.sentAt.getTime() < CODE_RESEND_MS) {
+      throw new HttpException(
+        'Wait one minute before requesting another code.',
+        HttpStatus.TOO_MANY_REQUESTS,
+      );
+    }
+
+    const code = String(randomInt(100000, 1000000));
+    const codeHash = await bcrypt.hash(code, 8);
+    await this.prisma.$executeRawUnsafe(
+      `INSERT INTO "PhoneVerification" ("phone", "codeHash", "expiresAt", "attempts", "sentAt", "updatedAt")
+       VALUES ($1, $2, $3, 0, NOW(), NOW())
+       ON CONFLICT ("phone") DO UPDATE SET
+         "codeHash" = EXCLUDED."codeHash", "expiresAt" = EXCLUDED."expiresAt",
+         "attempts" = 0, "sentAt" = NOW(), "updatedAt" = NOW()`,
+      phone,
+      codeHash,
+      new Date(Date.now() + CODE_TTL_MS),
+    );
+
+    try {
+      await this.sms.send(
+        phone,
+        `Your IRPC verification code is ${code}. It expires in 10 minutes. Do not share this code.`,
+      );
+    } catch (error) {
+      await this.deleteVerification(phone);
+      throw error;
+    }
+    return { message: 'Verification code sent.' };
+  }
+
   async register(dto: RegisterDto): Promise<AuthResponse> {
+    const verification = await this.findVerification(dto.phone);
+    if (
+      !verification ||
+      verification.expiresAt.getTime() < Date.now() ||
+      verification.attempts >= MAX_CODE_ATTEMPTS
+    ) {
+      throw new BadRequestException(
+        'Request a new verification code before creating your account.',
+      );
+    }
+    if (!(await bcrypt.compare(dto.verificationCode, verification.codeHash))) {
+      await this.prisma.$executeRawUnsafe(
+        `UPDATE "PhoneVerification" SET "attempts" = "attempts" + 1, "updatedAt" = NOW() WHERE "phone" = $1`,
+        dto.phone,
+      );
+      throw new BadRequestException('The verification code is incorrect.');
+    }
+
     const user = await this.users.create({
       name: dto.name,
       phone: dto.phone,
@@ -40,7 +119,25 @@ export class AuthService {
       cooperative: dto.cooperative ?? null,
       consentAt: new Date(),
     });
+    await this.deleteVerification(dto.phone);
     return this.issue(user);
+  }
+
+  private async findVerification(
+    phone: string,
+  ): Promise<PhoneVerificationRow | null> {
+    const rows = await this.prisma.$queryRawUnsafe<PhoneVerificationRow[]>(
+      `SELECT "phone", "codeHash", "expiresAt", "attempts", "sentAt" FROM "PhoneVerification" WHERE "phone" = $1`,
+      phone,
+    );
+    return rows[0] ?? null;
+  }
+
+  private async deleteVerification(phone: string): Promise<void> {
+    await this.prisma.$executeRawUnsafe(
+      `DELETE FROM "PhoneVerification" WHERE "phone" = $1`,
+      phone,
+    );
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {

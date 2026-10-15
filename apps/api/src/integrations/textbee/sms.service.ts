@@ -72,6 +72,10 @@ export class SmsService {
     });
     try {
       const result = await this.provider.send(to, message);
+      if (result.status === 'queued') {
+        this.logger.log(`TextBee accepted SMS batch ${result.batchId ?? '(no batch ID)'}.`);
+        if (result.warning) this.logger.warn(`TextBee warning: ${result.warning}`);
+      }
       await this.updateLog(
         logId,
         result.status === 'queued' ? 'QUEUED' : 'MOCKED',

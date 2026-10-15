@@ -63,6 +63,17 @@ export class RegisterDto implements RegisterRequest {
     message: 'You must agree to the data privacy notice to register.',
   })
   consent!: true;
+
+  @IsString()
+  @Matches(/^\d{6}$/, { message: 'Enter the six-digit verification code.' })
+  verificationCode!: string;
+}
+
+export class RequestRegistrationCodeDto {
+  @Transform(toPhone)
+  @IsString()
+  @Matches(/^\+639\d{9}$/, { message: PHONE_MESSAGE })
+  phone!: string;
 }
 
 export class LoginDto implements LoginRequest {

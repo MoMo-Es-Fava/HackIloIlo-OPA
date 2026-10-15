@@ -8,6 +8,7 @@ import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
 import { Roles } from '../src/common/auth.decorators';
 import { PrismaService } from '../src/database/prisma.service';
+import { SmsProvider } from '../src/integrations/textbee/sms.service';
 import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
 import { createPrismaServiceMock } from './prisma-service.mock';
@@ -35,9 +36,11 @@ const register = {
 describe('Auth (e2e)', () => {
   let app: INestApplication<App>;
   let users: UsersRepository;
+  let sendSms: jest.Mock;
 
   beforeEach(async () => {
     process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-characters';
+    sendSms = jest.fn().mockResolvedValue({ status: 'mocked' });
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
       controllers: [AdminProbeController],
@@ -46,6 +49,8 @@ describe('Auth (e2e)', () => {
       .useClass(InMemoryUsersRepository)
       .overrideProvider(PrismaService)
       .useValue(createPrismaServiceMock())
+      .overrideProvider(SmsProvider)
+      .useValue({ send: sendSms })
       .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
@@ -58,11 +63,24 @@ describe('Auth (e2e)', () => {
   const http = () => request(app.getHttpServer());
   const login = (phone: string, pin: string) =>
     http().post('/auth/login').send({ phone, pin });
+  const verifiedRegister = async () => {
+    await http()
+      .post('/auth/register/code')
+      .send({ phone: register.phone })
+      .expect(201);
+    const message = sendSms.mock.calls.at(-1)?.[1] as string;
+    const verificationCode = /\b\d{6}\b/.exec(message)?.[0];
+    expect(verificationCode).toBeDefined();
+    return http()
+      .post('/auth/register')
+      .send({ ...register, verificationCode });
+  };
   const messageOf = (res: { body: unknown }) =>
     (res.body as { message: string }).message;
 
   it('registers, normalizes the phone, and never returns the PIN', async () => {
-    const res = await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const body = res.body as AuthResponse;
     expect(body.token).toEqual(expect.any(String));
     expect(body.user).toMatchObject({
@@ -96,15 +114,17 @@ describe('Auth (e2e)', () => {
   });
 
   it('rejects a duplicate phone', async () => {
-    await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     await http()
-      .post('/auth/register')
-      .send({ ...register, phone: '+639171234567' })
+      .post('/auth/register/code')
+      .send({ phone: '+639171234567' })
       .expect(409);
   });
 
   it('logs in with the right PIN and rejects a wrong one with the same message as an unknown phone', async () => {
-    await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     await login('09171234567', '1234').expect(200);
     const wrongPin = await login('09171234567', '9999').expect(401);
     const unknown = await login('09990000000', '1234').expect(401);
@@ -112,7 +132,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('requires a valid token for /auth/me', async () => {
-    const res = await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const { token } = res.body as AuthResponse;
     const me = await http()
       .get('/auth/me')
@@ -127,7 +148,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('enforces roles: users get 403 on admin routes, admins get through', async () => {
-    const res = await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     const userToken = (res.body as AuthResponse).token;
     await http().get('/test-admin').expect(401);
     await http()
@@ -154,7 +176,8 @@ describe('Auth (e2e)', () => {
   });
 
   it('locks a phone after 5 wrong PINs, even if the 6th is correct', async () => {
-    await http().post('/auth/register').send(register).expect(201);
+    const res = await verifiedRegister();
+    expect(res.status).toBe(201);
     for (let i = 0; i < 5; i++) await login('09171234567', '0000').expect(401);
     const locked = await login('09171234567', '1234').expect(429);
     expect(messageOf(locked)).toMatch(/Try again in 5 minutes/);
@@ -164,16 +187,16 @@ describe('Auth (e2e)', () => {
     await http().get('/health').expect(200);
   });
 
-  it('rate-limits sign-up: the 11th attempt in a minute is refused', async () => {
-    for (let i = 0; i < 10; i++) {
+  it('rate-limits verification-code requests', async () => {
+    for (let i = 0; i < 3; i++) {
       await http()
-        .post('/auth/register')
-        .send({ ...register, phone: `0917555${String(i).padStart(4, '0')}` })
+        .post('/auth/register/code')
+        .send({ phone: `0917555${String(i).padStart(4, '0')}` })
         .expect(201);
     }
     await http()
-      .post('/auth/register')
-      .send({ ...register, phone: '09175559999' })
+      .post('/auth/register/code')
+      .send({ phone: '09175559999' })
       .expect(429);
   });
 

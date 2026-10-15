@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { UsersModule } from '../users/users.module';
+import { SmsModule } from '../../integrations/textbee/sms.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AdminGuard, JwtAuthGuard, RolesGuard } from './guards';
@@ -11,6 +12,7 @@ import { LoginAttempts } from './login-attempts';
 @Module({
   imports: [
     UsersModule,
+    SmsModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => {
