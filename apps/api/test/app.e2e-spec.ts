@@ -4,6 +4,7 @@ import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from '../src/app.module';
 import { configureApp } from '../src/app.setup';
+import { PrismaService } from '../src/database/prisma.service';
 
 describe('API (e2e)', () => {
   let app: INestApplication<App>;
@@ -12,7 +13,10 @@ describe('API (e2e)', () => {
     process.env.JWT_SECRET = 'test-secret-that-is-at-least-32-characters';
     const moduleRef = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideProvider(PrismaService)
+      .useValue({ $connect: jest.fn(), $disconnect: jest.fn() })
+      .compile();
 
     app = moduleRef.createNestApplication();
     configureApp(app);
