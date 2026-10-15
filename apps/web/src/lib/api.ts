@@ -94,7 +94,8 @@ export function createApiClient(options: ApiClientOptions) {
     return String(id);
   };
   async function authenticate(path: string, body: unknown) {
-    const result = await request<AuthResponse>(path, "POST", body, false);
+    // Login and sign-up always use the real API so accounts persist in PostgreSQL.
+    const result = await request<AuthResponse>(path, "POST", body, false, true);
     (options.saveToken ?? setAuthToken)(result.token);
     return result;
   }
