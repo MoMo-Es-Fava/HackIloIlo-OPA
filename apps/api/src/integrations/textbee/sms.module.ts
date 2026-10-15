@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { PrismaSmsLogRepository } from './prisma-sms-log.repository';
+import { SmsLogRepository } from './sms-log.repository';
 import { MockSmsProvider, TextBeeSmsProvider } from './sms.providers';
 import { SmsProvider, SmsService } from './sms.service';
 
@@ -23,6 +25,8 @@ import { SmsProvider, SmsService } from './sms.service';
         );
       },
     },
+    PrismaSmsLogRepository,
+    { provide: SmsLogRepository, useExisting: PrismaSmsLogRepository },
     SmsService,
   ],
   exports: [SmsService],
