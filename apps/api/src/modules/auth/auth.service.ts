@@ -4,6 +4,7 @@ import {
   HttpException,
   HttpStatus,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -19,6 +20,7 @@ import {
 } from '../users/users.repository';
 import { LoginDto, RegisterDto } from './auth.dto';
 import { LoginAttempts } from './login-attempts';
+import { WeeklyPricesService } from '../weekly-prices/weekly-prices.service';
 
 const BCRYPT_ROUNDS = 10;
 // Compared against when the phone is unknown, so response time doesn't reveal which numbers exist.
@@ -33,14 +35,6 @@ export interface JwtPayload {
   role: Role;
 }
 
-interface PhoneVerificationRow {
-  phone: string;
-  codeHash: string;
-  expiresAt: Date;
-  attempts: number;
-  sentAt: Date;
-}
-
 @Injectable()
 export class AuthService {
   constructor(
@@ -49,6 +43,7 @@ export class AuthService {
     private readonly attempts: LoginAttempts,
     private readonly prisma: PrismaService,
     private readonly sms: SmsService,
+    private readonly weeklyPrices: WeeklyPricesService,
   ) {}
 
   async requestRegistrationCode(phone: string): Promise<{ message: string }> {
@@ -66,16 +61,21 @@ export class AuthService {
 
     const code = String(randomInt(100000, 1000000));
     const codeHash = await bcrypt.hash(code, 8);
-    await this.prisma.$executeRawUnsafe(
-      `INSERT INTO "PhoneVerification" ("phone", "codeHash", "expiresAt", "attempts", "sentAt", "updatedAt")
-       VALUES ($1, $2, $3, 0, NOW(), NOW())
-       ON CONFLICT ("phone") DO UPDATE SET
-         "codeHash" = EXCLUDED."codeHash", "expiresAt" = EXCLUDED."expiresAt",
-         "attempts" = 0, "sentAt" = NOW(), "updatedAt" = NOW()`,
-      phone,
-      codeHash,
-      new Date(Date.now() + CODE_TTL_MS),
-    );
+    await this.prisma.phoneVerification.upsert({
+      where: { phone },
+      create: {
+        phone,
+        codeHash,
+        expiresAt: new Date(Date.now() + CODE_TTL_MS),
+        attempts: 0,
+      },
+      update: {
+        codeHash,
+        expiresAt: new Date(Date.now() + CODE_TTL_MS),
+        attempts: 0,
+        sentAt: new Date(),
+      },
+    });
 
     try {
       await this.sms.send(
@@ -101,10 +101,10 @@ export class AuthService {
       );
     }
     if (!(await bcrypt.compare(dto.verificationCode, verification.codeHash))) {
-      await this.prisma.$executeRawUnsafe(
-        `UPDATE "PhoneVerification" SET "attempts" = "attempts" + 1, "updatedAt" = NOW() WHERE "phone" = $1`,
-        dto.phone,
-      );
+      await this.prisma.phoneVerification.update({
+        where: { phone: dto.phone },
+        data: { attempts: { increment: 1 } },
+      });
       throw new BadRequestException('The verification code is incorrect.');
     }
 
@@ -120,24 +120,22 @@ export class AuthService {
       consentAt: new Date(),
     });
     await this.deleteVerification(dto.phone);
+    try {
+      await this.weeklyPrices.afterVerifiedSignup(user.id);
+    } catch {
+      new Logger(AuthService.name).error(`Could not enroll verified user ${user.id} in weekly prices.`);
+    }
     return this.issue(user);
   }
 
   private async findVerification(
     phone: string,
-  ): Promise<PhoneVerificationRow | null> {
-    const rows = await this.prisma.$queryRawUnsafe<PhoneVerificationRow[]>(
-      `SELECT "phone", "codeHash", "expiresAt", "attempts", "sentAt" FROM "PhoneVerification" WHERE "phone" = $1`,
-      phone,
-    );
-    return rows[0] ?? null;
+  ) {
+    return this.prisma.phoneVerification.findUnique({ where: { phone } });
   }
 
   private async deleteVerification(phone: string): Promise<void> {
-    await this.prisma.$executeRawUnsafe(
-      `DELETE FROM "PhoneVerification" WHERE "phone" = $1`,
-      phone,
-    );
+    await this.prisma.phoneVerification.deleteMany({ where: { phone } });
   }
 
   async login(dto: LoginDto): Promise<AuthResponse> {

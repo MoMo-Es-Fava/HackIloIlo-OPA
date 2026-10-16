@@ -8,6 +8,10 @@ import { AuthModule } from './modules/auth/auth.module';
 import { SmsModule } from './integrations/textbee/sms.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { OrdersModule } from './modules/orders/orders.module';
+import { ReportsModule } from './modules/reports/reports.module';
+import { BatchesModule } from './modules/batches/batches.module';
+import { LogsModule } from './modules/logs/logs.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -25,6 +29,10 @@ import { OrdersModule } from './modules/orders/orders.module';
     SmsModule,
     CatalogModule,
     OrdersModule,
+    ReportsModule,
+    BatchesModule,
+    LogsModule,
+    AnalyticsModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

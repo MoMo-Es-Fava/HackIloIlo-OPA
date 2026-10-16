@@ -25,30 +25,43 @@ export default function Offers() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Offers"
-        sub="Rice posted by IRPC. Every offer shows its origin batch."
+        sub="Browse rice that IRPC has ready to sell."
         icon={<IconBag className="h-6 w-6" />}
       />
-      <div className="grid gap-3 md:grid-cols-3">
-        <TextField label="Search" placeholder="Offer, batch or grade" value={q} onChange={(e) => setQ(e.target.value)} />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="xl:col-span-2">
+          <TextField label="Search" placeholder="Offer, batch or grade" value={q} onChange={(e) => setQ(e.target.value)} />
+        </div>
         <SelectField label="Delivery" value={delivery} onChange={(e) => setDelivery(e.target.value)}>
           <option>All</option><option>Pickup at IRPC</option><option>Municipal drop point</option>
         </SelectField>
-        <TextField label="Max price per kg" type="number" inputMode="decimal" min={0} value={max} onChange={(e) => setMax(e.target.value)} />
+        <TextField label="Maximum price per kg" type="number" inputMode="decimal" min={0} value={max} onChange={(e) => setMax(e.target.value)} />
       </div>
-      <p className="text-sub" aria-live="polite">
-        <span className="tnum font-bold text-ink">{list.length}</span> offer{list.length === 1 ? "" : "s"} found
-      </p>
-      {list.length === 0 && <Empty>No offers match. Clear a filter to see more.</Empty>}
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sub" aria-live="polite">
+          <span className="tnum font-bold text-ink">{list.length}</span> offer{list.length === 1 ? "" : "s"} found
+        </p>
+        {(q || delivery !== "All" || max) && (
+          <button
+            type="button"
+            onClick={() => { setQ(""); setDelivery("All"); setMax(""); }}
+            className="inline-flex min-h-11 items-center rounded-lg px-3 font-bold text-paddy-d underline-offset-4 hover:bg-mist hover:underline"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+      {list.length === 0 && <Empty>No offers match your filters. Adjust them or clear all filters to see available rice.</Empty>}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {list.map((o) => (
           <Link
             key={o.id}
             href={`/buyer/offers/${o.id}`}
-            className="group flex flex-col gap-2 rounded-2xl border border-line/80 bg-white p-4 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised"
+            className="group flex flex-col gap-3 rounded-2xl border border-line/80 bg-white p-5 shadow-card transition-all hover:border-paddy/50 hover:shadow-raised focus-visible:outline-offset-4"
           >
             <div className="flex items-center justify-between">
               <p className="text-lg font-bold tracking-tight">{o.grade}</p>
-              <Badge tone="info">{o.id}</Badge>
+              <Badge tone="info">Offer {o.id}</Badge>
             </div>
             <p className="tnum text-2xl font-bold tracking-tight text-paddy-d">{peso(o.pricePerKg)}<span className="text-base font-normal text-sub"> per kg</span></p>
             <p className="tnum">{kgf(o.kgAvailable)} available</p>

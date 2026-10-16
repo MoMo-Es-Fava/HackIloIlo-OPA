@@ -53,8 +53,8 @@ export default function Service() {
         icon={<IconWrench className="h-6 w-6" />}
       />
       <Card>
-        <div className="flex flex-col gap-4">
-          <div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="lg:col-span-2">
             <h2 className="text-lg font-bold tracking-tight">What do you need?</h2>
             <p className="text-sm text-sub">Choose a service. No fee is charged until IRPC confirms your request.</p>
           </div>
@@ -85,28 +85,30 @@ export default function Service() {
             )}
             <p className="mt-1 text-sub">Your request is not booked until the IRPC team approves it. The final fee uses the weight IRPC records.</p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 lg:col-span-2">
             <Button arrow disabled={!ok} onClick={send}>
               Send request
             </Button>
             <p className="text-sm text-sub">You can check the request status below.</p>
           </div>
-          {orderError && <p role="alert" className="font-bold text-clay">{orderError}</p>}
+          {orderError && <p role="alert" className="font-bold text-clay lg:col-span-2">{orderError}</p>}
           {sentId && (
-            <Notice tone="ok">
+            <div className="lg:col-span-2">
+              <Notice tone="ok">
               <p className="font-bold text-paddy-d">Request {sentId} sent to IRPC</p>
               <p className="mt-1 text-sm text-sub">The team will review it and update the status here.{isMock ? " This demo does not send SMS." : ""}</p>
-            </Notice>
+              </Notice>
+            </div>
           )}
         </div>
       </Card>
 
-      <div>
+      <div className="mt-2">
         <h2 className="text-xl font-bold tracking-tight">Your requests</h2>
         <p className="text-sm text-sub">See whether each request is waiting, approved, or declined.</p>
       </div>
       {serviceRequests.length === 0 && <Empty>No service requests yet. Your request status will appear here after you submit.</Empty>}
-      <div className="flex flex-col gap-3">
+      <div className="grid gap-3 xl:grid-cols-2">
         {serviceRequests.map((s) => (
           <Card key={s.id} className="flex-row items-center justify-between">
             <div className="flex items-center gap-3">

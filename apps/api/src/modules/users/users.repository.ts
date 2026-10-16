@@ -16,12 +16,18 @@ export interface UserRecord {
 }
 
 export type NewUser = Omit<UserRecord, 'id' | 'isActive' | 'createdAt'>;
+export type UserUpdate = Partial<Omit<NewUser, 'phone'>> & {
+  phone?: string;
+  isActive?: boolean;
+};
 
-// Swap the in-memory implementation for Prisma once the database lands; callers don't change.
+// Repository boundary used by auth and administrator-managed user accounts.
 export abstract class UsersRepository {
   abstract findById(id: number): Promise<UserRecord | null>;
   abstract findByPhone(phone: string): Promise<UserRecord | null>;
+  abstract findAll(): Promise<UserRecord[]>;
   abstract create(user: NewUser): Promise<UserRecord>;
+  abstract update(id: number, changes: UserUpdate): Promise<UserRecord>;
 }
 
 // The only shape that leaves the API. Never includes pinHash.

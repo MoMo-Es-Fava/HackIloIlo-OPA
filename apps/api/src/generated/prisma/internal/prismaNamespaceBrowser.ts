@@ -53,13 +53,19 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   PhoneVerification: 'PhoneVerification',
+  WeeklyPriceNotification: 'WeeklyPriceNotification',
   RiceType: 'RiceType',
   Price: 'Price',
   Order: 'Order',
   OrderEvent: 'OrderEvent',
   StockAdjustment: 'StockAdjustment',
   SmsLog: 'SmsLog',
-  Setting: 'Setting'
+  Setting: 'Setting',
+  BatchRecord: 'BatchRecord',
+  BatchItem: 'BatchItem',
+  BatchSale: 'BatchSale',
+  BatchDamage: 'BatchDamage',
+  BatchEvent: 'BatchEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -90,7 +96,8 @@ export const UserScalarFieldEnum = {
   cooperative: 'cooperative',
   consentAt: 'consentAt',
   isActive: 'isActive',
-  createdAt: 'createdAt'
+  createdAt: 'createdAt',
+  phoneVerifiedAt: 'phoneVerifiedAt'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -106,6 +113,21 @@ export const PhoneVerificationScalarFieldEnum = {
 } as const
 
 export type PhoneVerificationScalarFieldEnum = (typeof PhoneVerificationScalarFieldEnum)[keyof typeof PhoneVerificationScalarFieldEnum]
+
+
+export const WeeklyPriceNotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  weekStart: 'weekStart',
+  status: 'status',
+  message: 'message',
+  providerId: 'providerId',
+  queuedAt: 'queuedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WeeklyPriceNotificationScalarFieldEnum = (typeof WeeklyPriceNotificationScalarFieldEnum)[keyof typeof WeeklyPriceNotificationScalarFieldEnum]
 
 
 export const RiceTypeScalarFieldEnum = {
@@ -215,6 +237,95 @@ export const SettingScalarFieldEnum = {
 } as const
 
 export type SettingScalarFieldEnum = (typeof SettingScalarFieldEnum)[keyof typeof SettingScalarFieldEnum]
+
+
+export const BatchRecordScalarFieldEnum = {
+  id: 'id',
+  code: 'code',
+  status: 'status',
+  wetKg: 'wetKg',
+  dryKg: 'dryKg',
+  riceKg: 'riceKg',
+  damagedKg: 'damagedKg',
+  dryingRate: 'dryingRate',
+  millingRate: 'millingRate',
+  palayCost: 'palayCost',
+  dryingCost: 'dryingCost',
+  millingCost: 'millingCost',
+  totalCost: 'totalCost',
+  receivedAt: 'receivedAt',
+  dryingStartedAt: 'dryingStartedAt',
+  dryingEndedAt: 'dryingEndedAt',
+  millingStartedAt: 'millingStartedAt',
+  millingEndedAt: 'millingEndedAt',
+  completedAt: 'completedAt',
+  badInputAt: 'badInputAt',
+  badInputReason: 'badInputReason',
+  badInputById: 'badInputById',
+  statusBeforeBadInput: 'statusBeforeBadInput',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BatchRecordScalarFieldEnum = (typeof BatchRecordScalarFieldEnum)[keyof typeof BatchRecordScalarFieldEnum]
+
+
+export const BatchItemScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  orderId: 'orderId',
+  farmerName: 'farmerName',
+  kg: 'kg',
+  unitPrice: 'unitPrice',
+  orderCost: 'orderCost',
+  soldAt: 'soldAt',
+  paidAt: 'paidAt'
+} as const
+
+export type BatchItemScalarFieldEnum = (typeof BatchItemScalarFieldEnum)[keyof typeof BatchItemScalarFieldEnum]
+
+
+export const BatchSaleScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  buyerId: 'buyerId',
+  buyerName: 'buyerName',
+  orderId: 'orderId',
+  kg: 'kg',
+  pricePerKg: 'pricePerKg',
+  amount: 'amount',
+  soldAt: 'soldAt'
+} as const
+
+export type BatchSaleScalarFieldEnum = (typeof BatchSaleScalarFieldEnum)[keyof typeof BatchSaleScalarFieldEnum]
+
+
+export const BatchDamageScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  fromStatus: 'fromStatus',
+  kg: 'kg',
+  costAmount: 'costAmount',
+  note: 'note',
+  occurredAt: 'occurredAt',
+  recordedById: 'recordedById'
+} as const
+
+export type BatchDamageScalarFieldEnum = (typeof BatchDamageScalarFieldEnum)[keyof typeof BatchDamageScalarFieldEnum]
+
+
+export const BatchEventScalarFieldEnum = {
+  id: 'id',
+  batchId: 'batchId',
+  fromStatus: 'fromStatus',
+  toStatus: 'toStatus',
+  note: 'note',
+  actorId: 'actorId',
+  createdAt: 'createdAt'
+} as const
+
+export type BatchEventScalarFieldEnum = (typeof BatchEventScalarFieldEnum)[keyof typeof BatchEventScalarFieldEnum]
 
 
 export const SortOrder = {

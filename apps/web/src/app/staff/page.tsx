@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { OrderStatus, OrderType, PalayCondition, type AdminSummaryDto, type MoneySummaryDto, type OrderDto } from "@irpc/types";
+import { OrderStatus, OrderType, PalayCondition, type AdminSummaryDto, type AnswerStatsDto, type MoneySummaryDto, type OrderDto } from "@irpc/types";
 import { api, ApiError } from "@/lib/api";
 import { useStore } from "@/lib/store";
 import { kgf, peso, pesoAccounting } from "@/lib/format";
@@ -21,7 +21,7 @@ const timeLabel = (d: Date) => d.toLocaleTimeString("en-PH", { timeZone: MANILA,
 const boardFor: Record<OrderType, string> = {
   [OrderType.SELL_PALAY]: "/staff/palay",
   [OrderType.SERVICE]: "/staff/services",
-  [OrderType.BUY_RICE]: "/staff/sales",
+  [OrderType.BUY_RICE]: "/staff/rice-sales",
 };
 
 const awaitingConfirmation = (o: OrderDto) =>
@@ -83,20 +83,43 @@ export default function Today() {
   const [orders, setOrders] = useState<OrderDto[] | null>(null);
   const [summary, setSummary] = useState<AdminSummaryDto | null>(null);
   const [money, setMoney] = useState<MoneySummaryDto | null>(null);
+  const [answers, setAnswers] = useState<AnswerStatsDto | null>(null);
+  const [trend, setTrend] = useState<Awaited<ReturnType<typeof api.getOperationsTrend>> | null>(null);
+  const [financeTrend, setFinanceTrend] = useState<Awaited<ReturnType<typeof api.getFinanceTrend>> | null>(null);
+  const [trendError, setTrendError] = useState<string | null>(null);
+  const [financeTrendError, setFinanceTrendError] = useState<string | null>(null);
   // Money totals are admin-only; plant staff simply don't see that section.
   const [canSeeMoney, setCanSeeMoney] = useState(true);
   const [updated, setUpdated] = useState<Date | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [o, s, m] = await Promise.allSettled([api.adminListOrders(), api.getAdminSummary(), api.getMoney(monthStart(), todayIso())]);
+    const [o, s, m, a] = await Promise.allSettled([
+      api.adminListOrders(),
+      api.getAdminSummary(),
+      api.getMoney(monthStart(), todayIso()),
+      api.getAnswerStats(monthStart(), todayIso()),
+    ]);
+    if (a.status === "fulfilled") setAnswers(a.value);
     if (o.status === "fulfilled") setOrders(o.value);
     if (s.status === "fulfilled") setSummary(s.value);
     if (m.status === "fulfilled") setMoney(m.value);
+    if (t.status === "fulfilled" && t.value) {
+      setTrend(t.value);
+      setTrendError(null);
+    } else if (t.status === "rejected") {
+      setTrendError("Daily operations trends are temporarily unavailable.");
+    }
+    if (f.status === "fulfilled" && f.value) {
+      setFinanceTrend(f.value);
+      setFinanceTrendError(null);
+    } else if (f.status === "rejected") {
+      setFinanceTrendError("Daily financial trends are temporarily unavailable.");
+    }
     const forbidden = m.status === "rejected" && m.reason instanceof ApiError && m.reason.status === 403;
     setCanSeeMoney(!forbidden);
-    const failed = [o, s, forbidden ? null : m].find((r) => r?.status === "rejected") as PromiseRejectedResult | undefined;
-    setError(failed ? (failed.reason instanceof ApiError ? failed.reason.message : "Some numbers could not be loaded.") : null);
+    const failed = [o, s, a, forbidden ? null : m].find((r) => r?.status === "rejected");
+    setError(failed ? "Some dashboard details could not be loaded. Please refresh to try again." : null);
     setUpdated(new Date());
   }, []);
 
@@ -139,7 +162,9 @@ export default function Today() {
         <Link href="/staff/palay" className="rounded-2xl outline-offset-4">
           <Stat label="Palay offers to answer" value={orders ? String(palayToAnswer) : "–"} hint={allToAnswer > palayToAnswer ? `${allToAnswer} requests in all` : "Answer the same day"} icon={<IconLeaf className="h-4 w-4" />} />
         </Link>
-        <Stat label="Arriving today" value={summary ? String(summary.arrivingToday) : "–"} hint="Accepted for today's date" icon={<IconClock className="h-4 w-4" />} />
+        <Stat label="Answered same day" value={answers?.sameDayPct != null ? `${answers.sameDayPct}%` : "–"}
+          hint={answers ? (answers.offers ? `${answers.answeredSameDay} of ${answers.offers} palay offers this month` : "No palay offers yet this month") : "Palay offers this month"}
+          icon={<IconClock className="h-4 w-4" />} />
         <Stat label="Weights to confirm" value={orders ? String(toConfirm) : "–"} hint="Customer must agree before paying" icon={<IconScale className="h-4 w-4" />} />
         <Stat label="Ready for pickup" value={orders ? String(ready) : "–"} hint="Collect payment in cash" icon={<IconBox className="h-4 w-4" />} />
       </section>
@@ -193,7 +218,7 @@ export default function Today() {
                   <Badge tone={full ? "bad" : pct >= 75 ? "warn" : "ok"}>{full ? "Over capacity" : `${kgf(capacity - booked)} left`}</Badge>
                 </div>
                 <Bar pct={pct} tone={full ? "bad" : "ok"} label={`${Math.round(pct)}% of drying capacity booked`} />
-                <p className="tnum text-sm text-sub">{Math.round(pct)}% booked{summary.inDrying ? ` · ${summary.inDrying} drying now` : ""}</p>
+                <p className="tnum text-sm text-sub">{Math.round(pct)}% booked · {summary.arrivingToday} arriving today{summary.inDrying ? ` · ${summary.inDrying} drying now` : ""}</p>
               </>
             ) : (
               <p className="text-sub">{summary ? "Drying capacity is not set." : "Loading…"}</p>
@@ -221,6 +246,78 @@ export default function Today() {
           </Card>
         </div>
       </div>
+
+      <Card>
+        {api.useMock ? (
+          <p className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
+            Daily trends are available when connected to the live database. The dashboard is currently showing demo data.
+          </p>
+        ) : trend ? <>
+          <LineChart
+            title="Daily operations"
+            description="Requests created each day and requests answered over the last 14 days."
+            points={trend.daily.map((point) => ({
+              key: point.date,
+              label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
+            }))}
+            series={[
+              { key: "palayOffers", label: "Palay offers", color: "var(--color-paddy-d)", values: trend.daily.map((point) => point.palayOffers) },
+              { key: "riceOrders", label: "Rice orders", color: "var(--color-sky-d)", values: trend.daily.map((point) => point.riceOrders), dash: "7 5" },
+              { key: "serviceRequests", label: "Service requests", color: "#806319", values: trend.daily.map((point) => point.serviceRequests), dash: "2 5" },
+              { key: "answered", label: "Requests answered", color: "var(--color-clay)", values: trend.daily.map((point) => point.answered) },
+            ]}
+            formatValue={(value) => Math.round(value).toString()}
+          />
+          <div className="mt-5 border-t border-line/80 pt-5">
+            <LineChart
+              title="Processing milestones"
+              description="Daily requests for customer weight confirmation and orders entering drying or ready for pickup."
+              points={trend.daily.map((point) => ({
+                key: point.date,
+                label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
+              }))}
+              series={[
+                { key: "weightsToConfirm", label: "Weights to confirm", color: "var(--color-sky-d)", values: trend.daily.map((point) => point.weightsToConfirm) },
+                { key: "inDrying", label: "Entered drying", color: "#70528f", values: trend.daily.map((point) => point.inDrying), dash: "7 5" },
+                { key: "readyForPickup", label: "Ready for pickup", color: "var(--color-clay)", values: trend.daily.map((point) => point.readyForPickup), dash: "2 5" },
+              ]}
+              formatValue={(value) => Math.round(value).toString()}
+            />
+          </div>
+        </> : (
+          <p role={trendError ? "alert" : "status"} className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
+            {trendError ?? "Loading daily operations trends…"}
+          </p>
+        )}
+      </Card>
+
+      {canSeeMoney && <Card>
+        {api.useMock ? (
+          <p className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
+            Daily financial trends are available when connected to the live database. The dashboard is currently showing demo data.
+          </p>
+        ) : financeTrend ? (
+          <LineChart
+            title="Daily financial activity"
+            description="Paid and completed orders by payment date over the last 14 days."
+            points={financeTrend.daily.map((point) => ({
+              key: point.date,
+              label: new Date(`${point.date}T00:00:00+08:00`).toLocaleDateString("en-PH", { timeZone: MANILA, month: "short", day: "numeric" }),
+            }))}
+            series={[
+              { key: "soldRice", label: "Rice sales", color: "var(--color-paddy-d)", values: financeTrend.daily.map((point) => Number(point.soldRice)) },
+              { key: "serviceFees", label: "Service fees", color: "var(--color-sky-d)", values: financeTrend.daily.map((point) => Number(point.serviceFees)), dash: "7 5" },
+              { key: "boughtPalay", label: "Palay paid", color: "#806319", values: financeTrend.daily.map((point) => Number(point.boughtPalay)), dash: "2 5" },
+              { key: "grossProfit", label: "Gross profit", color: "var(--color-clay)", values: financeTrend.daily.map((point) => Number(point.grossProfit)) },
+            ]}
+            formatValue={(value) => pesoAccounting(value)}
+          />
+        ) : (
+          <p role={financeTrendError ? "alert" : "status"} className="rounded-xl bg-mist px-4 py-5 text-sm text-sub">
+            {financeTrendError ?? "Loading daily financial trends…"}
+          </p>
+        )}
+      </Card>}
 
       {canSeeMoney && <section className="flex flex-col gap-3">
         <PageHeader level={2} title="This month" sub={money ? `${shortDate(money.from)} to ${shortDate(money.to)}, ${money.to.slice(0, 4)}. Counts paid and completed orders only.` : "Paid and completed orders only."} />

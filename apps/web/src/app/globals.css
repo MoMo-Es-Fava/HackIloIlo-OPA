@@ -120,20 +120,75 @@ a {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1rem;
   margin-inline: auto;
-  transition: grid-template-columns 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  transition: grid-template-columns 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .brand-link {
   position: relative;
 }
 
-.brand-link::after {
+.brand-logo {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: 0.8rem;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.3);
+  transition:
+    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 260ms ease,
+    filter 260ms ease;
+}
+
+.brand-logo::after {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 3.5rem;
-  width: 16rem;
+  inset: -60% auto -60% -80%;
+  width: 55%;
   content: "";
+  transform: skewX(-22deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.62), transparent);
+  pointer-events: none;
+}
+
+.brand-logo:hover,
+.brand-logo-link:focus-visible .brand-logo {
+  transform: translateY(-2px) scale(1.045);
+  filter: saturate(1.12) brightness(1.04);
+  box-shadow:
+    0 0 0 2px var(--color-husk),
+    0 0 18px 3px rgba(239, 201, 111, 0.48),
+    0 5px 14px -4px rgba(0, 0, 0, 0.4);
+}
+
+.brand-logo:hover::after,
+.brand-logo-link:focus-visible .brand-logo::after {
+  animation: brand-logo-shimmer 720ms ease-out;
+}
+
+@keyframes brand-logo-shimmer {
+  from {
+    transform: translateX(0) skewX(-22deg);
+  }
+  to {
+    transform: translateX(370%) skewX(-22deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-logo,
+  .brand-logo::after {
+    transition: none;
+  }
+
+  .brand-logo:hover,
+  .brand-logo-link:focus-visible .brand-logo {
+    transform: none;
+  }
+
+  .brand-logo:hover::after,
+  .brand-logo-link:focus-visible .brand-logo::after {
+    animation: none;
+  }
 }
 
 .portal-grid:has(.portal-card:nth-child(1):is(:hover, :focus-visible)) {
@@ -152,8 +207,8 @@ a {
   min-width: 0;
   overflow: hidden;
   transition:
-    grid-template-columns 400ms cubic-bezier(0.2, 0.8, 0.2, 1),
-    column-gap 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    grid-template-columns 800ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    column-gap 800ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .portal-card:is(:hover, :focus-visible) {
@@ -170,6 +225,55 @@ a {
 
 .portal-card:is(:hover, :focus-visible) .portal-card__description {
   opacity: 1;
+}
+
+.page-header-title {
+  font-size: clamp(2rem, 3vw, 2.5rem);
+  line-height: 1.12;
+}
+
+.auth-spinner,
+.loading-spinner {
+  animation: auth-spin 800ms linear infinite;
+}
+
+.loading-underlay {
+  filter: blur(4px);
+  user-select: none;
+}
+
+.loading-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(23 38 31 / 24%);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.loading-panel {
+  display: flex;
+  width: min(100%, 28rem);
+  flex-direction: column;
+  align-items: center;
+  border: 1px solid rgb(255 255 255 / 28%);
+  border-radius: 1.5rem;
+  background: rgb(255 255 255 / 15%);
+  padding: 2.25rem;
+  color: white;
+  text-align: center;
+  box-shadow: 0 24px 80px -24px rgb(0 0 0 / 65%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+@keyframes auth-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (max-width: 899px) {
@@ -191,6 +295,43 @@ a {
     overflow: visible;
     padding: 0;
     opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  body {
+    background-attachment: scroll;
+  }
+
+  .buyer-brand-subtitle {
+    display: none;
+  }
+}
+
+@media (max-width: 1279px) {
+  .buyer-content {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (max-width: 380px) {
+  .buyer-mobile-nav {
+    gap: 0;
+    padding-right: 0.25rem;
+    padding-left: 0.25rem;
+  }
+
+  .buyer-mobile-nav a {
+    font-size: 10px;
+  }
+
+  .buyer-shell-brand {
+    gap: 0.5rem;
+  }
+
+  .buyer-shell-brand .brand-logo {
+    width: 40px !important;
+    height: 40px !important;
   }
 }
 

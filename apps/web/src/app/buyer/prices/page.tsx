@@ -21,28 +21,35 @@ export default function Prices() {
         <Stat label="Dry palay" value={`${peso(prices.dry, 0)} per kg`} />
       </div>
       {history.length > 0 && <>
-      <Card>
-        <h2 className="text-lg font-bold tracking-tight">Weekly trend</h2>
-        <PriceChart data={history} />
-      </Card>
-      <TableWrap>
-        <thead>
-          <tr>
-            <th className={th}>Week</th>
-            <th className={th}>Fresh</th>
-            <th className={th}>Dry</th>
-          </tr>
-        </thead>
-        <tbody>
-          {history.map((h) => (
-            <tr key={h.week} className="transition-colors hover:bg-mist/50">
-              <td className={td}>{h.week}</td>
-              <td className={cn(td, "tnum")}>{peso(h.fresh, 0)}</td>
-              <td className={cn(td, "tnum")}>{peso(h.dry, 0)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </TableWrap>
+      <div className="grid gap-4 2xl:grid-cols-2">
+        <Card className="min-w-0">
+          <div>
+            <h2 className="text-lg font-bold tracking-tight">Weekly trend</h2>
+            <p className="text-sm text-sub">Fresh and dry palay prices per kilogram.</p>
+          </div>
+          <PriceChart data={history} />
+        </Card>
+        <section className="min-w-0" aria-label="Weekly price history">
+          <TableWrap>
+            <thead>
+              <tr>
+                <th className={th}>Week</th>
+                <th className={th}>Fresh</th>
+                <th className={th}>Dry</th>
+              </tr>
+            </thead>
+            <tbody>
+              {history.map((h) => (
+                <tr key={h.week} className="transition-colors hover:bg-mist/50">
+                  <td className={td}>{h.week}</td>
+                  <td className={cn(td, "tnum")}>{peso(h.fresh, 0)}</td>
+                  <td className={cn(td, "tnum")}>{peso(h.dry, 0)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </TableWrap>
+        </section>
+      </div>
       </>}
     </div>
   );

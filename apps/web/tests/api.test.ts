@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, ServiceType, type CreateOrderRequest } from "@irpc/types";
+import { OrderStatus, OrderType, PalayCondition, PriceBasis, PriceItem, Role, ServiceType, type CreateOrderRequest } from "@irpc/types";
 import { ApiError, createApiClient } from "../src/lib/api";
 import { loadWorkspace } from "../src/lib/workspace";
 
@@ -138,7 +138,7 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
     const path = new URL(String(url)).pathname; calls.push(path);
     if (path === "/prices") return json(prices);
     if (path === "/rice-types") return json(riceTypes);
-    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", accountType: "BUYER" });
+    if (path === "/auth/me") return json({ id: 77, name: "API Buyer", phone: "+639171234567", accountType: "BUYER", role: Role.USER });
     if (path === "/orders/mine") return json([]);
     if (path === "/orders/9001") return json(realOrder);
     return json({ message: "Not found" }, 404);
@@ -161,11 +161,33 @@ test("workspace reads switch to HTTP without fixture ownership fields or legacy 
   assert.deepEqual(calls, []);
 });
 
+test("buyer and staff mock workspaces use matching roles while clients remain isolated", async () => {
+test("authentication routes load without depending on workspace API availability", async () => {
+  const calls: string[] = [];
+  const client = createApiClient({
+    useMock: false,
+    baseUrl: "http://api.test",
+    fetcher: async (url) => {
+      calls.push(String(url));
+      throw new Error("Authentication routes must not load workspace data");
+    },
+  });
+
+  for (const path of ["/login", "/signup", "/register"]) {
+    const data = await loadWorkspace(client, path, false);
+    assert.deepEqual(data.orders, []);
+    assert.deepEqual(data.prices, []);
+    assert.deepEqual(data.riceTypes, []);
+  }
+  assert.deepEqual(calls, []);
+});
+
 test("mock workspace survives navigation while independent clients remain isolated", async () => {
   const client = mockClient();
   const created = await client.createOrder(buy);
   assert.ok((await loadWorkspace(client, "/buyer/orders", false)).orders.some((row) => row.id === created.id));
-  assert.ok((await loadWorkspace(client, "/staff/sales", false)).orders.some((row) => row.id === created.id));
+  const staffClient = { ...client, getMe: async () => ({ ...(await client.getMe()), role: Role.PLANT_STAFF }) };
+  assert.ok((await loadWorkspace(staffClient, "/staff/sales", false)).orders.some((row) => row.id === created.id));
   await client.demoAction("setKwhPrice", 20);
   assert.equal((await client.getDemoWorkspace())?.kwhPrice, 20);
   assert.equal((await mockClient().getMyOrders()).some((row) => row.id === created.id), false);

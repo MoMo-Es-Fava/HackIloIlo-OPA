@@ -5,43 +5,32 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { cn } from "./ui";
-import {
-  IconHome, IconClipboard, IconScale, IconFlame, IconReceipt, IconBolt, IconChart,
-  IconTrace, IconUser, IconBox, IconArrowRight, IconLeaf,
-} from "./icons";
+import { IconHome, IconFlame, IconReceipt, IconChart, IconBox, IconLeaf, IconClipboard } from "./icons";
 import AuthControls from "./AuthControls";
+import BrandLogo from "./BrandLogo";
 
+// Only pages that work on the real API. The older demo pages (booking slots, weigh-in slips,
+// costing, energy, batch search, users, audit) stay in the code but are off the menu for now.
 const groups = [
-  { title: "Workspace", items: [{ href: "/staff", label: "Today", Icon: IconHome }] },
+  { title: "Workspace", items: [
+    { href: "/staff", label: "Today", Icon: IconHome },
+    { href: "/staff/analytics", label: "Analytics", Icon: IconChart },
+  ] },
   {
     title: "Operations",
     items: [
       { href: "/staff/palay", label: "Palay procurement", Icon: IconLeaf },
-      { href: "/staff/queue", label: "Booking and queue", Icon: IconClipboard },
-      { href: "/staff/intake", label: "Weigh-in and slips", Icon: IconScale },
       { href: "/staff/services", label: "Drying and milling", Icon: IconFlame },
+      { href: "/staff/processing", label: "Batch records", Icon: IconClipboard },
+      { href: "/staff/rice-sales", label: "Rice sales", Icon: IconBox },
     ],
   },
   {
-    title: "Sales and costs",
+    title: "Money",
     items: [
-      { href: "/staff/sales", label: "Sales and receipts", Icon: IconReceipt },
-      { href: "/staff/costing", label: "Real-time costing", Icon: IconBolt },
-      { href: "/staff/financials", label: "Financials and energy", Icon: IconChart },
-    ],
-  },
-  {
-    title: "Planning",
-    items: [
-      { href: "/staff/pricing", label: "Pricing and rates", Icon: IconChart },
-    ],
-  },
-  { title: "Traceability", items: [{ href: "/staff/traceability", label: "Batch search", Icon: IconTrace }] },
-  {
-    title: "Administration",
-    items: [
-      { href: "/staff/users", label: "Users and roles", Icon: IconUser },
-      { href: "/staff/audit", label: "Audit log", Icon: IconClipboard },
+      { href: "/staff/report", label: "Report", Icon: IconChart },
+      { href: "/staff/pricing", label: "Pricing and stock", Icon: IconReceipt },
+      { href: "/staff/logs", label: "IRPC logs", Icon: IconClipboard },
     ],
   },
 ];
@@ -85,38 +74,31 @@ export default function StaffShell({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen lg:flex">
       <aside className="no-print sticky top-0 hidden h-screen w-64 shrink-0 flex-col gap-8 overflow-y-auto border-r border-black/20 bg-ink px-4 py-6 text-white lg:flex">
-        <Link href="/staff" className="flex min-h-11 items-center gap-3 px-2" aria-label="IRPC staff home">
-          <span className="grid h-10 w-10 place-items-center rounded-xl bg-husk font-bold text-ink shadow-[0_2px_8px_-2px_rgba(0,0,0,0.3)]">IR</span>
+        <Link href="/staff" className="brand-logo-link flex min-h-11 items-center gap-3 px-2" aria-label="alagarab staff home">
+          <BrandLogo size={48} />
           <span className="flex flex-col leading-tight">
-            <span className="font-bold">IRPC</span>
-            <span className="text-xs text-white/60">Staff workspace</span>
+            <span className="text-lg font-bold tracking-wide">alagarab</span>
+            <span className="text-[13px] text-white/70">Palay, rice and milling</span>
           </span>
         </Link>
         <Menu />
-        <div className="mt-auto border-t border-white/10 pt-4">
-          <Link
-            href="/buyer"
-            className="flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          >
-            Open buyer portal
-            <IconArrowRight className="h-4 w-4" />
-          </Link>
-        </div>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="no-print sticky top-0 z-20 border-b border-line bg-white/90 shadow-sm backdrop-blur-md">
-          <div className="flex min-h-[68px] items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-h-[84px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 2xl:px-12">
             <div className="flex items-center gap-3">
-              <Link href="/staff" className="font-bold text-ink lg:hidden">IRPC staff</Link>
-              <span className="hidden text-sm font-bold text-ink lg:inline">Operations console</span>
-              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "IRPC"}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {!isMock && <AuthControls tone="light" />}
-              <Link href="/buyer" className="hidden min-h-10 items-center rounded-lg px-3 text-sm font-bold text-sub hover:bg-mist sm:inline-flex">
-                Buyer portal
+              <Link href="/staff" className="brand-logo-link flex min-h-12 items-center gap-3 rounded-lg font-bold text-ink lg:hidden" aria-label="alagarab staff home">
+                <BrandLogo size={40} />
+                <span className="flex flex-col leading-tight">
+                  <span className="text-lg tracking-wide">alagarab</span>
+                  <span className="text-[13px] font-normal text-sub max-[380px]:hidden">Staff workspace</span>
+                </span>
               </Link>
+              <span className="hidden text-base font-bold text-ink lg:inline">Operations console</span>
+              <span className="hidden rounded-full bg-mist px-3 py-1 text-sm font-bold text-paddy-d sm:inline-flex">{isMock ? "DEMO · Sample data" : "alagarab"}</span>
+            </div>
+            <div className="flex items-center justify-end gap-2">
               <button
                 type="button"
                 aria-expanded={open}
@@ -126,6 +108,7 @@ export default function StaffShell({ children }: { children: ReactNode }) {
               >
                 {open ? "Close menu" : "Menu"}
               </button>
+              {!isMock && <AuthControls tone="light" />}
             </div>
           </div>
         </header>
@@ -133,14 +116,11 @@ export default function StaffShell({ children }: { children: ReactNode }) {
         {open && (
           <div id="staff-mobile-navigation" className="no-print border-b border-line bg-ink p-4 text-white lg:hidden">
             <Menu onPick={() => setOpen(false)} />
-            <Link href="/buyer" onClick={() => setOpen(false)} className="mt-5 flex min-h-11 items-center border-t border-white/15 px-3 pt-2 text-sm text-white/75">
-              Open buyer portal
-            </Link>
           </div>
         )}
 
-        <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-          <div className="mx-auto flex w-full max-w-[1440px] flex-1 flex-col gap-6">{children}</div>
+        <main className="flex flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8 2xl:px-12">
+          <div className="mx-auto flex w-full max-w-[1600px] flex-1 flex-col gap-6">{children}</div>
         </main>
       </div>
     </div>

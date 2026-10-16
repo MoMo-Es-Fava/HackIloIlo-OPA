@@ -7,7 +7,7 @@ import { peso, kgf } from "@/lib/format";
 import type { Delivery } from "@/lib/demo-types";
 import { OrderStatus, OrderType } from "@irpc/types";
 import { nextOrderStatus, orderAmount, statusLabel } from "@/lib/orders";
-import { Badge, Button, Card, PageHeader, SelectField, TableWrap, TextField, orderTone, cn, td, th } from "@/components/ui";
+import { Badge, Button, Card, Empty, PageHeader, SelectField, TableWrap, TextField, orderTone, cn, td, th } from "@/components/ui";
 import { IconReceipt } from "@/components/icons";
 
 export default function Sales() {
@@ -44,10 +44,12 @@ export default function Sales() {
       </Card>}
 
       <h2 className="text-xl font-bold tracking-tight">Open offers</h2>
-      <TableWrap>
-        <thead><tr><th className={th}>Offer</th><th className={th}>Batch</th><th className={th}>Available</th><th className={th}>Price</th><th className={th}>Delivery</th></tr></thead>
-        <tbody>{offers.map((o) => <tr key={o.id} className="transition-colors hover:bg-mist/50"><td className={td}>{o.id}</td><td className={td}>{o.batchId}</td><td className={cn(td, "tnum")}>{kgf(o.kgAvailable)}</td><td className={cn(td, "tnum")}>{peso(o.pricePerKg)}</td><td className={td}>{o.delivery}</td></tr>)}</tbody>
-      </TableWrap>
+      {offers.length === 0 ? <Empty>No rice offers are posted yet. Stored batches can be listed for sale when the offers service is connected.</Empty> : (
+        <TableWrap>
+          <thead><tr><th className={th}>Offer</th><th className={th}>Batch</th><th className={th}>Available</th><th className={th}>Price</th><th className={th}>Delivery</th></tr></thead>
+          <tbody>{offers.map((o) => <tr key={o.id} className="transition-colors hover:bg-mist/50"><td className={td}>{o.id}</td><td className={td}>{o.batchId}</td><td className={cn(td, "tnum")}>{kgf(o.kgAvailable)}</td><td className={cn(td, "tnum")}>{peso(o.pricePerKg)}</td><td className={td}>{o.delivery}</td></tr>)}</tbody>
+        </TableWrap>
+      )}
 
       <h2 className="text-xl font-bold tracking-tight">Rice orders</h2>
       {orderError && <p role="alert" className="font-bold text-clay">{orderError}</p>}

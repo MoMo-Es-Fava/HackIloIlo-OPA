@@ -448,6 +448,8 @@ export type OrderWhereInput = {
   riceType?: Prisma.XOR<Prisma.RiceTypeNullableScalarRelationFilter, Prisma.RiceTypeWhereInput> | null
   events?: Prisma.OrderEventListRelationFilter
   smsLogs?: Prisma.SmsLogListRelationFilter
+  batchItems?: Prisma.BatchItemListRelationFilter
+  batchSales?: Prisma.BatchSaleListRelationFilter
 }
 
 export type OrderOrderByWithRelationInput = {
@@ -483,6 +485,8 @@ export type OrderOrderByWithRelationInput = {
   riceType?: Prisma.RiceTypeOrderByWithRelationInput
   events?: Prisma.OrderEventOrderByRelationAggregateInput
   smsLogs?: Prisma.SmsLogOrderByRelationAggregateInput
+  batchItems?: Prisma.BatchItemOrderByRelationAggregateInput
+  batchSales?: Prisma.BatchSaleOrderByRelationAggregateInput
 }
 
 export type OrderWhereUniqueInput = Prisma.AtLeast<{
@@ -521,6 +525,8 @@ export type OrderWhereUniqueInput = Prisma.AtLeast<{
   riceType?: Prisma.XOR<Prisma.RiceTypeNullableScalarRelationFilter, Prisma.RiceTypeWhereInput> | null
   events?: Prisma.OrderEventListRelationFilter
   smsLogs?: Prisma.SmsLogListRelationFilter
+  batchItems?: Prisma.BatchItemListRelationFilter
+  batchSales?: Prisma.BatchSaleListRelationFilter
 }, "id">
 
 export type OrderOrderByWithAggregationInput = {
@@ -623,6 +629,8 @@ export type OrderCreateInput = {
   riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
   events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateInput = {
@@ -656,6 +664,8 @@ export type OrderUncheckedCreateInput = {
   updatedAt?: Date | string
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUpdateInput = {
@@ -688,6 +698,8 @@ export type OrderUpdateInput = {
   riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateInput = {
@@ -721,6 +733,8 @@ export type OrderUncheckedUpdateInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyInput = {
@@ -1098,6 +1112,36 @@ export type OrderUpdateOneWithoutSmsLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutSmsLogsInput, Prisma.OrderUpdateWithoutSmsLogsInput>, Prisma.OrderUncheckedUpdateWithoutSmsLogsInput>
 }
 
+export type OrderCreateNestedOneWithoutBatchItemsInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutBatchItemsInput, Prisma.OrderUncheckedCreateWithoutBatchItemsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutBatchItemsInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneRequiredWithoutBatchItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutBatchItemsInput, Prisma.OrderUncheckedCreateWithoutBatchItemsInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutBatchItemsInput
+  upsert?: Prisma.OrderUpsertWithoutBatchItemsInput
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutBatchItemsInput, Prisma.OrderUpdateWithoutBatchItemsInput>, Prisma.OrderUncheckedUpdateWithoutBatchItemsInput>
+}
+
+export type OrderCreateNestedOneWithoutBatchSalesInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutBatchSalesInput, Prisma.OrderUncheckedCreateWithoutBatchSalesInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutBatchSalesInput
+  connect?: Prisma.OrderWhereUniqueInput
+}
+
+export type OrderUpdateOneWithoutBatchSalesNestedInput = {
+  create?: Prisma.XOR<Prisma.OrderCreateWithoutBatchSalesInput, Prisma.OrderUncheckedCreateWithoutBatchSalesInput>
+  connectOrCreate?: Prisma.OrderCreateOrConnectWithoutBatchSalesInput
+  upsert?: Prisma.OrderUpsertWithoutBatchSalesInput
+  disconnect?: Prisma.OrderWhereInput | boolean
+  delete?: Prisma.OrderWhereInput | boolean
+  connect?: Prisma.OrderWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.OrderUpdateToOneWithWhereWithoutBatchSalesInput, Prisma.OrderUpdateWithoutBatchSalesInput>, Prisma.OrderUncheckedUpdateWithoutBatchSalesInput>
+}
+
 export type OrderCreateWithoutCustomerInput = {
   type: $Enums.OrderType
   status?: $Enums.OrderStatus
@@ -1127,6 +1171,8 @@ export type OrderCreateWithoutCustomerInput = {
   riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
   events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutCustomerInput = {
@@ -1159,6 +1205,8 @@ export type OrderUncheckedCreateWithoutCustomerInput = {
   updatedAt?: Date | string
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutCustomerInput = {
@@ -1250,6 +1298,8 @@ export type OrderCreateWithoutRiceTypeInput = {
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
   events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutRiceTypeInput = {
@@ -1282,6 +1332,8 @@ export type OrderUncheckedCreateWithoutRiceTypeInput = {
   updatedAt?: Date | string
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
   smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutRiceTypeInput = {
@@ -1339,6 +1391,8 @@ export type OrderCreateWithoutEventsInput = {
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
   riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
   smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutEventsInput = {
@@ -1371,6 +1425,8 @@ export type OrderUncheckedCreateWithoutEventsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutEventsInput = {
@@ -1418,6 +1474,8 @@ export type OrderUpdateWithoutEventsInput = {
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
   smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutEventsInput = {
@@ -1450,6 +1508,8 @@ export type OrderUncheckedUpdateWithoutEventsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateWithoutSmsLogsInput = {
@@ -1481,6 +1541,8 @@ export type OrderCreateWithoutSmsLogsInput = {
   customer: Prisma.UserCreateNestedOneWithoutOrdersInput
   riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
   events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
 }
 
 export type OrderUncheckedCreateWithoutSmsLogsInput = {
@@ -1513,6 +1575,8 @@ export type OrderUncheckedCreateWithoutSmsLogsInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
 }
 
 export type OrderCreateOrConnectWithoutSmsLogsInput = {
@@ -1560,6 +1624,8 @@ export type OrderUpdateWithoutSmsLogsInput = {
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutSmsLogsInput = {
@@ -1592,6 +1658,308 @@ export type OrderUncheckedUpdateWithoutSmsLogsInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutBatchItemsInput = {
+  type: $Enums.OrderType
+  status?: $Enums.OrderStatus
+  commodity?: string
+  contactName: string
+  contactPhone: string
+  requestedKg: runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate: Date | string
+  scheduledDate?: Date | string | null
+  palayCondition?: $Enums.PalayCondition | null
+  variety?: string | null
+  deliveryMethod?: $Enums.DeliveryMethod | null
+  serviceType?: $Enums.ServiceType | null
+  unitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Date | string | null
+  estimatedAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.UserCreateNestedOneWithoutOrdersInput
+  riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
+  smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutBatchItemsInput = {
+  id?: number
+  type: $Enums.OrderType
+  status?: $Enums.OrderStatus
+  commodity?: string
+  customerId: number
+  contactName: string
+  contactPhone: string
+  requestedKg: runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate: Date | string
+  scheduledDate?: Date | string | null
+  riceTypeId?: number | null
+  palayCondition?: $Enums.PalayCondition | null
+  variety?: string | null
+  deliveryMethod?: $Enums.DeliveryMethod | null
+  serviceType?: $Enums.ServiceType | null
+  unitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Date | string | null
+  estimatedAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
+  smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchSales?: Prisma.BatchSaleUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutBatchItemsInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutBatchItemsInput, Prisma.OrderUncheckedCreateWithoutBatchItemsInput>
+}
+
+export type OrderUpsertWithoutBatchItemsInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutBatchItemsInput, Prisma.OrderUncheckedUpdateWithoutBatchItemsInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutBatchItemsInput, Prisma.OrderUncheckedCreateWithoutBatchItemsInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutBatchItemsInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutBatchItemsInput, Prisma.OrderUncheckedUpdateWithoutBatchItemsInput>
+}
+
+export type OrderUpdateWithoutBatchItemsInput = {
+  type?: Prisma.EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  commodity?: Prisma.StringFieldUpdateOperationsInput | string
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  requestedKg?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduledDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  palayCondition?: Prisma.NullableEnumPalayConditionFieldUpdateOperationsInput | $Enums.PalayCondition | null
+  variety?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMethod?: Prisma.NullableEnumDeliveryMethodFieldUpdateOperationsInput | $Enums.DeliveryMethod | null
+  serviceType?: Prisma.NullableEnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType | null
+  unitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
+  smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutBatchItemsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  commodity?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.IntFieldUpdateOperationsInput | number
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  requestedKg?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduledDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  riceTypeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  palayCondition?: Prisma.NullableEnumPalayConditionFieldUpdateOperationsInput | $Enums.PalayCondition | null
+  variety?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMethod?: Prisma.NullableEnumDeliveryMethodFieldUpdateOperationsInput | $Enums.DeliveryMethod | null
+  serviceType?: Prisma.NullableEnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType | null
+  unitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
+  smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderCreateWithoutBatchSalesInput = {
+  type: $Enums.OrderType
+  status?: $Enums.OrderStatus
+  commodity?: string
+  contactName: string
+  contactPhone: string
+  requestedKg: runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate: Date | string
+  scheduledDate?: Date | string | null
+  palayCondition?: $Enums.PalayCondition | null
+  variety?: string | null
+  deliveryMethod?: $Enums.DeliveryMethod | null
+  serviceType?: $Enums.ServiceType | null
+  unitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Date | string | null
+  estimatedAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  customer: Prisma.UserCreateNestedOneWithoutOrdersInput
+  riceType?: Prisma.RiceTypeCreateNestedOneWithoutOrdersInput
+  events?: Prisma.OrderEventCreateNestedManyWithoutOrderInput
+  smsLogs?: Prisma.SmsLogCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemCreateNestedManyWithoutOrderInput
+}
+
+export type OrderUncheckedCreateWithoutBatchSalesInput = {
+  id?: number
+  type: $Enums.OrderType
+  status?: $Enums.OrderStatus
+  commodity?: string
+  customerId: number
+  contactName: string
+  contactPhone: string
+  requestedKg: runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate: Date | string
+  scheduledDate?: Date | string | null
+  riceTypeId?: number | null
+  palayCondition?: $Enums.PalayCondition | null
+  variety?: string | null
+  deliveryMethod?: $Enums.DeliveryMethod | null
+  serviceType?: $Enums.ServiceType | null
+  unitPrice?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Date | string | null
+  estimatedAmount: runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: string | null
+  paidAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  events?: Prisma.OrderEventUncheckedCreateNestedManyWithoutOrderInput
+  smsLogs?: Prisma.SmsLogUncheckedCreateNestedManyWithoutOrderInput
+  batchItems?: Prisma.BatchItemUncheckedCreateNestedManyWithoutOrderInput
+}
+
+export type OrderCreateOrConnectWithoutBatchSalesInput = {
+  where: Prisma.OrderWhereUniqueInput
+  create: Prisma.XOR<Prisma.OrderCreateWithoutBatchSalesInput, Prisma.OrderUncheckedCreateWithoutBatchSalesInput>
+}
+
+export type OrderUpsertWithoutBatchSalesInput = {
+  update: Prisma.XOR<Prisma.OrderUpdateWithoutBatchSalesInput, Prisma.OrderUncheckedUpdateWithoutBatchSalesInput>
+  create: Prisma.XOR<Prisma.OrderCreateWithoutBatchSalesInput, Prisma.OrderUncheckedCreateWithoutBatchSalesInput>
+  where?: Prisma.OrderWhereInput
+}
+
+export type OrderUpdateToOneWithWhereWithoutBatchSalesInput = {
+  where?: Prisma.OrderWhereInput
+  data: Prisma.XOR<Prisma.OrderUpdateWithoutBatchSalesInput, Prisma.OrderUncheckedUpdateWithoutBatchSalesInput>
+}
+
+export type OrderUpdateWithoutBatchSalesInput = {
+  type?: Prisma.EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  commodity?: Prisma.StringFieldUpdateOperationsInput | string
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  requestedKg?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduledDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  palayCondition?: Prisma.NullableEnumPalayConditionFieldUpdateOperationsInput | $Enums.PalayCondition | null
+  variety?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMethod?: Prisma.NullableEnumDeliveryMethodFieldUpdateOperationsInput | $Enums.DeliveryMethod | null
+  serviceType?: Prisma.NullableEnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType | null
+  unitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
+  riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
+  events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
+  smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+}
+
+export type OrderUncheckedUpdateWithoutBatchSalesInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumOrderTypeFieldUpdateOperationsInput | $Enums.OrderType
+  status?: Prisma.EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+  commodity?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.IntFieldUpdateOperationsInput | number
+  contactName?: Prisma.StringFieldUpdateOperationsInput | string
+  contactPhone?: Prisma.StringFieldUpdateOperationsInput | string
+  requestedKg?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  preferredDate?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  scheduledDate?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  riceTypeId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  palayCondition?: Prisma.NullableEnumPalayConditionFieldUpdateOperationsInput | $Enums.PalayCondition | null
+  variety?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliveryMethod?: Prisma.NullableEnumDeliveryMethodFieldUpdateOperationsInput | $Enums.DeliveryMethod | null
+  serviceType?: Prisma.NullableEnumServiceTypeFieldUpdateOperationsInput | $Enums.ServiceType | null
+  unitPrice?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  millingRate?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  wetKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  dryKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  riceKg?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  weightConfirmedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedAmount?: Prisma.DecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string
+  finalAmount?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
+  rejectReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  paidAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
+  smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderCreateManyCustomerInput = {
@@ -1653,6 +2021,8 @@ export type OrderUpdateWithoutCustomerInput = {
   riceType?: Prisma.RiceTypeUpdateOneWithoutOrdersNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutCustomerInput = {
@@ -1685,6 +2055,8 @@ export type OrderUncheckedUpdateWithoutCustomerInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutCustomerInput = {
@@ -1776,6 +2148,8 @@ export type OrderUpdateWithoutRiceTypeInput = {
   customer?: Prisma.UserUpdateOneRequiredWithoutOrdersNestedInput
   events?: Prisma.OrderEventUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateWithoutRiceTypeInput = {
@@ -1808,6 +2182,8 @@ export type OrderUncheckedUpdateWithoutRiceTypeInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   events?: Prisma.OrderEventUncheckedUpdateManyWithoutOrderNestedInput
   smsLogs?: Prisma.SmsLogUncheckedUpdateManyWithoutOrderNestedInput
+  batchItems?: Prisma.BatchItemUncheckedUpdateManyWithoutOrderNestedInput
+  batchSales?: Prisma.BatchSaleUncheckedUpdateManyWithoutOrderNestedInput
 }
 
 export type OrderUncheckedUpdateManyWithoutRiceTypeInput = {
@@ -1848,11 +2224,15 @@ export type OrderUncheckedUpdateManyWithoutRiceTypeInput = {
 export type OrderCountOutputType = {
   events: number
   smsLogs: number
+  batchItems: number
+  batchSales: number
 }
 
 export type OrderCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   events?: boolean | OrderCountOutputTypeCountEventsArgs
   smsLogs?: boolean | OrderCountOutputTypeCountSmsLogsArgs
+  batchItems?: boolean | OrderCountOutputTypeCountBatchItemsArgs
+  batchSales?: boolean | OrderCountOutputTypeCountBatchSalesArgs
 }
 
 /**
@@ -1877,6 +2257,20 @@ export type OrderCountOutputTypeCountEventsArgs<ExtArgs extends runtime.Types.Ex
  */
 export type OrderCountOutputTypeCountSmsLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.SmsLogWhereInput
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountBatchItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchItemWhereInput
+}
+
+/**
+ * OrderCountOutputType without action
+ */
+export type OrderCountOutputTypeCountBatchSalesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BatchSaleWhereInput
 }
 
 
@@ -1913,6 +2307,8 @@ export type OrderSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   riceType?: boolean | Prisma.Order$riceTypeArgs<ExtArgs>
   events?: boolean | Prisma.Order$eventsArgs<ExtArgs>
   smsLogs?: boolean | Prisma.Order$smsLogsArgs<ExtArgs>
+  batchItems?: boolean | Prisma.Order$batchItemsArgs<ExtArgs>
+  batchSales?: boolean | Prisma.Order$batchSalesArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["order"]>
 
@@ -2019,6 +2415,8 @@ export type OrderInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   riceType?: boolean | Prisma.Order$riceTypeArgs<ExtArgs>
   events?: boolean | Prisma.Order$eventsArgs<ExtArgs>
   smsLogs?: boolean | Prisma.Order$smsLogsArgs<ExtArgs>
+  batchItems?: boolean | Prisma.Order$batchItemsArgs<ExtArgs>
+  batchSales?: boolean | Prisma.Order$batchSalesArgs<ExtArgs>
   _count?: boolean | Prisma.OrderCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type OrderIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2037,6 +2435,8 @@ export type $OrderPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs 
     riceType: Prisma.$RiceTypePayload<ExtArgs> | null
     events: Prisma.$OrderEventPayload<ExtArgs>[]
     smsLogs: Prisma.$SmsLogPayload<ExtArgs>[]
+    batchItems: Prisma.$BatchItemPayload<ExtArgs>[]
+    batchSales: Prisma.$BatchSalePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2465,6 +2865,8 @@ export interface Prisma__OrderClient<T, Null = never, ExtArgs extends runtime.Ty
   riceType<T extends Prisma.Order$riceTypeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$riceTypeArgs<ExtArgs>>): Prisma.Prisma__RiceTypeClient<runtime.Types.Result.GetResult<Prisma.$RiceTypePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   events<T extends Prisma.Order$eventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$eventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrderEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   smsLogs<T extends Prisma.Order$smsLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$smsLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SmsLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchItems<T extends Prisma.Order$batchItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$batchItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  batchSales<T extends Prisma.Order$batchSalesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Order$batchSalesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BatchSalePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2987,6 +3389,54 @@ export type Order$smsLogsArgs<ExtArgs extends runtime.Types.Extensions.InternalA
   take?: number
   skip?: number
   distinct?: Prisma.SmsLogScalarFieldEnum | Prisma.SmsLogScalarFieldEnum[]
+}
+
+/**
+ * Order.batchItems
+ */
+export type Order$batchItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchItem
+   */
+  select?: Prisma.BatchItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchItem
+   */
+  omit?: Prisma.BatchItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchItemInclude<ExtArgs> | null
+  where?: Prisma.BatchItemWhereInput
+  orderBy?: Prisma.BatchItemOrderByWithRelationInput | Prisma.BatchItemOrderByWithRelationInput[]
+  cursor?: Prisma.BatchItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchItemScalarFieldEnum | Prisma.BatchItemScalarFieldEnum[]
+}
+
+/**
+ * Order.batchSales
+ */
+export type Order$batchSalesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BatchSale
+   */
+  select?: Prisma.BatchSaleSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BatchSale
+   */
+  omit?: Prisma.BatchSaleOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BatchSaleInclude<ExtArgs> | null
+  where?: Prisma.BatchSaleWhereInput
+  orderBy?: Prisma.BatchSaleOrderByWithRelationInput | Prisma.BatchSaleOrderByWithRelationInput[]
+  cursor?: Prisma.BatchSaleWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BatchSaleScalarFieldEnum | Prisma.BatchSaleScalarFieldEnum[]
 }
 
 /**

@@ -1,6 +1,6 @@
 import type {
-  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto,
-  OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
+  AccountType, AdminSummaryDto, AuthResponse as SharedAuthResponse, CreateOrderRequest, CurrentPrice, Language, MoneySummaryDto, ReportDto, AnswerStatsDto, Role,
+  CatalogAnalyticsDto, FinanceTrendDto, LogTrendDto, OperationsTrendDto, OrderDto, OrderStatus, OrderType, PriceBasis, PriceItem, PublicSettingsDto, RiceTypeDto, SmsLogDto, UserDto,
 } from "@irpc/types";
 import type { DemoActions, DemoWorkspace } from "./demo-types";
 
@@ -21,9 +21,33 @@ export interface RegisterRequest {
 }
 // These response shapes are not yet specified in the shared package.
 export type ApiUser = UserDto;
+export interface ManagedUser extends ApiUser { isActive: boolean; createdAt: string }
+export interface ManagedUserInput {
+  name: string; phone: string; role: Role; accountType: AccountType | null; language?: Language;
+  municipality?: string | null; cooperative?: string | null; pin?: string; isActive?: boolean;
+}
 export type AuthResponse = SharedAuthResponse;
 export interface HealthResponse { status: string; time: string }
 export type AdminOrder = OrderDto & { customer?: ApiUser };
+export type BatchStatus = "NONE" | "DRYING" | "MILLING" | "COMPLETE" | "BAD_INPUT" | "DAMAGED";
+export interface BatchRecordDto {
+  id: number; code: string; status: BatchStatus; statusBeforeBadInput: BatchStatus | null;
+  wetKg: string; dryKg: string | null; riceKg: string | null; damagedKg: string;
+  palayCost: string; dryingCost: string; millingCost: string; totalCost: string;
+  badInputReason: string | null; receivedAt: string; completedAt: string | null;
+  items: { id: number; orderId: number; farmerName: string; kg: string; unitPrice: string; orderCost: string; order: { palayCondition: "FRESH" | "DRY" | null; variety: string | null } }[];
+  events: { id: number; fromStatus: BatchStatus | null; toStatus: BatchStatus; note: string | null; createdAt: string; actor: { name: string } | null }[];
+  damages: { id: number; fromStatus: BatchStatus; kg: string; costAmount: string; note: string | null; occurredAt: string }[];
+}
+export interface EligibleBatchOrderDto {
+  id: number; farmerName: string; palayCondition: "FRESH" | "DRY" | null;
+  variety: string | null; kg: string; unitPrice: string; receivedAt: string;
+}
+export interface IrpcLogDto {
+  id: string; createdAt: string; actor: string;
+  category: "Order" | "Batch" | "Inventory" | "SMS" | "Pricing";
+  action: string; target: string; details: string | null;
+}
 
 const TOKEN_KEY = "irpc.auth.token";
 export function getAuthToken() {
@@ -123,6 +147,13 @@ export function createApiClient(options: ApiClientOptions) {
     updateOrderStatus: (id: number, status: OrderStatus, note?: string) => request<OrderDto>(`/admin/orders/${idPath(id)}/status`, "PATCH", { status, note }),
     weighInOrder: (id: number, weights: { wetKg?: string; dryKg?: string; riceKg?: string }) => request<OrderDto>(`/admin/orders/${idPath(id)}/weigh-in`, "POST", weights),
     getAdminSummary: () => request<AdminSummaryDto>("/admin/summary"),
+    adminListUsers: () => request<ManagedUser[]>("/admin/users"),
+    adminCreateUser: (body: ManagedUserInput & { pin: string }) => request<ManagedUser>("/admin/users", "POST", body),
+    adminUpdateUser: (id: number, body: Partial<ManagedUserInput>) => request<ManagedUser>(`/admin/users/${idPath(id)}`, "PATCH", body),
+    getOperationsTrend: (days = 14) => request<OperationsTrendDto>(`/admin/analytics/operations${query({ days })}`),
+    getFinanceTrend: (days = 14) => request<FinanceTrendDto>(`/admin/analytics/finance${query({ days })}`),
+    getCatalogAnalytics: (days = 30) => request<CatalogAnalyticsDto>(`/admin/analytics/catalog${query({ days })}`),
+    getLogsTrend: (days = 30) => request<LogTrendDto>(`/admin/analytics/logs${query({ days })}`),
     // Staff entering an order for a walk-in or phone customer (consent confirmed by staff).
     staffCreateOrder: (body: StaffOrderRequest) => request<OrderDto>("/admin/orders", "POST", body),
     // Staff recording that the customer confirmed the weight in person at the scale.
@@ -130,7 +161,21 @@ export function createApiClient(options: ApiClientOptions) {
     createPrice: (body: PriceRequest) => request<CurrentPrice>("/admin/prices", "POST", body),
     getPriceHistory: (item?: PriceItem) => request<CurrentPrice[]>(`/admin/prices/history${query({ item })}`),
     updateStock: (id: number, changeKg: string, reason: string) => request<RiceTypeDto>(`/admin/rice-types/${idPath(id)}/stock`, "POST", { changeKg, reason }),
+    adminListBatches: () => request<BatchRecordDto[]>("/admin/batches"),
+    adminListBadInputs: () => request<BatchRecordDto[]>("/admin/batches/bad-inputs"),
+    adminEligibleBatchOrders: () => request<EligibleBatchOrderDto[]>("/admin/batches/eligible-orders"),
+    createBatch: (orderIds: number[]) => request<BatchRecordDto>("/admin/batches", "POST", { orderIds }),
+    addOrdersToBatch: (id: number, orderIds: number[]) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/items`, "POST", { orderIds }),
+    startBatchDrying: (id: number) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-drying`, "POST"),
+    startBatchMilling: (id: number, dryKg?: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/start-milling`, "POST", dryKg ? { dryKg } : {}),
+    completeBatchMilling: (id: number, riceKg: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/complete-milling`, "POST", { riceKg }),
+    markBatchBadInput: (id: number, reason: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/bad-input`, "POST", { reason }),
+    restoreBatch: (id: number) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/restore`, "POST"),
+    recordBatchDamage: (id: number, kg: string, note?: string) => request<BatchRecordDto>(`/admin/batches/${idPath(id)}/damages`, "POST", { kg, note }),
+    getAdminLogs: () => request<IrpcLogDto[]>("/admin/logs"),
     getMoney: (from?: string, to?: string) => request<MoneySummaryDto>(`/admin/money${query({ from, to })}`),
+    getReport: (from?: string, to?: string) => request<ReportDto>(`/admin/report${query({ from, to })}`),
+    getAnswerStats: (from?: string, to?: string) => request<AnswerStatsDto>(`/admin/report/answers${query({ from, to })}`),
     getSmsLogs: () => request<SmsLogDto[]>("/admin/sms-logs"),
     // Ancillary prototype screens have no API routes. They are explicitly mock-only.
     getDemoWorkspace: async (): Promise<DemoWorkspace | null> => options.useMock ? (await getMock()).getWorkspace() : null,
@@ -149,5 +194,7 @@ export const {
   getHealth, getMe, register, login, getPrices, getRiceTypes, getSettings, createOrder, getMyOrders,
   getOrder, confirmWeight, cancelOrder, adminListOrders, adminGetOrder, acceptOrder, rejectOrder,
   updateOrderStatus, weighInOrder, staffCreateOrder, staffConfirmWeight, getAdminSummary, createPrice, getPriceHistory, updateStock,
-  getMoney, getSmsLogs,
+  getOperationsTrend, getFinanceTrend, getCatalogAnalytics, getLogsTrend, getMoney, getReport, getAnswerStats, getSmsLogs, adminListBatches, adminListBadInputs,
+  adminEligibleBatchOrders, createBatch, startBatchDrying, startBatchMilling,
+  completeBatchMilling, markBatchBadInput, restoreBatch, recordBatchDamage, getAdminLogs,
 } = api;

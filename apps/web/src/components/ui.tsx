@@ -162,16 +162,17 @@ export function PageHeader({
   const Heading = level === 1 ? "h1" : "h2";
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
-      <div className="flex max-w-2xl items-start gap-3">
+      <div className="flex min-w-0 max-w-2xl items-start gap-3">
         {icon && level === 1 && (
           <span className="mt-0.5 grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-paddy-d/8 text-paddy-d">
             {icon}
           </span>
         )}
-        <div className="flex flex-col gap-1">
+        <div className="flex min-w-0 flex-col gap-1">
           {eyebrow && <p className="text-[12px] font-bold uppercase tracking-[0.16em] text-paddy-d/70">{eyebrow}</p>}
           <Heading
             className={cn(
+              level === 1 && "page-header-title",
               "font-bold tracking-tight",
               level === 1 ? "text-[28px] leading-tight sm:text-[32px]" : "text-xl",
             )}
@@ -181,7 +182,7 @@ export function PageHeader({
           {sub && <p className="text-sub">{sub}</p>}
         </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2 pb-1">{actions}</div>}
+      {actions && <div className="flex min-w-0 flex-wrap items-center gap-2 pb-1">{actions}</div>}
     </div>
   );
 }

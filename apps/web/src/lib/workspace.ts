@@ -15,7 +15,7 @@ export function emptyWorkspace(): Workspace {
 }
 
 export const demoOnlyRoute = (path: string) => [
-  "/buyer/trace", "/staff/intake", "/staff/processing", "/staff/costing", "/staff/financials",
+  "/buyer/trace", "/staff/intake", "/staff/costing", "/staff/financials",
   "/staff/forecast", "/staff/users", "/staff/audit", "/staff/traceability",
 ].some((prefix) => path === prefix || path.startsWith(`${prefix}/`));
 
@@ -30,6 +30,9 @@ function profileFromUser(user: ApiUser): DemoWorkspace["profile"] {
 }
 
 export async function loadWorkspace(client: typeof api, path: string, authenticated: boolean): Promise<Workspace> {
+  // The admin workspace has its own identity and API queries; never run it through
+  // buyer/staff workspace role checks from the global StoreProvider.
+  if (path.startsWith("/admin") || path === "/login" || path === "/signup" || path === "/register") return emptyWorkspace();
   if (!client.useMock && demoOnlyRoute(path)) return emptyWorkspace();
   const demo = await client.getDemoWorkspace();
   const base = { ...emptyWorkspace(), ...demo };

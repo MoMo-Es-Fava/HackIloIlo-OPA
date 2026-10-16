@@ -4,8 +4,8 @@ import { StoreProvider } from "@/lib/store";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "IRPC Digital Platform",
-  description: "Booking, costing, pricing and traceability for the Iloilo rice processing complex",
+  title: "alagarab",
+  description: "alagarab rice processing and operations platform",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {

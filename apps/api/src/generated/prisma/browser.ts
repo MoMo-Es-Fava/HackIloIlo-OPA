@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type PhoneVerification = Prisma.PhoneVerificationModel
 /**
+ * Model WeeklyPriceNotification
+ * 
+ */
+export type WeeklyPriceNotification = Prisma.WeeklyPriceNotificationModel
+/**
  * Model RiceType
  * 
  */
@@ -62,3 +67,28 @@ export type SmsLog = Prisma.SmsLogModel
  * 
  */
 export type Setting = Prisma.SettingModel
+/**
+ * Model BatchRecord
+ * 
+ */
+export type BatchRecord = Prisma.BatchRecordModel
+/**
+ * Model BatchItem
+ * 
+ */
+export type BatchItem = Prisma.BatchItemModel
+/**
+ * Model BatchSale
+ * 
+ */
+export type BatchSale = Prisma.BatchSaleModel
+/**
+ * Model BatchDamage
+ * 
+ */
+export type BatchDamage = Prisma.BatchDamageModel
+/**
+ * Model BatchEvent
+ * 
+ */
+export type BatchEvent = Prisma.BatchEventModel

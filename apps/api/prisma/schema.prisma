@@ -85,6 +85,15 @@ enum SmsDirection {
   INBOUND
 }
 
+enum BatchStatus {
+  NONE
+  DRYING
+  MILLING
+  COMPLETE
+  BAD_INPUT
+  DAMAGED
+}
+
 // ─────────────── MODELS ───────────────
 
 model User {
@@ -100,11 +109,18 @@ model User {
   consentAt    DateTime?
   isActive     Boolean      @default(true)
   createdAt    DateTime     @default(now())
+  phoneVerifiedAt DateTime?
+  weeklyPriceNotifications WeeklyPriceNotification[]
 
   orders       Order[]           @relation("OrderCustomer")
   events       OrderEvent[]
   prices       Price[]
   stockChanges StockAdjustment[]
+  batchesCreated BatchRecord[] @relation("BatchCreator")
+  batchesFlagged BatchRecord[] @relation("BatchBadInputBy")
+  batchSales     BatchSale[]
+  batchEvents    BatchEvent[]
+  batchDamages   BatchDamage[]
 }
 
 // Short-lived SMS challenge. The plaintext code is never stored.
@@ -115,6 +131,22 @@ model PhoneVerification {
   attempts  Int      @default(0)
   sentAt    DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model WeeklyPriceNotification {
+  id Int @id @default(autoincrement())
+  userId Int
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weekStart DateTime @db.Date
+  status String @default("PENDING")
+  message String?
+  providerId String?
+  queuedAt DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekStart])
+  @@index([status, weekStart])
 }
 
 model RiceType {
@@ -178,6 +210,8 @@ model Order {
 
   events  OrderEvent[]
   smsLogs SmsLog[]
+  batchItems BatchItem[]
+  batchSales BatchSale[]
 
   @@index([status, type])
   @@index([customerId])
@@ -228,4 +262,113 @@ model Setting {
   key       String   @id
   value     Json
   updatedAt DateTime @updatedAt
+}
+
+model BatchRecord {
+  id     Int         @id @default(autoincrement())
+  code   String      @unique
+  status BatchStatus @default(NONE)
+
+  wetKg     Decimal  @db.Decimal(12, 2)
+  dryKg     Decimal? @db.Decimal(12, 2)
+  riceKg    Decimal? @db.Decimal(12, 2)
+  damagedKg Decimal  @default(0) @db.Decimal(12, 2)
+
+  dryingRate  Decimal? @db.Decimal(10, 2)
+  millingRate Decimal? @db.Decimal(10, 2)
+
+  palayCost  Decimal @default(0) @db.Decimal(12, 2)
+  dryingCost Decimal @default(0) @db.Decimal(12, 2)
+  millingCost Decimal @default(0) @db.Decimal(12, 2)
+  totalCost  Decimal @default(0) @db.Decimal(12, 2)
+
+  receivedAt       DateTime
+  dryingStartedAt  DateTime?
+  dryingEndedAt    DateTime?
+  millingStartedAt DateTime?
+  millingEndedAt   DateTime?
+  completedAt      DateTime?
+
+  badInputAt           DateTime?
+  badInputReason       String?
+  badInputById         Int?
+  badInputBy           User?        @relation("BatchBadInputBy", fields: [badInputById], references: [id])
+  statusBeforeBadInput BatchStatus?
+
+  createdById Int?
+  createdBy   User?    @relation("BatchCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items   BatchItem[]
+  sales   BatchSale[]
+  damages BatchDamage[]
+  events  BatchEvent[]
+
+  @@index([status, receivedAt])
+  @@index([completedAt])
+}
+
+model BatchItem {
+  id         Int         @id @default(autoincrement())
+  batchId    Int
+  batch      BatchRecord @relation(fields: [batchId], references: [id])
+  orderId    Int
+  order      Order       @relation(fields: [orderId], references: [id])
+  farmerName String
+  kg         Decimal     @db.Decimal(12, 2)
+  unitPrice  Decimal     @db.Decimal(10, 2)
+  orderCost  Decimal     @db.Decimal(12, 2)
+  soldAt     DateTime
+  paidAt     DateTime?
+
+  @@unique([batchId, orderId])
+  @@index([orderId])
+}
+
+model BatchSale {
+  id         Int         @id @default(autoincrement())
+  batchId    Int
+  batch      BatchRecord @relation(fields: [batchId], references: [id])
+  buyerId    Int
+  buyer      User        @relation(fields: [buyerId], references: [id])
+  buyerName  String
+  orderId    Int?
+  order      Order?      @relation(fields: [orderId], references: [id])
+  kg         Decimal     @db.Decimal(12, 2)
+  pricePerKg Decimal     @db.Decimal(10, 2)
+  amount     Decimal     @db.Decimal(12, 2)
+  soldAt     DateTime
+
+  @@index([batchId])
+  @@index([buyerId])
+}
+
+model BatchDamage {
+  id           Int         @id @default(autoincrement())
+  batchId      Int
+  batch        BatchRecord @relation(fields: [batchId], references: [id])
+  fromStatus   BatchStatus
+  kg           Decimal     @db.Decimal(12, 2)
+  costAmount   Decimal     @db.Decimal(12, 2)
+  note         String?
+  occurredAt   DateTime    @default(now())
+  recordedById Int?
+  recordedBy   User?       @relation(fields: [recordedById], references: [id])
+
+  @@index([batchId])
+}
+
+model BatchEvent {
+  id         Int          @id @default(autoincrement())
+  batchId    Int
+  batch      BatchRecord  @relation(fields: [batchId], references: [id])
+  fromStatus BatchStatus?
+  toStatus   BatchStatus
+  note       String?
+  actorId    Int?
+  actor      User?        @relation(fields: [actorId], references: [id])
+  createdAt  DateTime     @default(now())
+
+  @@index([batchId])
 }

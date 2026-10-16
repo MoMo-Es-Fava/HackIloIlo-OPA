@@ -12,6 +12,7 @@ import { SmsProvider } from '../src/integrations/textbee/sms.service';
 import { InMemoryUsersRepository } from '../src/modules/users/in-memory-users.repository';
 import { UsersRepository } from '../src/modules/users/users.repository';
 import { createPrismaServiceMock } from './prisma-service.mock';
+import { WeeklyPricesService } from '../src/modules/weekly-prices/weekly-prices.service';
 
 // Test-only route to check role enforcement.
 @Controller('test-admin')
@@ -51,6 +52,8 @@ describe('Auth (e2e)', () => {
       .useValue(createPrismaServiceMock())
       .overrideProvider(SmsProvider)
       .useValue({ send: sendSms })
+      .overrideProvider(WeeklyPricesService)
+      .useValue({ afterVerifiedSignup: jest.fn().mockResolvedValue(undefined) })
       .compile();
     app = moduleRef.createNestApplication();
     configureApp(app);
@@ -172,6 +175,25 @@ describe('Auth (e2e)', () => {
     await http()
       .get('/test-admin')
       .set('Authorization', `Bearer ${(admin.body as AuthResponse).token}`)
+      .expect(200);
+  });
+
+  it('lets plant staff use admin routes (one admin level for now)', async () => {
+    await users.create({
+      name: 'IRPC Plant Staff',
+      phone: '+639170000002',
+      role: Role.PLANT_STAFF,
+      pinHash: await bcrypt.hash('4321', 4),
+      accountType: null,
+      language: 'EN',
+      municipality: null,
+      cooperative: null,
+      consentAt: null,
+    });
+    const staff = await login('09170000002', '4321').expect(200);
+    await http()
+      .get('/test-admin')
+      .set('Authorization', `Bearer ${(staff.body as AuthResponse).token}`)
       .expect(200);
   });
 
